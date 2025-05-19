@@ -18,46 +18,98 @@
                     </ComboBox>
 
                     <VBox visible="{strategyAnalysisModel>/controlsVisible}">
-
-                        <HBox justifyContent="SpaceBetween" width="100%" renderType="Bare" class="sapUiTinyMarginTop">
+                        <!-- BLOCK MACROSSOVER -->
+                        <VBox
+                            visible="{= ${strategyAnalysisModel>/strategyKey} === 'MACrossover'}"
+                            class="sapUiSmallMargin">
+                            <HBox justifyContent="SpaceBetween" width="100%" renderType="Bare">
                             <VBox width="48%">
                                 <Label text="{i18n>longSMALabelText}"/>
-                                <Input id="longSMAInputInFragment" value="{strategyAnalysisModel>/longSMA}" type="Number" placeholder="Ej: 200" width="100%"/>
+                                <Input
+                                id="longSMAInputInFragment"
+                                value="{strategyAnalysisModel>/longSMA}"
+                                type="Number"
+                                placeholder="Ej: 200"
+                                width="100%"/>
                             </VBox>
                             <VBox width="48%">
                                 <Label text="{i18n>shortSMALabelText}"/>
-                                <Input id="shortSMAInputInFragment" value="{strategyAnalysisModel>/shortSMA}" type="Number" placeholder="Ej: 50" width="100%"/>
+                                <Input
+                                id="shortSMAInputInFragment"
+                                value="{strategyAnalysisModel>/shortSMA}"
+                                type="Number"
+                                placeholder="Ej: 50"
+                                width="100%"/>
                             </VBox>
-                        </HBox>
-
-                        <VBox width="100%">
-                            
-                                <Label text="{i18n>startDateLabelText}"/>
-                                <DatePicker id="startDatePickerInFragment"
-                                    value="{
-                                        path: 'strategyAnalysisModel>/startDate', type: 'sap.ui.model.type.Date',
-                                        formatOptions: { pattern: 'yyyy-MM-dd' }
-                                    }"
-                                    displayFormat="long"
-                                    width="100%"/>
+                            </HBox>
                         </VBox>
-                        <VBox width="100%">
-                                <Label text="{i18n>endDateLabelText}"/>
-                                <DatePicker id="endDatePickerInFragment"
-                                    value="{
-                                        path: 'strategyAnalysisModel>/endDate', type: 'sap.ui.model.type.Date',
-                                        formatOptions: { pattern: 'yyyy-MM-dd' }
-                                    }"
-                                    displayFormat="long"
-                                    width="100%"/>
-                            </VBox>
 
-                        <Label class="sapUiTinyMarginTop" text="Cantidad de acciones"/>
-                        <StepInput value="{strategyAnalysisModel>/stock}" min="1" step="1" displayValuePrecision="0" placeholder="Ej: 10" width="100%" class=""/>
+                        <!-- BLOCK COMÚN (fechas, cantidad) -->
+                        <VBox class="sapUiSmallMargin">
+                            <Label text="{i18n>startDateLabelText}"/>
+                            <DatePicker
+                            id="startDatePickerInFragment"
+                            value="{
+                                path: 'strategyAnalysisModel>/startDate',
+                                type: 'sap.ui.model.type.Date',
+                                formatOptions: { pattern: 'yyyy-MM-dd' }
+                            }"
+                            displayFormat="long"
+                            width="100%"/>
+                            <Label text="{i18n>endDateLabelText}"/>
+                            <DatePicker
+                            id="endDatePickerInFragment"
+                            value="{
+                                path: 'strategyAnalysisModel>/endDate',
+                                type: 'sap.ui.model.type.Date',
+                                formatOptions: { pattern: 'yyyy-MM-dd' }
+                            }"
+                            displayFormat="long"
+                            width="100%"/>
+                            <Label class="sapUiTinyMarginTop" text="Cantidad de acciones"/>
+                            <StepInput
+                            value="{strategyAnalysisModel>/stock}"
+                            min="1"
+                            step="1"
+                            displayValuePrecision="0"
+                            placeholder="Ej: 10"
+                            width="100%"/>
+                        </VBox>
 
-                        <Label/>
-                        <Button id="runAnalysisButtonInFragment" text="{i18n>runAnalysisButtonText}" press=".onRunAnalysisPress" type="Emphasized" width="auto"/>
-
+                        <!-- BLOCK TURTLE SOUP -->
+                        <VBox
+                            visible="{= ${strategyAnalysisModel>/strategyKey} === 'TurtleSoup'}"
+                            class="sapUiSmallMargin">
+                            <Label text="Lookback (Donchian)" />
+                            <Input
+                            id="lookbackInput"
+                            value="{strategyAnalysisModel>/lookback}"
+                            type="Number"
+                            placeholder="Ej: 20"
+                            width="100%"/>
+                            <Label text="RR (Risk/Reward)" />
+                            <Input
+                            id="rrInput"
+                            value="{strategyAnalysisModel>/rr}"
+                            type="Number"
+                            placeholder="Ej: 1.5"
+                            width="100%"/>
+                            <Label text="Usar FVG" />
+                            <Switch id="fvgSwitch" state="{strategyAnalysisModel>/useFvg}" />
+                            <Label text="Usar OB" />
+                            <Switch id="obSwitch" state="{strategyAnalysisModel>/useOb}" />
+                        </VBox>
+                        
+                        <!-- BLOCK BOTÓN -->
+                        <VBox class="sapUiSmallMargin">
+                            <Button
+                            id="runAnalysisButtonInFragment"
+                            text="{i18n>runAnalysisButtonText}"
+                            press=".onRunAnalysisPress"
+                            type="Emphasized"
+                            width="auto"
+                            class="sapUiTinyMarginTop"/>
+                        </VBox>
                     </VBox>
 
                 </f:content>

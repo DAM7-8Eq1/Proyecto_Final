@@ -62,7 +62,7 @@ sap.ui.define([
         date_to: null,
         moving_averages: { short: null, long: null },
         signals: [],
-        chart_data: {},
+        //chart_data: {},
         result: null
     });
     this.getView().setModel(oStrategyResultModel, "strategyResultModel");
@@ -78,7 +78,8 @@ sap.ui.define([
                 this._oResourceBundle = oResourceBundle;
                 oStrategyAnalysisModel.setProperty("/strategies", [
                     { key: "", text: this._oResourceBundle.getText("selectStrategyPlaceholder") },
-                    { key: "MACrossover", text: this._oResourceBundle.getText("movingAverageCrossoverStrategy") }
+                    { key: "MACrossover", text: this._oResourceBundle.getText("movingAverageCrossoverStrategy") },
+                    { key: "TurtleSoup",  text: "Turtle Soup" } 
                 ]);
                 console.log("Textos de i18n cargados correctamente.");
             } else {
@@ -124,7 +125,8 @@ sap.ui.define([
           symbols: [
             { symbol: "TSLA", name: "Tesla" },
             { symbol: "AAPL", name: "Apple" },
-            { symbol: "MSFT", name: "Microsoft" }
+            { symbol: "MSFT", name: "Microsoft" },
+            { symbol: "IBM", name: "IBM" }
           ]
         });
         this.getView().setModel(oSymbolModel, "symbolModel");
@@ -219,12 +221,25 @@ sap.ui.define([
       },
       
       onStrategyChange: function (oEvent) { 
-          var oStrategyAnalysisModel = this.getView().getModel("strategyAnalysisModel");
-          var sSelectedKey = oEvent.getParameter("selectedItem").getKey();
-          oStrategyAnalysisModel.setProperty("/controlsVisible", !!sSelectedKey);
+            var oStrategyAnalysisModel = this.getView().getModel("strategyAnalysisModel");
+            var sSelectedKey = oEvent.getParameter("selectedItem").getKey();
+
+            // Mostrar/ocultar el panel de parámetros según si hay estrategia seleccionada
+            oStrategyAnalysisModel.setProperty("/controlsVisible", !!sSelectedKey);
+
+            // Guardar la clave de la estrategia seleccionada
+            oStrategyAnalysisModel.setProperty("/strategyKey", sSelectedKey);
+
+            // Inicializar valores por defecto para Turtle Soup
+            if (sSelectedKey === "TurtleSoup") {
+                oStrategyAnalysisModel.setProperty("/lookback", 20);
+                oStrategyAnalysisModel.setProperty("/rr", 1.5);
+                oStrategyAnalysisModel.setProperty("/useFvg", false);
+                oStrategyAnalysisModel.setProperty("/useOb", false);
+            }
       },
 
-      onRunAnalysisPress: function() {
+onRunAnalysisPress: function() {
     var oView = this.getView();
     var oStrategyModel = oView.getModel("strategyAnalysisModel");
     var oResultModel = oView.getModel("strategyResultModel");
@@ -243,26 +258,46 @@ sap.ui.define([
         return;
     }
 
-     if (oAnalysisPanel) {
+    if (oAnalysisPanel) {
         oAnalysisPanel.setExpanded(false);
     }
-    // Expande el panel de resultados
     if (oResultPanel) {
         oResultPanel.setExpanded(true);
     }
 
-    // Configurar petición
+    // Construir cuerpo base de la petición
     var oRequestBody = {
         symbol: sSymbol,
         startDate: this._formatDate(oStrategyModel.getProperty("/startDate")),
         endDate: this._formatDate(oStrategyModel.getProperty("/endDate")),
-        amount: 1000,
+        amount: oStrategyModel.getProperty("/stock"),
         userId: "ARAMIS",
-        specs: `SHORT:${oStrategyModel.getProperty("/shortSMA")}&LONG:${oStrategyModel.getProperty("/longSMA")}`
+        specs: ""
     };
 
+    var sStrategyKey = oStrategyModel.getProperty("/strategyKey");
+    var sUrl = "";
+
+    if (sStrategyKey === "MACrossover") {
+        oRequestBody.specs = `SHORT:${oStrategyModel.getProperty("/shortSMA")}&LONG:${oStrategyModel.getProperty("/longSMA")}`;
+        sUrl = "http://localhost:3033/api/inv/simulation?strategy=macrossover";
+    }
+
+    // === Agregado para Turtle Soup ===
+    else if (sStrategyKey === "TurtleSoup") {
+        var lookback = oStrategyModel.getProperty("/lookback");
+        var rr = oStrategyModel.getProperty("/rr");
+        var useFvg = oStrategyModel.getProperty("/useFvg") ? "ON" : "OFF";
+        var useOb = oStrategyModel.getProperty("/useOb") ? "ON" : "OFF";
+
+        oRequestBody.specs = `LOOKBACK:${lookback}&RR:${rr}&FVG:${useFvg}&OB:${useOb}`;
+        sUrl = "http://localhost:3020/api/inv/turtlesoup";
+    }
+    console.log("== TurtleSoup Request ==");
+    console.log("URL:", sUrl);
+    console.log("Body:", JSON.stringify(oRequestBody, null, 2));
     // Llamada a la API
-    fetch("http://localhost:3033/api/inv/simulation?strategy=macrossover", {
+    fetch(sUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(oRequestBody)
@@ -274,17 +309,16 @@ sap.ui.define([
         // Guardar datos en el modelo
         oResultModel.setData({
             hasResults: true,
-            chart_data: this._prepareTableData(data.value.chart_data || []),
+            //chart_data: this._prepareTableData(data.value.chart_data || []),
             signals: data.value.signals || [],
             result: data.value.result || 0
         });
 
         // Sumar la ganancia al balance
-        var oStrategyModel = this.getView().getModel("strategyAnalysisModel");
+        var entryAmount   = oRequestBody.amount || 0;            
+        var finalAmount   = data.value.result || 0;        
+        var totalGain  = +(finalAmount - entryAmount).toFixed(2); 
         var currentBalance = oStrategyModel.getProperty("/balance") || 0;
-        var gainPerShare = data.value.result || 0;
-        var stock = oStrategyModel.getProperty("/stock") || 1;
-        var totalGain = +(gainPerShare * stock).toFixed(2);
         oStrategyModel.setProperty("/balance", currentBalance + totalGain);
         MessageToast.show("Se añadieron $" + totalGain + " a tu balance.");
     })
@@ -293,7 +327,6 @@ sap.ui.define([
         MessageBox.error("Error al obtener datos de simulación");
     });
 },
-
 // Función auxiliar para formatear fechas
 _formatDate: function(oDate) {
     return oDate ? DateFormat.getDateInstance({pattern: "yyyy-MM-dd"}).format(oDate) : null;

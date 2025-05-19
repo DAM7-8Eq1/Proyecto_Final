@@ -64,6 +64,9 @@
                                     <core:Fragment id="strategyAnalysisPanelTable" fragmentName="com.invertions.sapfiorimodinv.view.investments.fragments.StrategyAnalysisPanel" type="XML" />
                                 </VBox>
                             </FlexBox>
+                            <VBox width="auto">
+                        <core:Fragment id="resultPanelTable" fragmentName="com.invertions.sapfiorimodinv.view.investments.fragments.StrategyResultPanel" type="XML" />
+                        </VBox>
                         </IconTabFilter>
                         <!-- GRÁFICA -->
                         <IconTabFilter text="Chart" key="chart">
@@ -133,7 +136,7 @@
                                 </VBox>
                             </FlexBox>
                             <VBox width="auto">
-                        <core:Fragment fragmentName="com.invertions.sapfiorimodinv.view.investments.fragments.StrategyResultPanel" type="XML" />
+                        <core:Fragment id="resultPanelChart" fragmentName="com.invertions.sapfiorimodinv.view.investments.fragments.StrategyResultPanel" type="XML" />
                         </VBox>
                         </IconTabFilter>
                     </items>
