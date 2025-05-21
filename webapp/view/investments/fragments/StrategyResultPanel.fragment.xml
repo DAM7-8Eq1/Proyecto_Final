@@ -17,17 +17,24 @@
                         title="{i18n>strategyResultInfoTitle}"
                         labelSpanXL="4" labelSpanL="4" labelSpanM="12" labelSpanS="12">
                         <f:content>
-                            <Label id="_IDGenLabel10" text="{i18n>strategyResultPeriodLabel}" />
-                            <Text id="_IDGenText29" text="{strategyResultModel>/startDate} - {strategyResultModel>/endDate}" />
+                            <Label id="_IDGenLabel10" text="{i18n>strategyResultPeriodLabelStart}" />
+                            <Text id="_IDGenText29" text="{strategyResultModel>/startDate}" />
 
-                            <Label id="_IDGenLabel11" text="{i18n>strategyResultMaParamsLabel}" />
-                            <Text id="_IDGenText30" text="{strategyResultModel>/moving_averages/short} / {strategyResultModel>/moving_averages/long}" />
+                            <Label id="_IDGenLabel11" text="{i18n>strategyResultPeriodLabelEnd}" />
+                            <Text id="_IDGenText30" text="{strategyResultModel>/endDate}" />
+                            
+                            <Label id="_IDGenLabel12" text="Monto Invertido" design="Bold"/>
+                            <ObjectNumber id="_IDGenObjectNumberA"
+                                number="{
+                                    path: 'strategyResultModel>/amount',
+                                    type: 'sap.ui.model.type.Float', 
+                                    formatOptions: { minFractionDigits: 2, maxFractionDigits: 2, groupingEnabled: true }
+                                }"
+                                emphasized="true"
+                                state="{= ${strategyResultModel>/amount} > 0 ? 'Success' : (${strategyResultModel>/amount} &lt; 0 ? 'Error' : 'None') }" />
 
-                            <Label id="_IDGenLabel12" text="{i18n>strategyResultOverallSignalLabel}" />
-                            <Text id="_IDGenText31" text="{strategyResultModel>/signal}" />
-
-                            <Label id="_IDGenLabel13" text="{i18n>strategyResultNetResultLabel}" design="Bold"/>
-                            <ObjectNumber id="_IDGenObjectNumber"
+                            <Label id="_IDGenLabel13" text="Monto final" design="Bold"/>
+                            <ObjectNumber id="_IDGenObjectNumberB"
                                 number="{
                                     path: 'strategyResultModel>/result',
                                     type: 'sap.ui.model.type.Float', 
@@ -35,6 +42,16 @@
                                 }"
                                 emphasized="true"
                                 state="{= ${strategyResultModel>/result} > 0 ? 'Success' : (${strategyResultModel>/result} &lt; 0 ? 'Error' : 'None') }" />
+                             <Label id="_IDGenLabel15" text="Porcentaje de ganancias" design="Bold"/>
+                            <ObjectNumber id="_IDGenObjectNumberC"
+                                number="{
+                                    path: 'strategyResultModel>/percentageReturn',
+                                    type: 'sap.ui.model.type.Float', 
+                                    formatOptions: {minFractionDigits: 2, maxFractionDigits: 2, groupingEnabled: true }
+                                }"
+                                unit= "%"
+                                emphasized="true"
+                                state="{= ${strategyResultModel>/percentageReturn} > 0 ? 'Success' : (${strategyResultModel>/percentageReturn} &lt; 0 ? 'Error' : 'None') }" />
                         </f:content>
                     </f:SimpleForm>
                 </VBox>

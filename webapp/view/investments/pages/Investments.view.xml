@@ -37,10 +37,6 @@
                                                 <Column><Text text="Low"/></Column>
                                                 <Column><Text text="Close"/></Column>
                                                 <Column><Text text="Volume"/></Column>
-                                                <Column><Text text="Indicators"/></Column>
-                                                <Column><Text text="Signals"/></Column>
-                                                <Column><Text text="Rules"/></Column> <!-- Criterios -->
-                                                <Column><Text text="Shares"/></Column> <!-- Acciones -->
                                             </columns>
                                             <items>
                                                 <ColumnListItem>
