@@ -36,7 +36,7 @@ sap.ui.define([
             const oModel = new JSONModel();
 
             // Construir la URL
-            var sUrl = "http://localhost:3020/api/security/users";
+            var sUrl = "http://localhost:3020/api/security/usersAll";
             //realizar un fetch con la operacion GET
                 fetch(sUrl, {
                     method: "GET",
@@ -57,7 +57,7 @@ sap.ui.define([
                     
 
                     data.value.forEach(user => {
-                        user.ROLES = this.formatRoles(user.ROLES);
+                        user.ROLESm = this.formatRoles(user.ROLES);
                         
                     });
                     
@@ -74,14 +74,22 @@ sap.ui.define([
         },
 
         loadCompanies: function() {
-            //Agregar lógica para cargar compañias
-        },
-
-        loadDeptos: function(){
-            //Agregar lógica para cargar deptos según la compañía
+             var oView = this.getView();
+            // Datos estáticos para compañías y departamentos
+            var oStaticModel = new JSONModel({
+                companies: [
+                    { COMPANYID: 1001, COMPANYNAMME: "INSTITUTO TECNOLOGICO DE TEPIC" },
+                    { COMPANYID: 1002, COMPANYNAMME: "UNIVERSIDAD AUTONOMA DE NAYARIT" }
+                ],
+                cedis: [
+                    { CEDIID: "IdTepic", CEDINAME: "Sistemas y Computacion" },
+                    { CEDIID: "IdUan", CEDINAME: "Departamento de Finanzas" }
+                ]
+            });
+            oView.setModel(oStaticModel);
         },
         statusText: function(bStatus) {
-            return bStatus ? "Desactivado" : "Activo";
+            return bStatus ?  "Activo":"Desactivado" ;
         },
 
 
@@ -115,6 +123,7 @@ sap.ui.define([
             .catch(function (error) {
                 MessageToast.show("Error: " + error.message);
             });
+           // this.loadCompanies();
         },
 
 
@@ -177,7 +186,7 @@ sap.ui.define([
          */
         onAddUser : function() {
             var oView = this.getView();
-
+             this.loadCompanies(); 
             if (!this._oCreateUserDialog) {
                 Fragment.load({
                     id: oView.getId(),
@@ -196,12 +205,117 @@ sap.ui.define([
         },
 
         onSaveUser: function(){
-            //Aquí la lógica para agregar el usuario
+            var oView = this.getView();
+            var sFragmentId = oView.getId();
+            // Obtener valores de los campos
+            var sUserId = Fragment.byId(sFragmentId, "inputUserId")?.getValue().trim();
+            var sUsername = Fragment.byId(sFragmentId, "inputUsername")?.getValue().trim();
+            var sPhone = Fragment.byId(sFragmentId, "inputUserPhoneNumber")?.getValue().trim();
+            var sEmail = Fragment.byId(sFragmentId, "inputUserEmail")?.getValue().trim();
+            var oBirthdayDate = Fragment.byId(sFragmentId, "inputUserBirthdayDate")?.getDateValue();
+            var sCompanyId = Fragment.byId(sFragmentId, "comboBoxCompanies")?.getSelectedKey();
+            var sCompanyName = Fragment.byId(sFragmentId, "comboBoxCompanies")?.getSelectedItem()?.getText();
+            var sCediId = Fragment.byId(sFragmentId, "comboBoxCedis")?.getSelectedKey();
+            var sCediName = Fragment.byId(sFragmentId, "comboBoxCedis")?.getSelectedItem()?.getText();
+            var sFunction = Fragment.byId(sFragmentId, "inputUserFunction")?.getValue().trim();
+            var nCompanyId = Number(sCompanyId);
+
+            // Obtener roles seleccionados del VBox
+            var oRolesVBox = Fragment.byId(sFragmentId, "selectedRolesVBox");
+            var aRoles = oRolesVBox.getItems().map(function(oHBox) {
+                return { ROLEID: oHBox.data("roleId") };
+            });
+            
+            // Validaciones básicas
+            if (!sUserId || !sUsername || !sPhone || !sEmail || !sCompanyId || !sCediId) {
+                MessageToast.show("Por favor, completa todos los campos obligatorios.");
+                return;
+            }
+            if (!this.isValidEmail(sEmail)) {
+                MessageToast.show("Correo electrónico inválido.");
+                return;
+            }
+            if (!this.isValidPhoneNumber(sPhone)) {
+                MessageToast.show("Número telefónico inválido.");
+                return;
+            }
+
+            // Construir el objeto usuario
+            var oNewUser = {
+                USERID: sUserId,
+                USERNAME: sUsername,
+                PHONENUMBER: sPhone,
+                EMAIL: sEmail,
+                BIRTHDAYDATE: oBirthdayDate ? oBirthdayDate.toISOString().split("T")[0] : null,
+                COMPANYID: nCompanyId,
+                COMPANYNAME:sCompanyName,
+                CEDIID: sCediId,
+                DEPARTMENT:sCediName,
+                FUNCTION: sFunction,
+                ROLES: aRoles
+            };
+            // Llamada a la API para guardar el usuario
+            fetch("http://localhost:3020/api/security/createuser", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({user:oNewUser})
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Error al crear usuario");
+                return response.json();
+            })
+            .then(data => {
+                 MessageToast.show("Usuario creado exitosamente");
+                 // Limpiar los campos del fragmento
+                 Fragment.byId(sFragmentId, "inputUserId")?.setValue("");
+                 Fragment.byId(sFragmentId, "inputUsername")?.setValue("");
+                 Fragment.byId(sFragmentId, "inputUserPhoneNumber")?.setValue("");
+                 Fragment.byId(sFragmentId, "inputUserEmail")?.setValue("");
+                 Fragment.byId(sFragmentId, "inputUserBirthdayDate")?.setDateValue(null);
+                 Fragment.byId(sFragmentId, "comboBoxCompanies")?.setSelectedKey("");
+                 Fragment.byId(sFragmentId, "comboBoxCedis")?.setSelectedKey("");
+                 Fragment.byId(sFragmentId, "comboBoxRoles")?.setSelectedKey("");
+                 Fragment.byId(sFragmentId, "inputUserFunction")?.setValue("");
+                 var oRolesVBox = Fragment.byId(sFragmentId, "selectedRolesVBox");
+                 if (oRolesVBox && oRolesVBox.removeAllItems) {
+                     oRolesVBox.removeAllItems();
+                 }
+
+                 this._oCreateUserDialog.close();
+
+                 // Insertar el nuevo usuario en la tabla
+                 var oTable = this.byId("IdTable1SecurityTable");
+                 var oModel = oTable.getModel();
+                 var aUsers = oModel.getProperty("/value") || [];
+                 var oInsertedUser = data.user || oNewUser;
+                 aUsers.push(oInsertedUser);
+                 oModel.setProperty("/value", aUsers);
+            })
+            .catch(error => {
+                MessageToast.show("Error: " + error.message);
+            });
+
         },
 
         onCancelUser: function(){
-            if (this._oCreateUserDialog) {
-                this._oCreateUserDialog.close();
+            if (this._oCreateUserDialog) { 
+                var oView = this.getView();
+                var sFragmentId = oView.getId();   
+                 Fragment.byId(sFragmentId, "inputUserId")?.setValue("");
+                 Fragment.byId(sFragmentId, "inputUsername")?.setValue("");
+                 Fragment.byId(sFragmentId, "inputUserPhoneNumber")?.setValue("");
+                 Fragment.byId(sFragmentId, "inputUserEmail")?.setValue("");
+                 Fragment.byId(sFragmentId, "inputUserBirthdayDate")?.setDateValue(null);
+                 Fragment.byId(sFragmentId, "comboBoxCompanies")?.setSelectedKey("");
+                 Fragment.byId(sFragmentId, "comboBoxCedis")?.setSelectedKey("");
+                 Fragment.byId(sFragmentId, "comboBoxRoles")?.setSelectedKey("");
+                 Fragment.byId(sFragmentId, "inputUserFunction")?.setValue("");
+                 var oRolesVBox = Fragment.byId(sFragmentId, "selectedRolesVBox");
+                 if (oRolesVBox && oRolesVBox.removeAllItems) {
+                     oRolesVBox.removeAllItems();
+                 }
+
+                 this._oCreateUserDialog.close();
             }
         },
 
@@ -214,28 +328,125 @@ sap.ui.define([
          * Agregar la lógica para cargar la info a la modal
          */
         onEditUser: function() {
-            var oView = this.getView();
+                var oView = this.getView();
+                this.loadCompanies(); 
+                this.uid = this.selectedUser && this.selectedUser.USERID ? this.selectedUser.USERID : null;
 
-            if (!this._oEditUserDialog) {
-                Fragment.load({
-                    id: oView.getId(),
-                    name: "com.inv.sapfiroriwebinversion.view.security.components.EditUserDialog",
-                    controller: this
-                }).then(oDialog => {
-                    this._oEditUserDialog = oDialog;
-                    oView.addDependent(oDialog);
-                    this.loadRoles();
+                if (!this._oEditUserDialog) {
+                    Fragment.load({
+                        id: oView.getId(),
+                        name: "com.inv.sapfiroriwebinversion.view.security.components.EditUserDialog",
+                        controller: this
+                    }).then(oDialog => {
+                        this._oEditUserDialog = oDialog;
+                        oView.addDependent(oDialog);
+                        this.loadRoles();
+                        this.setEditUserDialogFields(this.selectedUser); 
+                        this._oEditUserDialog.open();
+                    });
+                } else {
                     this.setEditUserDialogFields(this.selectedUser); 
                     this._oEditUserDialog.open();
-                });
-            } else {
-                this._oEditUserDialog.open();
-            }
+                }
             
         },
 
         onEditSaveUser: function(){
-            //Aquí la lógica para agregar la info actualizada del usuario en la bd
+            var oView = this.getView();
+            var sFragmentId = oView.getId();
+
+            // Obtener valores de los campos del fragmento de edición
+            var sUserId = Fragment.byId(sFragmentId, "editInputUserId")?.getValue().trim();
+            var sUsername = Fragment.byId(sFragmentId, "editInputUsername")?.getValue().trim();
+            var sPhone = Fragment.byId(sFragmentId, "editInputUserPhoneNumber")?.getValue().trim();
+            var sEmail = Fragment.byId(sFragmentId, "editInputUserEmail")?.getValue().trim();
+            var oBirthdayDate = Fragment.byId(sFragmentId, "editInputUserBirthdayDate")?.getDateValue();
+            var sCompanyId = Fragment.byId(sFragmentId, "comboBoxEditCompanies")?.getSelectedKey();
+            var sCompanyName = Fragment.byId(sFragmentId, "comboBoxEditCompanies")?.getSelectedItem()?.getText();
+            var sCediId = Fragment.byId(sFragmentId, "comboBoxEditCedis")?.getSelectedKey();
+            var sCediName = Fragment.byId(sFragmentId, "comboBoxEditCedis")?.getSelectedItem()?.getText();
+            var sFunction = Fragment.byId(sFragmentId, "inputEditUserFunction")?.getValue().trim();
+            var nCompanyId = Number(sCompanyId);
+
+            // Obtener roles seleccionados del VBox
+            var oRolesVBox = Fragment.byId(sFragmentId, "selectedEditRolesVBox");
+            var aRoles = oRolesVBox.getItems().map(function(oHBox) {
+                return { ROLEID: oHBox.data("roleId") };
+            });
+
+            // Validaciones básicas
+            if (!sUserId || !sUsername || !sPhone || !sEmail || !sCompanyId || !sCediId ) {
+                MessageToast.show("Por favor, completa todos los campos obligatorios.");
+                return;
+            }
+            if (!this.isValidEmail(sEmail)) {
+                MessageToast.show("Correo electrónico inválido.");
+                return;
+            }
+            if (!this.isValidPhoneNumber(sPhone)) {
+                MessageToast.show("Número telefónico inválido.");
+                return;
+            }
+
+            // Construir el objeto usuario actualizado
+            var oUpdatedUser = {
+                USERID: sUserId,
+                USERNAME: sUsername,
+                PHONENUMBER: sPhone,
+                EMAIL: sEmail,
+                BIRTHDAYDATE: oBirthdayDate ? oBirthdayDate.toISOString().split("T")[0] : null,
+                COMPANYID: nCompanyId,
+                COMPANYNAME: sCompanyName,
+                CEDIID: sCediId,
+                DEPARTMENT: sCediName,
+                FUNCTION: sFunction,
+                ROLES: aRoles
+            };
+
+            // Llamada a la API para actualizar el usuario
+            fetch("http://localhost:3020/api/security/updateuser?userid=" + this.uid, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user: oUpdatedUser })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Error al modificar usuario");
+                return response.json();
+            })
+            .then(data => {
+                MessageToast.show("Usuario modificado exitosamente");
+
+                // Limpiar los campos del fragmento de edición
+                Fragment.byId(sFragmentId, "editInputUserId")?.setValue("");
+                Fragment.byId(sFragmentId, "editInputUsername")?.setValue("");
+                Fragment.byId(sFragmentId, "editInputUserPhoneNumber")?.setValue("");
+                Fragment.byId(sFragmentId, "editInputUserEmail")?.setValue("");
+                Fragment.byId(sFragmentId, "editInputUserBirthdayDate")?.setDateValue(null);
+                Fragment.byId(sFragmentId, "comboBoxEditCompanies")?.setSelectedKey("");
+                Fragment.byId(sFragmentId, "comboBoxEditCedis")?.setSelectedKey("");
+                Fragment.byId(sFragmentId, "comboBoxEditRoles")?.setSelectedKey("");
+                Fragment.byId(sFragmentId, "inputEditUserFunction")?.setValue("");
+                var oRolesVBox = Fragment.byId(sFragmentId, "selectedEditRolesVBox");
+                if (oRolesVBox && oRolesVBox.removeAllItems) {
+                    oRolesVBox.removeAllItems();
+                }
+
+                this._oEditUserDialog.close();
+
+                // Actualizar el usuario en la tabla
+                var oTable = this.byId("IdTable1SecurityTable");
+                var oModel = oTable.getModel();
+                var aUsers = oModel.getProperty("/value") || [];
+                var idx = aUsers.findIndex(u => u.USERID === sUserId);
+                if (idx !== -1) {
+                    aUsers[idx] = oUpdatedUser;
+                    oModel.setProperty("/value", aUsers);
+                }
+            })
+            .catch(error => {
+                MessageToast.show("Error: " + error.message);
+            });
+
         },
         setEditUserDialogFields: function(user) {
             var oView = this.getView();
@@ -279,6 +490,7 @@ sap.ui.define([
 
         onEditCancelUser: function(){
             if (this._oEditUserDialog) {
+                
                 this._oEditUserDialog.close();
             }
         },
@@ -309,28 +521,36 @@ sap.ui.define([
         },
 
         deleteUser: function(UserId){
-            MessageToast.show("Se eliminio "+ UserId);
-              // Obtener el modelo de la tabla
-            var oTable = this.byId("IdTable1SecurityTable");
-            var oModel = oTable.getModel();
-            var aUsers = oModel.getProperty("/value"); // Asumiendo que los usuarios están en data.value
+            var that = this;
+            // Llamada a la API para eliminar el usuario
+            fetch("http://localhost:3020/api/security/removeuser?userid=" + encodeURIComponent(UserId), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(function(response) {
+                if (!response.ok) throw new Error("Error al eliminar usuario");
+                // Si tu backend responde con JSON, puedes hacer: return response.json();
+                return response.text(); // o simplemente ignorar el cuerpo si no hay respuesta
+            })
+            .then(function() {
+                MessageToast.show("Usuario eliminado " + UserId);
+                // Actualizar la tabla localmente
+                var oTable = that.byId("IdTable1SecurityTable");
+                var oModel = oTable.getModel();
+                var aUsers = oModel.getProperty("/value") || [];
+                var aFiltered = aUsers.filter(function(user) {
+                    return user.USERID !== UserId;
+                });
+                oModel.setProperty("/value", aFiltered);
 
-            // Filtrar el usuario eliminado
-            var aFiltered = aUsers.filter(function(user) {
-                return user.USERID !== UserId;
+                // Limpiar selección y desactivar botones
+                oTable.clearSelection();
+                that.selectedUser = null;
+                that.getView().getModel("viewModel").setProperty("/buttonsEnabled", false);
+            })
+            .catch(function(error) {
+                MessageToast.show("Error: " + error.message);
             });
-
-            // Actualizar el modelo
-            oModel.setProperty("/value", aFiltered);
-
-            // Limpiar selección y desactivar botones
-            oTable.clearSelection();
-            this.selectedUser = null;
-            this.getView().getModel("viewModel").setProperty("/buttonsEnabled", false);
-
-            MessageToast.show("Usuario eliminado " + UserId);
-
-            //Agregar API
         },
 
         // ===================================================
@@ -343,7 +563,12 @@ sap.ui.define([
         onDesactivateUser: function(){
             if (this.selectedUser) {
             //Verificar si el usuairo esta desactivado
-                if (!this.selectedUser.STATUS) {
+                if (!this.selectedUser.DETAIL_ROW.ACTIVED) {
+                     //Esta desctivado
+                    MessageToast.show("El usuario ya se encuentra DESACTIVADO");
+                }else{
+
+                
                     //Se ecnuentra activo
                     //preguntar si desea activarlo  
                     var that = this;
@@ -356,10 +581,6 @@ sap.ui.define([
                             }
                         }
                     });
-                    
-                } else {                
-                    //Esta desctivado
-                    MessageToast.show("El usuario ya se encuentra DeESACTIVADO");
                 }
             }else{
                 MessageToast.show("Selecciona un usuario para desactivar");
@@ -367,27 +588,38 @@ sap.ui.define([
         },
 
         desactivateUser: function(UserId){
-            MessageToast.show("Se desactivo "+ UserId);
-              // Obtener el modelo de la tabla
-            var oTable = this.byId("IdTable1SecurityTable");
-            var oModel = oTable.getModel();
-            var aUsers = oModel.getProperty("/value"); // Asumiendo que los usuarios están en data.value
+            var that = this;
+            // Llamada a la API para desactivar el usuario
+            fetch("http://localhost:3020/api/security/deleteusers?userid=" + encodeURIComponent(UserId), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(function(response) {
+                if (!response.ok) throw new Error("Error al desactivar usuario");
+                return response.text(); // o response.json() si tu backend responde con JSON
+            })
+            .then(function() {
+                // Actualizar el estado del usuario localmente
+                var oTable = that.byId("IdTable1SecurityTable");
+                var oModel = oTable.getModel();
+                var aUsers = oModel.getProperty("/value") || [];
+                aUsers.forEach(function(user) {
+                    if (user.USERID === UserId) {
+                        user.DETAIL_ROW.ACTIVED = false; // false = desactivado
+                    }
+                });
+                oModel.setProperty("/value", aUsers);
 
-            aUsers.forEach(function(user) {
-                if (user.USERID === UserId) {
-                    user.STATUS = true; 
-                }
+                // Limpiar selección y desactivar botones
+                oTable.clearSelection();
+                that.selectedUser = null;
+                that.getView().getModel("viewModel").setProperty("/buttonsEnabled", false);
+
+                MessageToast.show("Usuario desactivado " + UserId);
+            })
+            .catch(function(error) {
+                MessageToast.show("Error: " + error.message);
             });
-
-            // Actualizar el modelo
-            oModel.setProperty("/value", aUsers);
-
-            // Limpiar selección y desactivar botones
-            oTable.clearSelection();
-            this.selectedUser = null;
-            this.getView().getModel("viewModel").setProperty("/buttonsEnabled", false);
-
-            MessageToast.show("Usuario desactivado " + UserId);
         },
 
 
@@ -401,11 +633,8 @@ sap.ui.define([
         onActivateUser: function(){
             if (this.selectedUser) {
             //Verificar si el usuairo esta desactivado
-                if (!this.selectedUser.STATUS) {
-                    //Se ecnuentra activo
-                    MessageToast.show("El usuario ya se encuentra ACTIVO");
-                } else {                
-                    //Esta desctivado
+                if (!this.selectedUser.DETAIL_ROW.ACTIVED) {
+                     //Esta desctivado
                     //preguntar si desea activarlo  
                     var that = this;
                     MessageBox.confirm("¿Deseas activar el usuario con nombre: " + this.selectedUser.USERNAME + "?", {
@@ -418,34 +647,49 @@ sap.ui.define([
                             }
                         }
                     });
-                 }
+                }else{
+                     //Se ecnuentra activo
+                    MessageToast.show("El usuario ya se encuentra ACTIVO");
+                }
+                   
             }else{
                 MessageToast.show("Selecciona un usuario para activar");
             }
         },
 
         activateUser: function(UserId){
-            MessageToast.show("Se desactivo "+ UserId);
-              // Obtener el modelo de la tabla
-            var oTable = this.byId("IdTable1SecurityTable");
-            var oModel = oTable.getModel();
-            var aUsers = oModel.getProperty("/value"); // Asumiendo que los usuarios están en data.value
+            var that = this;
+            // Llamada a la API para activar el usuario
+            fetch("http://localhost:3020/api/security/activateusers?userid=" + encodeURIComponent(UserId), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(function(response) {
+                if (!response.ok) throw new Error("Error al activar usuario");
+                return response.text(); // o response.json() si tu backend responde con JSON
+            })
+            .then(function() {
+                // Actualizar el estado del usuario localmente
+                var oTable = that.byId("IdTable1SecurityTable");
+                var oModel = oTable.getModel();
+                var aUsers = oModel.getProperty("/value") || [];
+                aUsers.forEach(function(user) {
+                    if (user.USERID === UserId) {
+                        user.DETAIL_ROW.ACTIVED = true; // true = activo
+                    }
+                });
+                oModel.setProperty("/value", aUsers);
 
-            aUsers.forEach(function(user) {
-                if (user.USERID === UserId) {
-                    user.STATUS = false;
-                }
+                // Limpiar selección y desactivar botones
+                oTable.clearSelection();
+                that.selectedUser = null;
+                that.getView().getModel("viewModel").setProperty("/buttonsEnabled", false);
+
+                MessageToast.show("Usuario activado " + UserId);
+            })
+            .catch(function(error) {
+                MessageToast.show("Error: " + error.message);
             });
-
-            // Actualizar el modelo
-            oModel.setProperty("/value", aUsers);
-
-            // Limpiar selección y desactivar botones
-            oTable.clearSelection();
-            this.selectedUser = null;
-            this.getView().getModel("viewModel").setProperty("/buttonsEnabled", false);
-
-            MessageToast.show("Usuario desactivado " + UserId);
         },
 
 
@@ -476,7 +720,34 @@ sap.ui.define([
         },
 
         onSearchUser: function () {
-            //Aplicar el filtro de búsqueda para la tabla
+            var oTable = this.byId("IdTable1SecurityTable");
+            var oModel = oTable.getModel();
+            var aUsers = oModel.getProperty("/value") || [];
+            var oSearchField = this.byId("searchFieldUsers"); // Asegúrate de tener un SearchField con este ID en tu vista
+            var sQuery = oSearchField ? oSearchField.getValue().toLowerCase() : "";
+
+            if (!sQuery) {
+                // Si no hay búsqueda, muestra todos los usuarios
+                oModel.setProperty("/filtered", aUsers);
+                oTable.bindRows("/filtered");
+                return;
+            }
+
+            // Filtra usuarios por cualquier campo (string)
+            var aFiltered = aUsers.filter(function(user) {
+                return Object.values(user).some(function(value) {
+                    if (typeof value === "object" && value !== null) {
+                        // Si el valor es un objeto, busca en sus propiedades también
+                        return Object.values(value).some(function(subValue) {
+                            return String(subValue).toLowerCase().includes(sQuery);
+                        });
+                    }
+                    return String(value).toLowerCase().includes(sQuery);
+                });
+            });
+
+            oModel.setProperty("/filtered", aFiltered);
+            oTable.bindRows("/filtered");
         },
 
         onRefresh: function(){

@@ -21,7 +21,7 @@
             <m:Button id="ActivateUser" text="Activar" icon="sap-icon://accept" press="onActivateUser" type="Success" enabled="{viewModel>/buttonsEnabled}" class="myBlackButton"/>
             <m:ToolbarSpacer id="idToolbarSeparato"/>
             <m:SearchField 
-                id="SearchUserField" 
+                id="searchFieldUsers" 
                 width="25rem"
                 placeholder="Buscar usuario..."
                 liveChange="onSearchUser" 
@@ -89,7 +89,7 @@
     <tl:Column id="IdColumnRoles" sortProperty="ROLES" width="12rem" autoResizable="true" resizable="true">
             <m:Label id="IdLabelRoles" text="ROLES" />
             <tl:template>
-                <m:Text id="IdTextRoles" text="{ROLES}" wrapping="false"/>
+                <m:Text id="IdTextRoles" text="{ROLESm}" wrapping="false"/>
         </tl:template>
     </tl:Column>
 
@@ -103,7 +103,7 @@
     <tl:Column id="IdColumnStatus" sortProperty="DETAIL_ROW/ACTIVED" width="12rem" autoResizable="true" resizable="true">
         <m:Label id="IdLabelStatus" text="ESTATUS" />
         <tl:template>
-            <m:Text id="IdTextStatus" text="{path: 'STATUS', formatter: '.statusText'}"/>
+            <m:Text id="IdTextStatus" text="{path: 'DETAIL_ROW/ACTIVED', formatter: '.statusText'}"/>
         </tl:template>
     </tl:Column>
 
@@ -117,17 +117,7 @@
 
     </tl:columns>
 
-        <tl:footer>
-            <m:OverflowToolbar id="OverFlowUsersManage2">
-                <m:Label id="OberflowLabelUsersManage2" text="Modo de filas" />
-                <m:SegmentedButton selectedKey="{ui>/rowMode}" id="rowModeSelector2">
-                    <m:items>
-                        <m:SegmentedButtonItem id="IdUsersFixedButton2" key="Fixed" icon="sap-icon://locked" />
-                        <m:SegmentedButtonItem id="IdUsersInteracctiveButton2" key="Interactive" icon="sap-icon://resize-vertical" />
-                    </m:items>
-                </m:SegmentedButton>
-            </m:OverflowToolbar>
-         </tl:footer>
+        
         </tl:Table>
     </m:Page>
 </mvc:View>

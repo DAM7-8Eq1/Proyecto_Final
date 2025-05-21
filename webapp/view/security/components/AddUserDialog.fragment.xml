@@ -44,7 +44,7 @@
         </VBox>
 
         <beginButton>
-            <Button id="SaveNewUser" text="Guardar" type="Emphasized" press="onGuardarUsuarioCreado" />
+            <Button id="SaveNewUser" text="Guardar" type="Emphasized" press="onSaveUser" />
         </beginButton>
 
         <endButton>
