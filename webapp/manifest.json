@@ -46,7 +46,12 @@
                 "sap.m": {},
                 "sap.ui.core": {},
                 "sap.tnt": {},
-                "sap.f": {}
+                "sap.f": {},
+                "sap.ui.table": {},
+                "sap.ui.layout": {},
+                "sap.viz": {},
+                "sap.ui.comp": {},
+                "sap.suite.ui.microchart": {}
             }
        },
         "contentDensities": {
@@ -57,7 +62,6 @@
             "i18n": {
                 "type": "sap.ui.model.resource.ResourceModel",
                 "settings": {
-                "async": true,
                 "bundleName": "com.inv.sapfiroriwebinversion.i18n.i18n",
                 "fallbackLocale": "es_MX",
                 "supportedLocales": [
@@ -113,6 +117,11 @@
                     "name":"RouteRolesMaster",
                     "pattern":"roles",
                     "target": ["TargetRolesMaster"]
+                },
+                {
+                   "pattern": "investments",
+                    "name": "RouteInvestments",
+                    "target": ["TargetInvestments"]
                 }
             ],
             "targets": {
@@ -159,6 +168,16 @@
                     "viewlevel": 2,
                     "path": "com.inv.sapfiroriwebinversion.view.security.pages",
                     "viewPath": "com.inv.sapfiroriwebinversion.view.security.pages"
+                },
+                "TargetInvestments":{
+                    "viewId": "Investments",
+                    "viewName": "Investments",
+                    "viewType": "XML",
+                    "transition":"slide",
+                    "clearControlAggregation": false,
+                    "viewlevel": 2,
+                    "path": "com.inv.sapfiroriwebinversion.view.investments.pages",
+                    "viewPath": "com.inv.sapfiroriwebinversion.view.investments.pages"
                 }
             }
         },
