@@ -21,7 +21,7 @@ sap.ui.define([
     },
     //Reditigir a catalogos
     onCatalogs: function () {
-      this.getOwnerComponent().getRouter().navTo("RouteRolesMaster");
+      this.getOwnerComponent().getRouter().navTo("RouteCatalogs");
     },
     onUsers: function () {
       //Redirigir a usuarios

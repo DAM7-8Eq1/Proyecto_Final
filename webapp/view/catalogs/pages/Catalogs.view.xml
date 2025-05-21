@@ -1,12 +1,12 @@
 <mvc:View
     xmlns:form="sap.ui.layout.form"
-    controllerName="com.invertions.sapfiorimodinv.controller.catalogs.Catalogs"
+    controllerName="com.inv.sapfiroriwebinversion.controller.catalogs.pages.Catalogs"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
     xmlns:layout="sap.ui.layout"
     xmlns:html="http://www.w3.org/1999/xhtml"
-    xmlns:cc="com.invertions.sapfiorimodinv.controller"
+    xmlns:cc="com.inv.sapfiroriwebinversion.controller.catalogs.pages"
 >
     <Page id="_IDGenPage1" title="Catálogos">
         <content>
@@ -169,7 +169,7 @@
 
                         <mvc:XMLView
                             id="XMLViewValues"
-                            viewName="com.invertions.sapfiorimodinv.view.catalogs.Values"
+                            viewName="com.inv.sapfiroriwebinversion.view.catalogs.pages.Values"
                         />
                     </Panel>
                 </cc:CustomSplitter>

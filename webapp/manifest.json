@@ -119,6 +119,11 @@
                     "name":"RouteRolesMaster",
                     "pattern":"roles",
                     "target": ["TargetRolesMaster"]
+                },
+                {
+                    "name":"RouteCatalogs",
+                    "pattern":"catalogos",
+                    "target": ["TargetCatalogs"]
                 }
             ],
             "targets": {
@@ -165,6 +170,16 @@
                     "viewlevel": 2,
                     "path": "com.inv.sapfiroriwebinversion.view.security.pages",
                     "viewPath": "com.inv.sapfiroriwebinversion.view.security.pages"
+                },
+                "TargetCatalogs":{
+                    "viewId": "Catalogs",
+                    "viewName": "Catalogs",
+                    "viewType": "XML",
+                    "transition":"slide",
+                    "clearControlAggregation": false,
+                    "viewlevel": 2,
+                    "path": "com.inv.sapfiroriwebinversion.view.catalogs.pages",
+                    "viewPath": "com.inv.sapfiroriwebinversion.view.catalogs.pages"
                 }
             }
         },

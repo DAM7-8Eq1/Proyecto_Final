@@ -266,6 +266,14 @@ sap.ui.define([
             })
             .then(data => {
                  MessageToast.show("Usuario creado exitosamente");
+                    // Insertar el nuevo usuario en la tabla
+                 var oTable = this.byId("IdTable1SecurityTable");
+                 var oModel = oTable.getModel();
+                 var aUsers = oModel.getProperty("/value") || [];
+                 var oInsertedUser = data.user || oNewUser;
+                 aUsers.push(oInsertedUser);
+                 oModel.setProperty("/value", aUsers);
+                 
                  // Limpiar los campos del fragmento
                  Fragment.byId(sFragmentId, "inputUserId")?.setValue("");
                  Fragment.byId(sFragmentId, "inputUsername")?.setValue("");
@@ -283,13 +291,7 @@ sap.ui.define([
 
                  this._oCreateUserDialog.close();
 
-                 // Insertar el nuevo usuario en la tabla
-                 var oTable = this.byId("IdTable1SecurityTable");
-                 var oModel = oTable.getModel();
-                 var aUsers = oModel.getProperty("/value") || [];
-                 var oInsertedUser = data.user || oNewUser;
-                 aUsers.push(oInsertedUser);
-                 oModel.setProperty("/value", aUsers);
+              
             })
             .catch(error => {
                 MessageToast.show("Error: " + error.message);
