@@ -88,11 +88,17 @@
             },
             "routes": [
                 {
-                    "name": "main",
+                    "name": "login",
                     "pattern": "",
                     "target": [
-                        "TargetMain"
+                        "TargetLogin"
                     ]
+                },
+                
+                {
+                    "name":"main",
+                    "pattern":"main",
+                    "target": ["TargetMain"]
                 },
                 {
                     "name":"RouteSalesForecast",
@@ -137,8 +143,8 @@
                     "transition":"slide",
                     "clearControlAggregation": false,
                     "viewlevel": 2,
-                    "path": "com.inv.sapfiroriwebinversion.view.security",
-                    "viewPath": "com.inv.sapfiroriwebinversion.view.security"
+                    "path": "com.inv.sapfiroriwebinversion.view.security.pages",
+                    "viewPath": "com.inv.sapfiroriwebinversion.view.security.pages"
                 },
                 "TargetUserList":{
                     "viewId": "UsersList",

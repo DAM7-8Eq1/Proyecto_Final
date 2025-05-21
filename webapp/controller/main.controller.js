@@ -6,7 +6,8 @@ sap.ui.define([
   return Controller.extend("com.inv.sapfiroriwebinversion.controller.Main", {
 
     onInit: function () {
-      // Inicialización si se necesita
+    const oUser = this.getOwnerComponent().getModel("appView").getProperty("/currentUser");
+    console.log("Usuario recibido en Main:", oUser);
     },
 
     onInvertions: function () {
