@@ -1,6 +1,6 @@
 specVersion: "3.1"
 metadata:
-  name: com.invertions.sapfiorimodinv
+  name: com.ccnay.ficsapfioriwebsales
 type: application
 framework:
   name: SAPUI5
@@ -17,5 +17,3 @@ framework:
     - name: sap.ui.export
     - name: sap.tnt
     - name: sap.ndc
-    - name: sap.ui.comp 
-    - name: sap.viz 

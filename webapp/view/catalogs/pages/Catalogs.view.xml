@@ -1,0 +1,179 @@
+<mvc:View
+    xmlns:form="sap.ui.layout.form"
+    controllerName="com.invertions.sapfiorimodinv.controller.catalogs.Catalogs"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:layout="sap.ui.layout"
+    xmlns:html="http://www.w3.org/1999/xhtml"
+    xmlns:cc="com.invertions.sapfiorimodinv.controller"
+>
+    <Page id="_IDGenPage1" title="Catálogos">
+        <content>
+            <VBox id="_IDGenVBox18">
+                <!-- Splitter control para dividir la pantalla en dos -->
+                <cc:CustomSplitter
+                    id="mainSplitter"
+                    orientation="Horizontal"
+                >
+                    <!-- Panel izquierdo: Tabla de catálogos -->
+                    <Panel id="_IDGenPanel1" width="auto">
+                        <layoutData>
+                            <layout:SplitterLayoutData id="_IDGenSplitterLayoutData" size="100%" />
+                        </layoutData>
+
+                        <!-- 🔹 Barra de herramientas -->
+                        <OverflowToolbar id="_IDGenOverflowToolbar1">
+                            <Title id="_IDGenTitle5"
+                                text="Valores"
+                                level="H2"
+                            />
+                            <ToolbarSpacer id="_IDGenToolbarSpacer4" />
+                            <SearchField
+                                width="20rem"
+                                id="searchField"
+                                placeholder="Buscar en todos los campos..."
+                                liveChange="onFilterChange"
+                                showSearchButton="false"
+                            />
+                            <Button id="_IDGenButton15"
+                                text="Agregar"
+                                icon="sap-icon://add"
+                                type="Emphasized"
+                                press="onAddCatalog"
+                            />
+                            <Button
+                                id="editButton"
+                                text="Editar"
+                                icon="sap-icon://edit"
+                                press="onEditPressed"
+                                enabled="false"
+                            />
+                            <Button
+                                id="activateButton"
+                                text="Activar"
+                                icon="sap-icon://accept"
+                                press="onActivatePressed"
+                                enabled="false"
+                                visible="{= !${DETAIL_ROW/ACTIVED} }"
+                            />
+                            <Button
+                                id="deactivateButton"
+                                text="Desactivar"
+                                icon="sap-icon://decline"
+                                press="onDeactivatePressed"
+                                enabled="false"
+                                visible="{= ${DETAIL_ROW/ACTIVED} }"
+                            />
+                            <Button
+                                id="deleteButton"
+                                text="Eliminar"
+                                icon="sap-icon://delete"
+                                press="onDeletePressed"
+                                enabled="false"
+                                type="Reject"
+                            />
+                        </OverflowToolbar>
+                        <Table
+                            id="catalogTable"
+                            items="{
+                                path: '/value',
+                                sorter: { path: 'LABELID' }
+                            }"
+                            selectionChange="onSelectionChange"
+                            itemPress="onItemPress"
+                            mode="SingleSelectMaster"
+                            growing="true"
+                            width="auto"
+                        >
+                            <columns>
+                                <Column id="_IDGenColumn27" width="120px">
+                                    <!-- Define un ancho fijo para cada columna -->
+                                    <Text id="_IDGenText53" text="LABELID" />
+                                </Column>
+                                <Column id="_IDGenColumn28" width="140px">
+                                    <Text id="_IDGenText54" text="LABEL" />
+                                </Column>
+                                <Column id="_IDGenColumn29" width="220px">
+                                    <Text id="_IDGenText55" text="INDEX" />
+                                </Column>
+                                <Column id="_IDGenColumn30" width="170px">
+                                    <Text id="_IDGenText56" text="COLLECTION" />
+                                </Column>
+                                <Column id="_IDGenColumn31" width="150px">
+                                    <Text id="_IDGenText57" text="SECTION" />
+                                </Column>
+                                <Column id="_IDGenColumn32" width="100px">
+                                    <Text id="_IDGenText58" text="SEQUENCE" />
+                                </Column>
+                                <Column id="_IDGenColumn33" width="160px">
+                                    <Text id="_IDGenText59" text="IMAGE" />
+                                </Column>
+                                <Column id="_IDGenColumn34" width="230px">
+                                    <Text id="_IDGenText60" text="DESCRIPTION" />
+                                </Column>
+                                <Column id="_IDGenColumn35" width="120px">
+                                    <Text id="_IDGenText61" text="ESTADO" />
+                                </Column>
+                            </columns>
+                            <items>
+                                <ColumnListItem id="_IDGenColumnListItem5" type="Active">
+                                    <cells>
+                                        <Text id="_IDGenText62" text="{LABELID}" />
+                                        <Text id="_IDGenText63" text="{LABEL}" />
+                                        <Text id="_IDGenText64" text="{INDEX}" />
+                                        <Text id="_IDGenText65" text="{COLLECTION}" />
+                                        <Text id="_IDGenText66" text="{SECTION}" />
+                                        <Text id="_IDGenText67" text="{SEQUENCE}" />
+                                        <Text id="_IDGenText68" text="{IMAGE}" />
+                                        <Text id="_IDGenText69" text="{DESCRIPTION}" />
+                                        <Text id="_IDGenText70"
+                                            text="{= ${DETAIL_ROW/ACTIVED} ? 'ACTIVO' : 'INACTIVO'}"
+                                            class="{= ${DETAIL_ROW/ACTIVED} ? 'sapUiGreenText' : 'sapUiRedText'}"
+                                        />
+                                    </cells>
+                                </ColumnListItem>
+                            </items>
+                        </Table>
+                    </Panel>
+                    <!-- Panel derecho: View valores -->
+                    <Panel id="detailPanel">
+                        <layoutData>
+                            <layout:SplitterLayoutData id="_IDGenSplitterLayoutData1" size="0px" />
+                        </layoutData>
+                        <HBox id="_IDGenHBox3"
+                            alignItems="Center"
+                            class="sapUiSmallMargin"
+                        >
+                            <Button id="_IDGenButton16"
+                                icon="sap-icon://navigation-right-arrow"
+                                type="Default"
+                                tooltip="Volver"
+                                press="onCloseDetailPanel"
+                                class="sapUiTinyMarginEnd"
+                            />
+                            <Button id="_IDGenButton17"
+                                icon="sap-icon://resize-horizontal"
+                                type="Default"
+                                tooltip="Centrar panel"
+                                press="onCenterDetailPanel"
+                                class="sapUiTinyMarginEnd"
+                            />
+                            <Button id="_IDGenButton18"
+                                icon="sap-icon://full-screen"
+                                type="Default"
+                                tooltip="Expandir panel"
+                                press="onExpandDetailPanel"
+                            />
+                        </HBox>
+
+                        <mvc:XMLView
+                            id="XMLViewValues"
+                            viewName="com.invertions.sapfiorimodinv.view.catalogs.Values"
+                        />
+                    </Panel>
+                </cc:CustomSplitter>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

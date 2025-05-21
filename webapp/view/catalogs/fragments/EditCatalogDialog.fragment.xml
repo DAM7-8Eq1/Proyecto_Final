@@ -9,44 +9,44 @@
         contentWidth="600px">
         
         <content>
-            <form:SimpleForm editable="true">
-                <Label text="LABELID" required="true"/>
-                <Text text="{editModel>/LABELID}"/>
+            <form:SimpleForm id="_IDGenSimpleForm4" editable="true">
+                <Label id="_IDGenLabel28" text="LABELID" required="true"/>
+                <Text id="_IDGenText72" text="{editModel>/LABELID}"/>
                 
-                <Label text="LABEL" required="true"/>
-                <Input value="{editModel>/LABEL}"/>
+                <Label id="_IDGenLabel29" text="LABEL" required="true"/>
+                <Input id="_IDGenInput10" value="{editModel>/LABEL}"/>
                 
-                <Label text="INDEX"/>
-                <Input value="{editModel>/INDEX}"/>
+                <Label id="_IDGenLabel30" text="INDEX"/>
+                <Input id="_IDGenInput11" value="{editModel>/INDEX}"/>
                 
-                <Label text="COLLECTION"/>
-                <Input value="{editModel>/COLLECTION}"/>
+                <Label id="_IDGenLabel31" text="COLLECTION"/>
+                <Input id="_IDGenInput12" value="{editModel>/COLLECTION}"/>
                 
-                <Label text="SECTION"/>
-                <Input value="{editModel>/SECTION}"/>
+                <Label id="_IDGenLabel32" text="SECTION"/>
+                <Input id="_IDGenInput13" value="{editModel>/SECTION}"/>
                 
-                <Label text="SEQUENCE"/>
-                <Input value="{editModel>/SEQUENCE}" type="Number"/>
+                <Label id="_IDGenLabel33" text="SEQUENCE"/>
+                <Input id="_IDGenInput14" value="{editModel>/SEQUENCE}" type="Number"/>
                 
-                <Label text="IMAGE URL"/>
-                <Input value="{editModel>/IMAGE}"/>
+                <Label id="_IDGenLabel34" text="IMAGE URL"/>
+                <Input id="_IDGenInput15" value="{editModel>/IMAGE}"/>
                 
-                <Label text="DESCRIPTION"/>
-                <TextArea value="{editModel>/DESCRIPTION}" rows="3"/>
+                <Label id="_IDGenLabel35" text="DESCRIPTION"/>
+                <TextArea id="_IDGenTextArea1" value="{editModel>/DESCRIPTION}" rows="3"/>
                 
                 <!-- Agrega más campos según necesites -->
             </form:SimpleForm>
         </content>
         
         <beginButton>
-            <Button 
+            <Button id="_IDGenButton21" 
                 text="Guardar" 
                 type="Emphasized" 
                 press="onSaveEdit"/>
         </beginButton>
         
         <endButton>
-            <Button 
+            <Button id="_IDGenButton22" 
                 text="Cancelar" 
                 press="onCancelEdit"/>
         </endButton>

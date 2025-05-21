@@ -9,9 +9,9 @@ sap.ui.define([
 ], function (Controller, History, UIComponent, JSONModel, jQuery, Log, Storage) {
     `use strict`;
 
-    const urlBase = "https://ccnayt.dnsalias.com:9101";
+    const urlBase = "https://inv.dnsalias.com:9101";
     
-    return Controller.extend("com.invertions.sapfiorimodinv.controller.BaseController", {
+    return Controller.extend("com.inv.sapfiroriwebinversion.controller.BaseController", {
 
         onInit: function () { }, //this ecxecute only first time
         getRouter: function () { return UIComponent.getRouterFor(this)},

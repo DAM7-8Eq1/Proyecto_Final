@@ -8,6 +8,6 @@
     placeholder="Selecciona un símbolo (TSLA, AAPL...)"
     change=".onSymbolChange"
     items="{symbolModel>/symbols}">
-    <core:Item key="{symbolModel>symbol}" text="{symbolModel>name} ({symbolModel>symbol})"/>
+    <core:Item id="_IDGenItem4" key="{symbolModel>symbol}" text="{symbolModel>name} ({symbolModel>symbol})"/>
   </ComboBox>
 </core:FragmentDefinition>

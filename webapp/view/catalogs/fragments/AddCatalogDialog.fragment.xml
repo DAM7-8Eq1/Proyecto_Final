@@ -10,42 +10,42 @@
     contentWidth="600px">
     
     <content>
-      <form:SimpleForm editable="true" layout="ResponsiveGridLayout">
-        <Label text="LABELID" required="true"/>
-        <Input value="{addCatalogModel>/LABELID}"/>
+      <form:SimpleForm id="_IDGenSimpleForm6" editable="true" layout="ResponsiveGridLayout">
+        <Label id="_IDGenLabel43" text="LABELID" required="true"/>
+        <Input id="_IDGenInput20" value="{addCatalogModel>/LABELID}"/>
         
-        <Label text="LABEL" required="true"/>
-        <Input value="{addCatalogModel>/LABEL}"/>
+        <Label id="_IDGenLabel44" text="LABEL" required="true"/>
+        <Input id="_IDGenInput21" value="{addCatalogModel>/LABEL}"/>
         
-        <Label text="INDEX"/>
-        <Input value="{addCatalogModel>/INDEX}"/>
+        <Label id="_IDGenLabel45" text="INDEX"/>
+        <Input id="_IDGenInput22" value="{addCatalogModel>/INDEX}"/>
         
-        <Label text="COLLECTION"/>
-        <Input value="{addCatalogModel>/COLLECTION}"/>
+        <Label id="_IDGenLabel46" text="COLLECTION"/>
+        <Input id="_IDGenInput23" value="{addCatalogModel>/COLLECTION}"/>
         
-        <Label text="SECTION"/>
-        <Input value="{addCatalogModel>/SECTION}"/>
+        <Label id="_IDGenLabel47" text="SECTION"/>
+        <Input id="_IDGenInput24" value="{addCatalogModel>/SECTION}"/>
         
-        <Label text="SEQUENCE"/>
-        <Input value="{addCatalogModel>/SEQUENCE}" type="Number"/>
+        <Label id="_IDGenLabel48" text="SEQUENCE"/>
+        <Input id="_IDGenInput25" value="{addCatalogModel>/SEQUENCE}" type="Number"/>
         
-        <Label text="IMAGE URL"/>
-        <Input value="{addCatalogModel>/IMAGE}"/>
+        <Label id="_IDGenLabel49" text="IMAGE URL"/>
+        <Input id="_IDGenInput26" value="{addCatalogModel>/IMAGE}"/>
         
-        <Label text="DESCRIPTION"/>
-        <TextArea value="{addCatalogModel>/DESCRIPTION}" rows="3"/>
+        <Label id="_IDGenLabel50" text="DESCRIPTION"/>
+        <TextArea id="_IDGenTextArea3" value="{addCatalogModel>/DESCRIPTION}" rows="3"/>
         
-        <Label text="Estado Inicial"/>
-        <Switch state="{addCatalogModel>/DETAIL_ROW/ACTIVED}" customTextOn="ACTIVO" customTextOff="INACTIVO"/>
+        <Label id="_IDGenLabel51" text="Estado Inicial"/>
+        <Switch id="_IDGenSwitch" state="{addCatalogModel>/DETAIL_ROW/ACTIVED}" customTextOn="ACTIVO" customTextOff="INACTIVO"/>
       </form:SimpleForm>
     </content>
     
     <beginButton>
-      <Button text="Guardar" type="Emphasized" press="onSaveCatalog"/>
+      <Button id="_IDGenButton25" text="Guardar" type="Emphasized" press="onSaveCatalog"/>
     </beginButton>
     
     <endButton>
-      <Button text="Cancelar" press="onCancelAddCatalog"/>
+      <Button id="_IDGenButton26" text="Cancelar" press="onCancelAddCatalog"/>
     </endButton>
   </Dialog>
 </core:FragmentDefinition>

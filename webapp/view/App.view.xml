@@ -1,5 +1,5 @@
 <mvc:View
-  controllerName="com.invertions.sapfiorimodinv.controller.App"
+  controllerName="com.inv.sapfiroriwebinversion.controller.App"
   xmlns:mvc="sap.ui.core.mvc"
   xmlns:tnt="sap.tnt"
   xmlns:f="sap.f"

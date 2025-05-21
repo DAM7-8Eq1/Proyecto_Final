@@ -1,7 +1,8 @@
 {
-  "name": "sap-fiori-mod-inv",
+  "name": "sap_firori_web_inversion",
   "version": "0.0.1",
-  "description": "Aplicacion SAP FIORI web para inversiones",
+  "type": "module",
+  "description": "SAP Fiori Web Application for Inversion Module",
   "keywords": [
     "ui5",
     "openui5",
@@ -14,14 +15,23 @@
     "@sap/eslint-plugin-ui5-jsdocs": "2.0.5",
     "@sap/ux-ui5-tooling": "1",
     "@sapui5/ts-types": "~1.132.0",
-    "@types/jquery": "^3.5.32",
-    "@ui5/cli": "^3.11.6",
+    "@ui5/cli": "^3.0.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "concurrently": "^9.1.2",
     "eslint": "8.57.0",
-    "eslint-plugin-fiori-custom": "2.6.7"
+    "eslint-plugin-fiori-custom": "2.6.7",
+    "vite": "^6.3.3",
+    "vite-plugin-pwa": "^1.0.0"
   },
   "scripts": {
-    "start": "fiori run --port 8081 --open 'index.html#/'",
-    "build": "ui5 build --all --config ./ui5.yaml --clean-dest --dest dist"
+    "start": "fiori run --port 8081 --open index.html#/ ",
+    "build": "ui5 build --all --config ./ui5.yaml --clean-dest --dest dist",
+    "start:backend": "cd backend && npm install && npm start",
+    "start:frontend": "cd webapp/react && npm install && npm run dev",
+    "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\""
   },
-  "sapuxLayer": "CUSTOMER_BASE"
+  "sapuxLayer": "CUSTOMER_BASE",
+  "dependencies": {
+    "@cap-js/sqlite": "^1.11.0"
+  }
 }

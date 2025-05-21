@@ -3,22 +3,28 @@ sap.ui.define([
 ], function (Controller) {
   "use strict";
 
-  return Controller.extend("com.invertions.sapfiorimodinv.controller.Main", {
+  return Controller.extend("com.inv.sapfiroriwebinversion.controller.Main", {
 
     onInit: function () {
       // Inicialización si se necesita
     },
 
-    onGoToInvertions: function () {
+    onInvertions: function () {
+      //Redirigir a Inversiones
       this.getOwnerComponent().getRouter().navTo("RouteInvertionsCompanies");
-    },
+    }, 
 
-    onGoToRoles: function () {
+    onRoles: function () {
+      //Redirigir a Roles
       this.getOwnerComponent().getRouter().navTo("RouteRolesMaster");
     },
-
-    onGoToUsers: function () {
-      this.getOwnerComponent().getRouter().navTo("RouteUsersList");
+    //Reditigir a catalogos
+    onCatalogs: function () {
+      this.getOwnerComponent().getRouter().navTo("RouteRolesMaster");
+    },
+    onUsers: function () {
+      //Redirigir a usuarios
+      this.getOwnerComponent().getRouter().navTo("RouteUserList");
     }
 
   });

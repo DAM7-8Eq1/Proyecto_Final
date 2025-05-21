@@ -9,41 +9,41 @@
         contentWidth="600px">
         
         <content>
-            <form:SimpleForm editable="true">
-            <Label text="LABELID" required="true"/>
-        <Text text="{values>/selectedValue/LABELID}" />
+            <form:SimpleForm id="_IDGenSimpleForm3" editable="true">
+            <Label id="_IDGenLabel14" text="LABELID" required="true"/>
+        <Text id="_IDGenText71" text="{values>/selectedValue/LABELID}" />
         
-         <Label text="VALUEID" required="true"/>
+         <Label id="_IDGenLabel22" text="VALUEID" required="true"/>
         <Input value="{newValueModel>/VALUEID}"  id="InputValueIdEdit" editable="false"/>
 
-        <Label text="VALUE" required="true"/>
-        <Input value="{newValueModel>/VALUE}" />
+        <Label id="_IDGenLabel23" text="VALUE" required="true"/>
+        <Input id="_IDGenInput6" value="{newValueModel>/VALUE}" />
 
-        <Label text="VALUEPAID" />
-        <Input value="{newValueModel>/VALUEPAID}" />
+        <Label id="_IDGenLabel24" text="VALUEPAID" />
+        <Input id="_IDGenInput7" value="{newValueModel>/VALUEPAID}" />
 
-        <Label text="ALIAS" />
-        <Input value="{newValueModel>/ALIAS}" />
+        <Label id="_IDGenLabel25" text="ALIAS" />
+        <Input id="_IDGenInput8" value="{newValueModel>/ALIAS}" />
 
-        <Label text="IMAGE" />
-        <Input value="{newValueModel>/IMAGE}" />
+        <Label id="_IDGenLabel26" text="IMAGE" />
+        <Input id="_IDGenInput9" value="{newValueModel>/IMAGE}" />
 
-        <Label text="DESCRIPTION" />
-        <TextArea value="{newValueModel>/DESCRIPTION}" rows="3"/>
+        <Label id="_IDGenLabel27" text="DESCRIPTION" />
+        <TextArea id="_IDGenTextArea" value="{newValueModel>/DESCRIPTION}" rows="3"/>
                 
                 <!-- Agrega más campos según necesites -->
             </form:SimpleForm>
         </content>
         
         <beginButton>
-            <Button 
+            <Button id="_IDGenButton19" 
                 text="Guardar" 
                 type="Emphasized" 
                 press="onEditValue"/>
         </beginButton>
         
         <endButton>
-            <Button 
+            <Button id="_IDGenButton20" 
                 text="Cancelar" 
                 press="onCancelEdit"/>
         </endButton>

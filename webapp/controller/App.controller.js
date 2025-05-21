@@ -1,12 +1,12 @@
 sap.ui.define([
-    "sap/ui/core/mvc/Controller"
-], function (Controller) {
-    "use strict";
+  "sap/ui/core/mvc/Controller"
+], (BaseController) => {
+  "use strict";
 
-    return Controller.extend("com.invertions.sapfiorimodinv.controller.App", {
+  return BaseController.extend("com.inv.sapfiroriwebinversion.controller.App", {
 
         onInit: function () {
-            // Redirige automáticamente a la vista principal al iniciar
+            //Enviar el main a iniciar 
             const oRouter = this.getOwnerComponent().getRouter();
             oRouter.navTo("RouteMain");
         },
@@ -20,13 +20,14 @@ sap.ui.define([
         onItemSelect: function (oEvent) {
             const sKey = oEvent.getParameter("item").getKey();
             const oRouter = this.getOwnerComponent().getRouter();
-
+            //Verificar de la lista de opciones 8items) del menu lateral cual se escogio
+            //Y redirigir a dicha ruta
             switch (sKey) {
                 case "roles":
                     oRouter.navTo("RouteRolesMaster");
                     break;
                 case "users":
-                    oRouter.navTo("RouteUsersList");
+                    oRouter.navTo("RouteUserList");
                     break;
                 case "catalogs":
                     oRouter.navTo("RouteCatalogs");
@@ -35,7 +36,7 @@ sap.ui.define([
                     oRouter.navTo("RouteInvestments");
                     break;
                 default:
-                    oRouter.navTo("RouteMain");
+                    oRouter.navTo("main");
             }
         }
 

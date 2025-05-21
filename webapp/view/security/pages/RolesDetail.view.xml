@@ -1,0 +1,146 @@
+<mvc:View
+  controllerName="com.inv.sapfiroriwebinversion.controller.security.pages.RolesDetail"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns:m="sap.m"
+  xmlns:core="sap.ui.core"
+  xmlns:layout="sap.ui.layout.form"
+  xmlns:tl="sap.ui.table"
+  xmlns:rowmodes="sap.ui.table.rowmodes"
+  xmlns:cc="com.invertions.sapfiorimodinv.controller">
+
+  <m:Page
+    id="rolesDetailPage"
+    title="Detalles de rol: {selectedRole>/ROLENAME}"
+    showNavButton="true"
+    navButtonPress=".onNavBack">
+
+    <!-- 🔹 Acciones del Rol -->
+    <m:headerContent>
+      <m:Toolbar id="_IDGenToolbar1">
+        <m:ToolbarSpacer id="_IDGenToolbarSpacer8" />
+        <m:Button id="_IDGenButton28" text="Editar" type="Emphasized" icon="sap-icon://edit" press=".onUpdateRole" />
+        <m:Button id="_IDGenButton29" text="Desactivar" icon="sap-icon://delete" press=".onDesactivateRole" type="Attention" />
+        <m:Button id="_IDGenButton30" text="Eliminar" icon="sap-icon://delete" type="Reject" press=".onDeleteRole" />
+      </m:Toolbar>
+    </m:headerContent>
+
+    <m:content>
+
+      <!-- 🔹 Información del rol -->
+      <m:VBox id="roleInfoBox" class="sapUiSmallMargin">
+        <m:Text id="roleIdText" text="ID: {selectedRole>/ROLEID}" />
+        <m:Text id="roleDescriptionText" text="{selectedRole>/DESCRIPTION}" class="sapUiSmallMarginBottom" />
+      </m:VBox>
+
+      <!-- 🔹 Procesos del rol -->
+      <m:Panel
+        id="processesPanel"
+        headerText="Procesos y Privilegios"
+        expandable="false"
+        class="sapUiMediumMarginTop">
+
+        <tl:Table
+          id="processesTable"
+          rows="{selectedRole>/PROCESSES}"
+          selectionMode="None"
+          alternateRowColors="true"
+          enableColumnReordering="true"
+          width="100%"
+          noData="Este rol no tiene procesos asignados.">
+
+          <tl:rowMode>
+            <rowmodes:Fixed id="_IDGenFixed1" rowCount="5" />
+          </tl:rowMode>
+
+          <tl:columns>
+            <tl:Column id="_IDGenColumn40">
+              <m:Label id="_IDGenLabel56" text="Proceso" />
+              <tl:template>
+                <m:Text id="_IDGenText77" text="{selectedRole>PROCESSNAME}" />
+              </tl:template>
+            </tl:Column>
+
+            <tl:Column id="_IDGenColumn41">
+              <m:Label id="_IDGenLabel57" text="Aplicación" />
+              <tl:template>
+                <m:Text id="_IDGenText78" text="{selectedRole>APPLICATIONNAME}" />
+              </tl:template>
+            </tl:Column>
+
+            <tl:Column id="_IDGenColumn42">
+              <m:Label id="_IDGenLabel58" text="Vista" />
+              <tl:template>
+                <m:Text id="_IDGenText79" text="{selectedRole>VIEWNAME}" />
+              </tl:template>
+            </tl:Column>
+
+            <tl:Column id="_IDGenColumn43">
+              <m:Label id="_IDGenLabel59" text="Privilegios" />
+              <tl:template>
+                <m:HBox id="_IDGenHBox5" wrap="Wrap">
+                  <m:FlexBox id="_IDGenFlexBox2" wrap="Wrap" items="{selectedRole>PRIVILEGES}">
+                    <m:items>
+                      <m:ObjectStatus id="_IDGenObjectStatus1" text="{selectedRole>PRIVILEGENAME}" class="sapUiTinyMarginEnd sapUiTinyMarginTop" />
+                    </m:items>
+                  </m:FlexBox>
+                </m:HBox>
+              </tl:template>
+            </tl:Column>
+          </tl:columns>
+        </tl:Table>
+      </m:Panel>
+
+      <!-- 🔹 Usuarios del rol -->
+      <m:Panel id="_IDGenPanel2"
+        headerText="Usuarios con este Rol"
+        class="sapUiMediumMarginTop"
+        expandable="false">
+
+        <tl:Table
+          id="usersTable"
+          rows="{selectedRole>/USERS}"
+          selectionMode="None"
+          alternateRowColors="true"
+          enableColumnReordering="true"
+          width="100%"
+          noData="Este rol no tiene usuarios asignados.">
+
+          <tl:rowMode>
+            <rowmodes:Fixed id="_IDGenFixed2" rowCount="5" />
+          </tl:rowMode>
+
+          <tl:columns>
+            <tl:Column id="_IDGenColumn44">
+              <m:Label id="_IDGenLabel60" text="Usuario" />
+              <tl:template>
+                <m:Text id="_IDGenText80" text="{selectedRole>USERID}" />
+              </tl:template>
+            </tl:Column>
+
+            <tl:Column id="_IDGenColumn45">
+              <m:Label id="_IDGenLabel61" text="Nombre completo" />
+              <tl:template>
+                <m:Text id="_IDGenText81" text="{selectedRole>USERNAME}" />
+              </tl:template>
+            </tl:Column>
+
+            <tl:Column id="_IDGenColumn46">
+              <m:Label id="_IDGenLabel62" text="Empresa" />
+              <tl:template>
+                <m:Text id="_IDGenText82" text="{selectedRole>COMPANYNAME}" />
+              </tl:template>
+            </tl:Column>
+
+            <tl:Column id="_IDGenColumn47">
+              <m:Label id="_IDGenLabel63" text="Departamento" />
+              <tl:template>
+                <m:Text id="_IDGenText83" text="{selectedRole>DEPARTMENT}" />
+              </tl:template>
+            </tl:Column>
+          </tl:columns>
+        </tl:Table>
+      </m:Panel>
+
+    </m:content>
+  </m:Page>
+</mvc:View>

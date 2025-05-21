@@ -1,0 +1,54 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+    <Dialog
+        id="EditUserDialog"
+        title="Editar Usuario"
+        icon="sap-icon://edit"
+        type="Message"
+        class="customDialogSize"
+        draggable="true"
+        resizable="true"
+    >
+        <VBox id="EditUserDialogVbox" class="sapUiSmallMargin">
+            <Input id="editInputUserId" placeholder="ID de Usuario"/>
+
+            <Input id="editInputUsername" placeholder="Nombre Completo"/>
+            
+            <Input id="editInputUserPhoneNumber" type="Number" placeholder="Número telefónico"/>
+
+            <Input id="editInputUserEmail" type="Email" placeholder="Correo Electrónico"/>
+
+            <DatePicker id="editInputUserBirthdayDate" placeholder="Fecha de nacimiento"/>
+
+            <ComboBox id="comboBoxEditCompanies" items="{/companies}" selectionChange="onCompanySelected" placeholder="Compañía">
+                <core:Item id="EditCompanyItem" key="{COMPANYID}" text="{COMPANYNAMME}" />
+            </ComboBox>
+            
+            <ComboBox id="comboBoxEditCedis" items="{/cedis}" selectionChange="onCediSelected" placeholder="Departamento">
+                <core:Item id="EditCediItem" key="{CEDIID}" text="{CEDINAME}" />
+            </ComboBox>
+
+            
+             <ComboBox id="comboBoxEditRoles"
+                items="{ path: 'rolesModel>/roles'}"
+                placeholder="Selecciona un Rol"
+                selectionChange="onRoleSelected">
+                <core:Item id="EditRoleItem" key="{rolesModel>ROLEID}" text="{rolesModel>ROLENAME}" />
+            </ComboBox>
+            
+            <VBox id="selectedEditRolesVBox" class="sapUiSmallMarginTop">
+                <!--VBOx donde va añadiendo los roles -->
+            </VBox>
+
+            <Input id="inputEditUserFunction" placeholder="Función que ejerce"/>
+
+        </VBox>
+
+        <beginButton>
+            <Button id="EditUser" text="Guardar" type="Emphasized" press="onEditSaveUser" />
+        </beginButton>
+
+        <endButton>
+            <Button id="CancelEditUser" text="Cancelar" press="onEditCancelUser" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

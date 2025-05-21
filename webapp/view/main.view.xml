@@ -1,14 +1,14 @@
 <mvc:View
-  controllerName="com.invertions.sapfiorimodinv.controller.Main"
+  controllerName="com.inv.sapfiroriwebinversion.controller.Main"
   xmlns:mvc="sap.ui.core.mvc"
   xmlns="sap.m"
   xmlns:core="sap.ui.core"
   displayBlock="true">
 
-  <VBox class="sapUiSmallMargin">
+  <VBox id="_IDGenVBox4" class="sapUiSmallMargin">
 
 
-  <ObjectHeader
+  <ObjectHeader id="_IDGenObjectHeader"
     title="¡Bienvenido al Módulo Administrativo!"
     intro="Seleccione una opción para comenzar"
     icon="sap-icon://home"
@@ -16,43 +16,43 @@
     fullScreenOptimized="true"
   />
 
-  <Toolbar class="sapUiSmallMarginTop">
-    <Title text="Accesos rápidos" level="H4" />
-    <ToolbarSpacer />
-    <Button icon="sap-icon://refresh" tooltip="Actualizar" press=".onRefresh" />
+  <Toolbar id="_IDGenToolbar" class="sapUiSmallMarginTop">
+    <Title id="_IDGenTitle" text="Accesos rápidos" level="H4" />
+    <ToolbarSpacer id="_IDGenToolbarSpacer" />
+    <Button id="_IDGenButton4" icon="sap-icon://refresh" tooltip="Actualizar" press="onRefresh" />
   </Toolbar>
 
 
-  <HBox wrap="Wrap" class="sapUiSmallMarginTop">
+  <HBox id="_IDGenHBox" wrap="Wrap" class="sapUiSmallMarginTop">
 
-    <VBox class="sapUiSmallMarginEnd">
-      <GenericTile header="Catálogos" subheader="Administrar catálogos" press=".onGoToCatalogs">
-        <TileContent>
-          <ImageContent src="sap-icon://folder" />
+    <VBox id="_IDGenVBox5" class="sapUiSmallMarginEnd">
+      <GenericTile id="_IDGenGenericTile" header="Catálogos" subheader="Administrar catálogos" press="onCatalogs">
+        <TileContent id="_IDGenTileContent">
+          <ImageContent id="_IDGenImageContent" src="sap-icon://folder" />
         </TileContent>
       </GenericTile>
     </VBox>
 
-    <VBox class="sapUiSmallMarginEnd">
-      <GenericTile header="Gestión de Roles" subheader="Administrar accesos" press=".onGoToRoles">
-        <TileContent>
-          <ImageContent src="sap-icon://key" />
+    <VBox id="_IDGenVBox6" class="sapUiSmallMarginEnd">
+      <GenericTile id="_IDGenGenericTile1" header="Gestión de Roles" subheader="Administrar accesos" press="onRoles">
+        <TileContent id="_IDGenTileContent1">
+          <ImageContent id="_IDGenImageContent1" src="sap-icon://key" />
         </TileContent>
       </GenericTile>
     </VBox>
 
-    <VBox class="sapUiSmallMarginEnd">
-      <GenericTile header="Gestión de Usuarios" subheader="Usuarios y permisos" press=".onGoToUsers">
-        <TileContent>
-          <ImageContent src="sap-icon://employee-approvals" />
+    <VBox id="_IDGenVBox7" class="sapUiSmallMarginEnd">
+      <GenericTile id="_IDGenGenericTile2" header="Gestión de Usuarios" subheader="Usuarios y permisos" press="onUsers">
+        <TileContent id="_IDGenTileContent2">
+          <ImageContent id="_IDGenImageContent2" src="sap-icon://employee-approvals" />
         </TileContent>
       </GenericTile>
     </VBox>
 
-    <VBox class="sapUiSmallMarginEnd">
-      <GenericTile header="Módulo Inversiones" subheader="Simular estrategias" press=".onGoToInvertions">
-        <TileContent>
-          <ImageContent src="sap-icon://business-objects-experience" />
+    <VBox id="_IDGenVBox8" class="sapUiSmallMarginEnd">
+      <GenericTile id="_IDGenGenericTile3" header="Módulo Inversiones" subheader="Simular estrategias" press="onInvertions">
+        <TileContent id="_IDGenTileContent3">
+          <ImageContent id="_IDGenImageContent3" src="sap-icon://business-objects-experience" />
         </TileContent>
       </GenericTile>
     </VBox>
