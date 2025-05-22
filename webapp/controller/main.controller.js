@@ -6,7 +6,8 @@ sap.ui.define([
   return Controller.extend("com.inv.sapfiroriwebinversion.controller.Main", {
 
     onInit: function () {
-      // Inicialización si se necesita
+    const oUser = this.getOwnerComponent().getModel("appView").getProperty("/currentUser");
+    console.log("Usuario recibido en Main:", oUser);
     },
 
     onInvertions: function () {
@@ -20,7 +21,7 @@ sap.ui.define([
     },
     //Reditigir a catalogos
     onCatalogs: function () {
-      this.getOwnerComponent().getRouter().navTo("RouteRolesMaster");
+      this.getOwnerComponent().getRouter().navTo("RouteCatalogs");
     },
     onUsers: function () {
       //Redirigir a usuarios

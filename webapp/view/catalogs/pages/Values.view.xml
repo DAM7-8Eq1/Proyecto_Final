@@ -1,5 +1,5 @@
 <mvc:View
-    controllerName="com.invertions.sapfiorimodinv.controller.catalogs.Values"
+    controllerName="com.inv.sapfiroriwebinversion.controller.catalogs.pages.Values"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:core="sap.ui.core"

@@ -1,5 +1,5 @@
 <mvc:View
-    controllerName="com.invertions.sapfiorimodinv.controller.security.Login"
+    controllerName="com.inv.sapfiroriwebinversion.controller.security.pages.Login"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns:m="sap.m"
 >

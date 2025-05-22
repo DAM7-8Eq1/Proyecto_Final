@@ -22,7 +22,7 @@ sap.ui.define([
   return BaseController.extend("com.inv.sapfiroriwebinversion.controller.security.pages.RoleMaster", {
 
     onInit: function () {
-      this._catalogsLoaded = false;
+      /*this._catalogsLoaded = false;
       this.initModels();
 
       this.loadRolesData();
@@ -35,7 +35,7 @@ sap.ui.define([
           this.getView().addDependent(oDialog);
           return oDialog;
         }.bind(this));
-      }
+      }*/
     },
 
 
