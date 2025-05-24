@@ -269,10 +269,10 @@ onRunAnalysisPress: function() {
     // Construir cuerpo base de la petición
     var oRequestBody = {
         symbol: sSymbol,
-        startDate: this._formatDate(oStrategyModel.getProperty("/startDate")),
+        startDate: (oStrategyModel.getProperty("/startDate")),
         endDate: this._formatDate(oStrategyModel.getProperty("/endDate")),
         amount: oStrategyModel.getProperty("/stock"),
-        userId: "ARAMIS",
+        userId: "TEST",
         specs: ""
     };
 
@@ -286,13 +286,31 @@ onRunAnalysisPress: function() {
 
     // === Agregado para Turtle Soup ===
     else if (sStrategyKey === "Supertrend") {
-        var maLength = oStrategyModel.getProperty("/maLength");
-        var atrPeriod = oStrategyModel.getProperty("/atrPeriod");
-        var multiplier = oStrategyModel.getProperty("/multiplier");
-        var rr = oStrategyModel.getProperty("/rr");
-
-        oRequestBody.specs = `LENGTH:${maLength}&ATR:${atrPeriod}&MULT:${multiplier}&RR:${rr}`;
-        sUrl = "http://localhost:3020/api/inv/supertrend";
+    var symbol     = oStrategyModel.getProperty("/symbol");      // e.g. "IBM"
+    var startDate  = this._formatDate(oStrategyModel.getProperty("/startDate"));   // e.g. "2021-01-01T00:00:00Z"
+    var endDate    = this._formatDate(oStrategyModel.getProperty("/endDate"));     // e.g. "2022-06-03T00:00:00Z"
+    var amount     = oStrategyModel.getProperty("/stock");               // 100000.00
+    var userId     = "TEST";     // "1234"
+    var maLength   = oStrategyModel.getProperty("/maLength");    // 20
+    var atrPeriod  = oStrategyModel.getProperty("/atrPeriod");   // 10
+    var multiplier = oStrategyModel.getProperty("/multiplier");  // 2.0
+    var rr         = oStrategyModel.getProperty("/rr");          // 1.5
+    oRequestBody = {
+      simulation: {
+        SYMBOL:     sSymbol,
+        STARTDATE:  startDate,
+        ENDDATE:    endDate,
+        AMOUNT:     amount,
+        USERID:     userId,
+        SPECS: [
+          { INDICATOR: "length", VALUE: maLength },
+          { INDICATOR: "atr",    VALUE: atrPeriod },
+          { INDICATOR: "mult",   VALUE: multiplier },
+          { INDICATOR: "rr",     VALUE: rr }
+        ]
+      }
+    };
+    sUrl = "http://localhost:3020/api/inv/simulation?strategy=supertrend";
     }
     console.log("== Supertrend Request ==");
     console.log("URL:", sUrl);
@@ -307,21 +325,39 @@ onRunAnalysisPress: function() {
     .then(data => {
         console.log("Datos recibidos:", data);
         
-        // Guardar datos en el modelo
-        oResultModel.setData({
-            hasResults: true,
-            chart_data: this._prepareTableData(data.value.chart_data || []),
-            signals: data.value.signals || [],
-            result: data.value.result || 0
-        });
+  var sim = data.value[0] || {};
 
-        // Sumar la ganancia al balance
-        var entryAmount   = oRequestBody.amount || 0;            
-        var finalAmount   = data.value.result || 0;        
-        var totalGain  = +(finalAmount - entryAmount).toFixed(2); 
-        var currentBalance = oStrategyModel.getProperty("/balance") || 0;
-        oStrategyModel.setProperty("/balance", currentBalance + totalGain);
-        MessageToast.show("Se añadieron $" + totalGain + " a tu balance.");
+  // 2) Mapear a un JSON plano con las mismas keys que usa el XML
+  var payload = {
+    hasResults:     true,
+    simulationName: sim.SIMULATIONNAME,
+    symbol:         sim.SYMBOL,
+    startDate:      sim.STARTDATE,
+    endDate:        sim.ENDDATE,
+    // Señales completas para el XML
+    signals:        sim.SIGNALS || [],
+    // Resumen de estadísticas (opcionales según lo que quieras mostrar)
+    summary: {
+      totalBoughtUnits:  sim.SUMMARY.TOTAL_BOUGHT_UNITS,
+      totalSoldUnits:    sim.SUMMARY.TOTAL_SOLD_UNITS,
+      remainingUnits:    sim.SUMMARY.REMAINING_UNITS,
+      finalCash:         sim.SUMMARY.FINAL_CASH,
+      finalValue:        sim.SUMMARY.FINAL_VALUE,
+      finalBalance:      sim.SUMMARY.FINAL_BALANCE,
+      realProfit:        sim.SUMMARY.REAL_PROFIT,
+      percentageReturn:  sim.SUMMARY.PERCENTAGE_RETURN
+    }
+  };
+
+  // 3) Volcar todo al modelo de resultados
+  oResultModel.setData(payload);
+
+  // 4) (Opcional) si sigues queriendo actualizar tu balance
+  var entryAmount     = oRequestBody.amount || 0;
+  var realProfit      = sim.SUMMARY.REAL_PROFIT || 0;
+  var currentBalance  = oStrategyModel.getProperty("/balance") || 0;
+  oStrategyModel.setProperty("/balance", currentBalance + realProfit);
+  MessageToast.show("Se añadieron $" + realProfit.toFixed(2) + " a tu balance.");
     })
     .catch(error => {
         console.error("Error:", error);
