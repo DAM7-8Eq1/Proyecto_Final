@@ -92,11 +92,17 @@
             },
             "routes": [
                 {
-                    "name": "main",
+                    "name": "login",
                     "pattern": "",
                     "target": [
-                        "TargetMain"
+                        "TargetLogin"
                     ]
+                },
+                
+                {
+                    "name":"main",
+                    "pattern":"main",
+                    "target": ["TargetMain"]
                 },
                 {
                     "name":"RouteSalesForecast",
@@ -122,6 +128,11 @@
                    "pattern": "investments",
                     "name": "RouteInvestments",
                     "target": ["TargetInvestments"]
+                },
+                {
+                    "name":"RouteCatalogs",
+                    "pattern":"catalogos",
+                    "target": ["TargetCatalogs"]
                 }
             ],
             "targets": {
@@ -146,8 +157,8 @@
                     "transition":"slide",
                     "clearControlAggregation": false,
                     "viewlevel": 2,
-                    "path": "com.inv.sapfiroriwebinversion.view.security",
-                    "viewPath": "com.inv.sapfiroriwebinversion.view.security"
+                    "path": "com.inv.sapfiroriwebinversion.view.security.pages",
+                    "viewPath": "com.inv.sapfiroriwebinversion.view.security.pages"
                 },
                 "TargetUserList":{
                     "viewId": "UsersList",
@@ -178,6 +189,16 @@
                     "viewlevel": 2,
                     "path": "com.inv.sapfiroriwebinversion.view.investments.pages",
                     "viewPath": "com.inv.sapfiroriwebinversion.view.investments.pages"
+                },
+                "TargetCatalogs":{
+                    "viewId": "Catalogs",
+                    "viewName": "Catalogs",
+                    "viewType": "XML",
+                    "transition":"slide",
+                    "clearControlAggregation": false,
+                    "viewlevel": 2,
+                    "path": "com.inv.sapfiroriwebinversion.view.catalogs.pages",
+                    "viewPath": "com.inv.sapfiroriwebinversion.view.catalogs.pages"
                 }
             }
         },

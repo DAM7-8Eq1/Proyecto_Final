@@ -3,7 +3,8 @@
   xmlns:mvc="sap.ui.core.mvc"
   xmlns="sap.m"
   xmlns:core="sap.ui.core"
-  displayBlock="true">
+  displayBlock="true"
+  models="{ appView: 'appView' }">
 
   <VBox id="_IDGenVBox4" class="sapUiSmallMargin">
 
@@ -15,6 +16,25 @@
     showTitleSelector="false"
     fullScreenOptimized="true"
   />
+  <!-- Información del usuario -->
+  <VBox id="_IDGenVBox20" class="sapUiSmallMarginBottom sapUiMediumFontSize" xmlns:core="sap.ui.core">
+    <HBox id="_IDGenHBox6">
+      <Text id="_IDGenText84" text="Usuario:" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+      <Text id="_IDGenText85" text="{appView>/currentUser/USERNAME}" class="sapUiTinyMarginBottom" />
+    </HBox>
+    <HBox id="_IDGenHBox7">
+      <Text id="_IDGenText86" text="Fecha de nacimiento:" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+      <Text id="_IDGenText87" text="{appView>/currentUser/BIRTHDAYDATE}" class="sapUiTinyMarginBottom" />
+    </HBox>
+    <HBox id="_IDGenHBox8">
+      <Text id="_IDGenText88" text="Empresa:" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+      <Text id="_IDGenText89" text="{appView>/currentUser/COMPANYNAME}" class="sapUiTinyMarginBottom" />
+    </HBox>
+    <HBox id="_IDGenHBox9">
+      <Text id="_IDGenText90" text="Departamento:" class="sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+      <Text id="_IDGenText91" text="{appView>/currentUser/DEPARTMENT}" class="sapUiTinyMarginBottom" />
+    </HBox>
+  </VBox>
 
   <Toolbar id="_IDGenToolbar" class="sapUiSmallMarginTop">
     <Title id="_IDGenTitle" text="Accesos rápidos" level="H4" />

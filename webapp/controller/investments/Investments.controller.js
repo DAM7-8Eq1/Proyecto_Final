@@ -8,7 +8,7 @@ sap.ui.define([
   "sap/viz/ui5/data/FlattenedDataset", 
   "sap/viz/ui5/controls/common/feeds/FeedItem" 
 ], function(Controller, JSONModel, MessageToast, DateFormat, MessageBox, VizFrame, FlattenedDataset, FeedItem) { 
-  "use strict";
+  "use strict"; 
 
   return Controller.extend("com.inv.sapfiroriwebinversion.controller.investments.Investments", {
 
@@ -326,6 +326,17 @@ onRunAnalysisPress: function() {
         console.log("Datos recibidos:", data);
         
   var sim = data.value[0] || {};
+        // Guardar datos en el modelo
+        oResultModel.setData({
+            hasResults: true,
+            chart_data: this._prepareTableData(data.value.chart_data || []),
+            signals: data.value.signals || [],
+            startDate: data.value.startDate || 0,
+            endDate: data.value.endDate || 0,
+            amount: data.value.amount || 0,
+            result: data.value.result || 0,
+            percentageReturn: data.value.percentageReturn * 100 || 0,
+        });
 
   // 2) Mapear a un JSON plano con las mismas keys que usa el XML
   var payload = {
