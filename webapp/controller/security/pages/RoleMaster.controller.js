@@ -47,14 +47,17 @@ sap.ui.define([
             MessageToast.show("Error: " + error.message);
         });
     },
-    onRoleSelected:function(oEvent){
-        var oSelectedItem = oEvent.getParameter("listItem");
-        var oContext = oSelectedItem.getBindingContext("roles");
+    
+    onRoleSelected: function(oEvent) {
+        var oContext = oEvent.getParameter("rowContext");
+        if (!oContext) {
+            // Si no hay contexto, salir
+            return;
+        }
         var oData = oContext.getObject();
         this.getView().getModel("roles").setProperty("/selectedRole", oData);
-        //activar el boton de eliminar detalles
-
     },
+    // abrir el modal para usuarios
     onOpenDialog:function(){
       var oView = this.getView();
       if (!this._oCreateRoleDialog) {
@@ -77,7 +80,9 @@ sap.ui.define([
              this._oCreateRoleDialog.close();
         }
       },
-
+      onAddRole: function () {
+      
+      },
     
 
 
