@@ -2,79 +2,85 @@
   xmlns:mvc="sap.ui.core.mvc"
   xmlns:m="sap.m"
   xmlns:core="sap.ui.core"
-  xmlns:layout="sap.ui.layout.form"
+  xmlns:layout="sap.ui.layout"
+  xmlns:layoutform="sap.ui.layout.form"
   xmlns:tl="sap.ui.table"
   xmlns:rowmodes="sap.ui.table.rowmodes"
-  >
+  xmlns:cc="com.inv.sapfiroriwebinversion.controller.catalogs.pages"
+>
 
   <m:Page id="rolesMaster" title="Roles" class="sapUiContentPadding">
-
-
-    <m:Toolbar id="_IDGenToolbar2" design="Transparent" class="customRoleToolbar">
-      <m:Button id="_IDGenButton27" text="Crear" icon="sap-icon://add" type="Accept" press=".onOpenDialog" />
-
-      <m:SearchField id="searchRoleName" width="25rem" placeholder="Buscar roles..." liveChange=".onMultiSearch" />
-
-      <m:ToolbarSpacer id="_IDGenToolbarSpacer5" />
-      <m:ToolbarSpacer id="_IDGenToolbarSpacer6" />
-      <m:Select id="roleStatusFilter" width="12rem" change=".onStatusFilterChange" forceSelection="true">
-        <m:items>
-          <core:Item id="_IDGenItem6" key="all" text="Todos" />
-          <core:Item id="_IDGenItem7" key="active" text="Activos" />
-          <core:Item id="_IDGenItem8" key="inactive" text="Inactivos" />
-        </m:items>
-      </m:Select>
-
-    </m:Toolbar>
-
-
-    <tl:Table id="rolesTable" rows="{roles>/value}" selectionMode="Single" selectionBehavior="RowOnly" rowSelectionChange=".onRoleSelected" enableColumnReordering="true" alternateRowColors="true" rowActionCount="2" width="100%">
-
-      <tl:rowMode>
-        <rowmodes:Fixed id="_IDGenFixed" rowCount="20" />
-      </tl:rowMode>
-
-      <tl:columns>
-        <tl:Column id="_IDGenColumn36" sortProperty="ROLEID" width="20%">
-          <m:Label id="_IDGenLabel52" text="Role ID" />
-          <tl:template>
-            <m:Text id="_IDGenText74" text="{roles>ROLEID}" />
-          </tl:template>
-        </tl:Column>
-        <tl:Column id="_IDGenColumn37" sortProperty="ROLENAME" width="25%">
-          <m:Label id="_IDGenLabel53" text="Nombre del Rol" />
-          <tl:template>
-            <m:Text id="_IDGenText75" text="{roles>ROLENAME}" />
-          </tl:template>
-        </tl:Column>
-        <tl:Column id="_IDGenColumn38" sortProperty="DESCRIPTION" width="55%">
-          <m:Label id="_IDGenLabel54" text="Descripción" />
-          <tl:template>
-            <m:Text id="_IDGenText76" text="{roles>DESCRIPTION}" />
-          </tl:template>
-        </tl:Column>
-        <tl:Column id="_IDGenColumn39" sortProperty="DETAIL_ROW/ACTIVED" width="15%">
-          <m:Label id="_IDGenLabel55" text="Estado" />
-          <tl:template>
-            <m:ObjectStatus id="_IDGenObjectStatus" text="{= ${roles>DETAIL_ROW/ACTIVED} ? 'Activo' : 'Inactivo' }" state="{= ${roles>DETAIL_ROW/ACTIVED} ? 'Success' : 'Warning' }" />
-          </tl:template>
-        </tl:Column>
-
-      </tl:columns>
-
-      <tl:footer>
-        <m:OverflowToolbar id="OverFlowUsersManage">
-          <m:Label id="OberflowLabelUsersManage" text="Modo de filas" />
-          <m:SegmentedButton selectedKey="{ui>/rowMode}" id="rowModeSelector">
-            <m:items>
-              <m:SegmentedButtonItem id="IdUsersFixedButton" key="Fixed" icon="sap-icon://locked" />
-              <m:SegmentedButtonItem id="IdUsersInteracctiveButton" key="Interactive" icon="sap-icon://resize-vertical" />
-            </m:items>
-          </m:SegmentedButton>
-        </m:OverflowToolbar>
-      </tl:footer>
-    </tl:Table>
-
-
+    <layout:Splitter id="_IDGenSplitter">
+      <!-- Panel izquierdo: Tabla de roles y toolbar -->
+      <cc:CustomSplitter id="_IDGenSplitterPane" size="60%">
+        <m:VBox id="_IDGenVBox">
+          <m:Toolbar id="_IDGenToolbar2" design="Transparent" class="customRoleToolbar">
+            <m:Button id="_IDGenButton27" text="Crear" icon="sap-icon://add" type="Accept" press=".onOpenDialog" />
+            <m:Button id="UpdateRole" text="Editar" press="onEditUser" icon="sap-icon://edit" type="Emphasized" class="myBlackButton" enabled="{viewModel>/buttonsEnabled}"/>
+            <m:Button id="DeleteRole" text="Eliminar" press="onDeleteUser" icon="sap-icon://delete" type="Negative" enabled="{viewModel>/buttonsEnabled}"/>
+            <m:Button id="DesactivateRole" text="Desactivar" icon="sap-icon://decline" press="onDesactivateUser" type="Critical" enabled="{viewModel>/buttonsEnabled}"/>
+            <m:SearchField id="searchRoleName" width="25rem" placeholder="Buscar roles..." liveChange=".onMultiSearch" />
+            <m:ToolbarSpacer id="_IDGenToolbarSpacer3" />
+            <m:ToolbarSpacer id="_IDGenToolbarSpacer5" />
+            <m:Select id="roleStatusFilter" width="12rem" change=".onStatusFilterChange" forceSelection="true">
+              <m:items>
+                <core:Item id="_IDGenItem6" key="all" text="Todos" />
+                <core:Item id="_IDGenItem7" key="active" text="Activos" />
+                <core:Item id="_IDGenItem8" key="inactive" text="Inactivos" />
+              </m:items>
+            </m:Select>
+          </m:Toolbar>
+          <tl:Table id="rolesTable" rows="{roles>/value}" selectionMode="Single" selectionBehavior="RowOnly" rowSelectionChange=".onRoleSelected" enableColumnReordering="true" alternateRowColors="true" rowActionCount="2" width="100%">
+            <tl:rowMode>
+              <rowmodes:Fixed id="_IDGenFixed" rowCount="20" />
+            </tl:rowMode>
+            <tl:columns>
+              <tl:Column id="_IDGenColumn36" sortProperty="ROLEID" width="20%">
+                <m:Label id="_IDGenLabel52" text="Role ID" />
+                <tl:template>
+                  <m:Text id="_IDGenText74" text="{roles>ROLEID}" />
+                </tl:template>
+              </tl:Column>
+              <tl:Column id="_IDGenColumn37" sortProperty="ROLENAME" width="25%">
+                <m:Label id="_IDGenLabel53" text="Nombre del Rol" />
+                <tl:template>
+                  <m:Text id="_IDGenText75" text="{roles>ROLENAME}" />
+                </tl:template>
+              </tl:Column>
+              <tl:Column id="_IDGenColumn38" sortProperty="DESCRIPTION" width="55%">
+                <m:Label id="_IDGenLabel54" text="Descripción" />
+                <tl:template>
+                  <m:Text id="_IDGenText76" text="{roles>DESCRIPTION}" />
+                </tl:template>
+              </tl:Column>
+              <tl:Column id="_IDGenColumn39" sortProperty="DETAIL_ROW/ACTIVED" width="15%">
+                <m:Label id="_IDGenLabel55" text="Estado" />
+                <tl:template>
+                  <m:ObjectStatus id="_IDGenObjectStatus" text="{= ${roles>DETAIL_ROW/ACTIVED} ? 'Activo' : 'Inactivo' }" state="{= ${roles>DETAIL_ROW/ACTIVED} ? 'Success' : 'Warning' }" />
+                </tl:template>
+              </tl:Column>
+            </tl:columns>
+            <tl:footer>
+              <m:OverflowToolbar id="OverFlowUsersManage">
+                <m:Label id="OberflowLabelUsersManage" text="Modo de filas" />
+                <m:SegmentedButton selectedKey="{ui>/rowMode}" id="rowModeSelector">
+                  <m:items>
+                    <m:SegmentedButtonItem id="IdUsersFixedButton" key="Fixed" icon="sap-icon://locked" />
+                    <m:SegmentedButtonItem id="IdUsersInteracctiveButton" key="Interactive" icon="sap-icon://resize-vertical" />
+                  </m:items>
+                </m:SegmentedButton>
+              </m:OverflowToolbar>
+            </tl:footer>
+          </tl:Table>
+        </m:VBox>
+      </cc:CustomSplitter>
+      <!-- Panel derecho: Detalles del rol seleccionado -->
+      <cc:CustomSplitter id="_IDGenSplitterPane1" size="40%">
+          <mvc:XMLView
+            id="rolesDetailView"
+            viewName="com.inv.sapfiroriwebinversion.view.security.pages.RolesDetail"
+            height="100%" />
+      </cc:CustomSplitter>
+    </layout:Splitter>
   </m:Page>
 </mvc:View>
