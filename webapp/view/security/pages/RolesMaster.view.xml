@@ -17,8 +17,8 @@
           <m:Toolbar id="_IDGenToolbar2" design="Transparent" class="customRoleToolbar">
             <m:Button id="_IDGenButton27" text="Crear" icon="sap-icon://add" type="Accept" press=".onOpenDialog" />
             <m:Button id="UpdateRole" text="Editar" press="onEditUser" icon="sap-icon://edit" type="Emphasized" class="myBlackButton" enabled="{viewModel>/buttonsEnabled}"/>
-            <m:Button id="DeleteRole" text="Eliminar" press="onDeleteUser" icon="sap-icon://delete" type="Negative" enabled="{viewModel>/buttonsEnabled}"/>
-            <m:Button id="DesactivateRole" text="Desactivar" icon="sap-icon://decline" press="onDesactivateUser" type="Critical" enabled="{viewModel>/buttonsEnabled}"/>
+            <m:Button id="DeleteRole" text="Eliminar" press="onDeleteRole" icon="sap-icon://delete" type="Negative" enabled="{viewModel>/buttonsEnabled}"/>
+            <m:Button id="ActiveRole" text="Activar" icon="sap-icon://decline" press="onActivateRole" type="Critical" enabled="{viewModel>/buttonsEnabled}"/>
             <m:SearchField id="searchRoleName" width="25rem" placeholder="Buscar roles..." liveChange=".onMultiSearch" />
             <m:ToolbarSpacer id="_IDGenToolbarSpacer3" />
             <m:ToolbarSpacer id="_IDGenToolbarSpacer5" />
