@@ -39,7 +39,7 @@ sap.ui.define([
                     password: sPassword
                 };
                  // Construir la URL con el parámetro
-                var sUrl = "http://localhost:3020/api/security/users?userid=" + encodeURIComponent(sPassword);
+                var sUrl = "http://localhost:3020/api/security/userEmail?email=" + encodeURIComponent(sEmail);
 
                 // Realizar la solicitud a la API
                 fetch(sUrl, {
@@ -59,8 +59,7 @@ sap.ui.define([
                 .then(function (data) {
                     // Manejar la respuesta de la API
                     var valores = data.value;
-                    console.log(valores)
-                    var password = valores[0].USERID;
+                    var password = valores[0].PASSWORD;
                     var email = valores[0].EMAIL;
                     var estatus = valores[0].DETAIL_ROW.ACTIVED;
 

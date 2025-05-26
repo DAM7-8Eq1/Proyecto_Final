@@ -19,47 +19,86 @@ sap.ui.define([
     onSave: function () {
         // Obtener el modelo de la vista
         var oView = this.getView();
-        var oUserModel = oView.getModel("userModel");
+        var sFragmentId = oView.getId();
+
+        // Obtener valores de los campos del fragmento
+        var sUserId = oView.byId(sFragmentId, "inputUserId")?.getValue().trim();
+        var sPassword = oView.byId(sFragmentId, "inputUserPassword")?.getValue().trim();
+        var sAlias = oView.byId(sFragmentId, "inputUserAlias")?.getValue().trim();
+        var sFirstName = oView.byId(sFragmentId, "inputUserFirstName")?.getValue().trim();
+        var sLastName = oView.byId(sFragmentId, "inputUserLastName")?.getValue().trim();
+        var sEmployeeID = oView.byId(sFragmentId, "inputUserEmployeeID")?.getValue().trim();
+        var sExtension = oView.byId(sFragmentId, "inputUserExtension")?.getValue().trim();
+        var sPhone = oView.byId(sFragmentId, "inputUserPhoneNumber")?.getValue().trim();
+        var sEmail = oView.byId(sFragmentId, "inputUserEmail")?.getValue().trim();
+        var oBirthdayDate = oView.byId(sFragmentId, "inputUserBirthdayDate")?.getDateValue();
+        var sAvatar = oView.byId(sFragmentId, "inputUserAvatar")?.getValue().trim();
+        var sCompanyId = oView.byId(sFragmentId, "comboBoxCompanies")?.getSelectedKey();
+        var sCediId = oView.byId(sFragmentId, "comboBoxCedis")?.getSelectedKey();
+        var sFunction = oView.byId(sFragmentId, "inputUserFunction")?.getValue().trim();
+
+        var sUserName = sFirstName + " " + sLastName;
+        var sCompanyName = oView.byId(sFragmentId, "comboBoxCompanies")?.getSelectedItem()?.getText();
+        var sCompanyAlias = oView.byId(sFragmentId, "comboBoxCompanies")?.getSelectedItem()?.data("companyAlias");
+        // Dirección
+        var sStreet = oView.byId(sFragmentId, "inputUserStreetUser")?.getValue().trim();
+        var sPostalCode = oView.byId(sFragmentId, "inputUserPostalCodeUser")?.getValue().trim();
+        var sCity = oView.byId(sFragmentId, "inputUserCityUser")?.getValue().trim();
+        var sRegion = oView.byId(sFragmentId, "inputUserRegionUser")?.getValue().trim();
+        var sState = oView.byId(sFragmentId, "inputUserStateUser")?.getValue().trim();
+        var sCountry = oView.byId(sFragmentId, "inputUserCountryUser")?.getValue().trim();
+
+        // Obtener roles seleccionados del VBox
+        var oRolesVBox = oView.byId(sFragmentId, "selectedRolesVBox");
+        var aRoles = oRolesVBox.getItems().map(function(oHBox) {
+            return { ROLEID: oHBox.data("roleId") };
+        });
+        var sDepartment = oView.byId(sFragmentId, "comboBoxCedis")?.getSelectedItem()?.data("department");
+
+        // Construir el objeto usuario
         var oUserData = {
-            USERID: oView.byId("InputCreate").getValue(),
-            USERNAME: oView.byId("InputCreate1").getValue(),
-            EMAIL: oView.byId("InputCreate2").getValue(),
-            ALIAS: oView.byId("InputCreate3").getValue(),
-            FIRSTNAME: oView.byId("InputCreate4").getValue(),
-            LASTNAME: oView.byId("InputCreate5").getValue(),
-            BIRTHDAYDATE: oView.byId("InputCreate6").getValue(),
-            PHONENUMBER: oView.byId("InputCreate7").getValue(),
-            EXTENSION: oView.byId("InputCreate8").getValue(),
-            EMPLOYEEID: oView.byId("InputCreate9").getValue(),
-            FUNCTION: oView.byId("InputCreate10").getValue(),
-            DEPARTMENT: oView.byId("InputCreate11").getValue(),
-            COMPANYID: oView.byId("InputCreate12").getValue(),
-            COMPANYNAME: oView.byId("InputCreate13").getValue(),
-            COMPANYALIAS: oView.byId("InputCreate14").getValue(),
-            CEDIID: oView.byId("InputCreate15").getValue(),
-            STREET: oView.byId("InputCreate16").getValue(),
-            POSTALCODE: oView.byId("InputCreate17").getValue(),
-            CITY: oView.byId("InputCreate18").getValue(),
-            REGION: oView.byId("InputCreate19").getValue(),
-            STATE: oView.byId("InputCreate20").getValue(),
-            COUNTRY: oView.byId("InputCreate21").getValue(),
-            ROLES: oUserModel.getProperty("/ROLES") 
+            USERID: sUserId,
+            PASSWORD: sPassword,
+            USERNAME: sUserName,
+            ALIAS: sAlias,
+            FIRSTNAME: sFirstName,
+            LASTNAME: sLastName,
+            BIRTHDAYDATE: oBirthdayDate ? oBirthdayDate.toISOString().split("T")[0] : null,
+            AVATAR: sAvatar,
+            COMPANYID: sCompanyId,
+            COMPANYNAME: sCompanyName ,
+            COMPANYALIAS: sCompanyAlias,
+            CEDIID: sCediId,
+            EMPLOYEEID: sEmployeeID,
+            EMAIL: sEmail,
+            PHONENUMBER: sPhone,
+            EXTENSION: sExtension,
+            DEPARTMENT: sDepartment,
+            FUNCTION: sFunction,
+            STREET: sStreet,
+            POSTALCODE: sPostalCode,
+            CITY: sCity,
+            REGION: sRegion,
+            STATE: sState,
+            COUNTRY: sCountry,
+            ROLES: aRoles,
         };
 
-        if (Array.isArray(oUserData.ROLES)) {
-        oUserData.ROLES.forEach(function (role) {
-            delete role._id;
-            delete role.ROLENAME;
-            delete role.DESCRIPTION;
-            delete role.PRIVILEGES;
-            delete role.DETAIL_ROW;
-        });
+
+
+
+
+
+
+        // Validaciones básicas (puedes agregar más)
+        if (!sUserId || !sPassword || !sFirstName || !sLastName || !sEmail || !sCompanyId || !sCediId|| !sDepartment) {
+            MessageToast.show("Por favor, completa todos los campos obligatorios.");
+            return;
         }
         
       
-        BusyIndicator.show(0);
-        delete oUserData._id;
-        delete oUserData.DETAIL_ROW;
+        console.log("Data to be sent:", JSON.stringify({user:oUserData}));
+        /*
         
         // Realizar la solicitud a la API para crear el usuario
         //Cambiar URL
@@ -89,7 +128,7 @@ sap.ui.define([
         .catch(function (error) {
             BusyIndicator.hide(); // Ocultar indicador de carga
             MessageToast.show("Error: " + error.message);
-        });
+        });*/
     },
     });
 });
