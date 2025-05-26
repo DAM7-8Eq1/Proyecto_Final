@@ -409,6 +409,8 @@ sap.ui.define(
             apiStrategyName = "reversionsimple";
           }else if (strategy === "Supertrend"){
             apiStrategyName = "supertrend";
+          }else if (strategy === "MACrossover"){
+            apiStrategyName = "macrossover"
           }
 
           var SPECS = []; // Initialize as array
@@ -441,9 +443,20 @@ sap.ui.define(
               },
             ];
           }
-           else {
-            // Default for MACrossover or any other strategy
+           else if(strategy === "macrossover"){
+
             SPECS = [
+              {
+                INDICATOR: "SHORT_MA",
+                VALUE: oStrategyModel.getProperty("/shortSMA"),
+              },
+              {
+                INDICATOR: "LONG_MA",
+                VALUE: oStrategyModel.getProperty("/longSMA"),
+              },
+            ];
+          } else {
+               SPECS = [
               {
                 INDICATOR: "SHORT_MA",
                 VALUE: oStrategyModel.getProperty("/shortSMA"),
