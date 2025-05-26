@@ -10,9 +10,20 @@
         resizable="true"
     >
         <VBox id="AddUserDialogVbox" class="sapUiSmallMargin">
-            <Input id="inputUserId" placeholder="ID de Usuario"/>
 
-            <Input id="inputUsername" placeholder="Nombre Completo"/>
+            <Input id="inputUserId" placeholder="ID de Usuario"/>
+            
+            <Input id="inputUserPassword" placeholder="Contraseña"/>
+            
+            <Input id="inputUserAlias" placeholder="Alias"/>
+
+            <Input id="inputUserFirstName" placeholder="Primer nombre"/>
+
+            <Input id="inputUserLastName" placeholder="Apellido"/>
+
+            <Input id="inputUserEmployeeID" placeholder="ID de empleado"/>
+
+            <Input id="inputUserExtension" placeholder="Extension "/>
             
             <Input id="inputUserPhoneNumber" placeholder="Número telefónico"/>
 
@@ -20,12 +31,14 @@
 
             <DatePicker id="inputUserBirthdayDate" placeholder="Fecha de nacimiento"/>
 
-            <ComboBox id="comboBoxCompanies" items="{/companies}" selectionChange="onCompanySelected" placeholder="Compañía">
-                <core:Item id="CompanyItem" key="{COMPANYID}" text="{COMPANYNAMME}" />
+            <Input id="inputUserAvatar" placeholder="URL del Avatar"/>
+
+            <ComboBox id="comboBoxCompanies" items="{companiesModel>/companies}" selectionChange="onCompanySelected" placeholder="Compañía">
+                <core:Item id="CompanyItem" key="{companiesModel>VALUEID}" text="{companiesModel>VALUE}" />
             </ComboBox>
-            
-            <ComboBox id="comboBoxCedis" items="{/cedis}" selectionChange="onCediSelected" placeholder="Departamento">
-                <core:Item id="CediItem" key="{CEDIID}" text="{CEDINAME}" />
+
+            <ComboBox id="comboBoxCedis" items="{departmentModel>/value}" selectionChange="onCediSelected" placeholder="Departamento">
+                <core:Item id="CediItem" key="{departmentModel>VALUEID}" text="{departmentModel>VALUE}" />
             </ComboBox>
 
             <ComboBox id="comboBoxRoles"
@@ -41,7 +54,22 @@
             
             <Input id="inputUserFunction" placeholder="Función que ejerce"/>
 
+            <Title id="IdTItle1" text="Dirección" level="H4"  class="sapUiSmallMarginTop" />
+  
+            <Input id="inputUserStreetUser" placeholder="Calle" />
+            
+            <Input id="inputUserPostalCodeUser" placeholder="Código Postal"/>
+                
+            <Input id="inputUserCityUser" placeholder="Ciudad"/>
+
+            <Input id="inputUserRegionUser" placeholder="Región"/>
+
+            <Input id="inputUserStateUser" placeholder="Estado"/>
+
+            <Input id="inputUserCountryUser" placeholder="País"/>
+
         </VBox>
+
 
         <beginButton>
             <Button id="SaveNewUser" text="Guardar" type="Emphasized" press="onSaveUser" />

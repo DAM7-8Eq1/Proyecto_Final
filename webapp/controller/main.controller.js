@@ -7,12 +7,11 @@ sap.ui.define([
 
     onInit: function () {
     const oUser = this.getOwnerComponent().getModel("appView").getProperty("/currentUser");
-    console.log("Usuario recibido en Main:", oUser);
     },
 
     onInvertions: function () {
       //Redirigir a Inversiones
-      this.getOwnerComponent().getRouter().navTo("RouteInvertionsCompanies");
+      this.getOwnerComponent().getRouter().navTo("RouteInvestments");
     }, 
 
     onRoles: function () {

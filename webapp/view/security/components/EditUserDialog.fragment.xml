@@ -9,37 +9,62 @@
         resizable="true"
     >
         <VBox id="EditUserDialogVbox" class="sapUiSmallMargin">
-            <Input id="editInputUserId" placeholder="ID de Usuario"/>
-
-            <Input id="editInputUsername" placeholder="Nombre Completo"/>
+            <Input id="inputEditId" placeholder="ID de Usuario"/>
             
-            <Input id="editInputUserPhoneNumber" type="Number" placeholder="Número telefónico"/>
+            <Input id="inputEditPassword" placeholder="Contraseña"/>
+            
+            <Input id="inputEditAlias" placeholder="Alias"/>
 
-            <Input id="editInputUserEmail" type="Email" placeholder="Correo Electrónico"/>
+            <Input id="inputEditFirstName" placeholder="Primer nombre"/>
 
-            <DatePicker id="editInputUserBirthdayDate" placeholder="Fecha de nacimiento"/>
+            <Input id="inputEditLastName" placeholder="Apellido"/>
 
-            <ComboBox id="comboBoxEditCompanies" items="{/companies}" selectionChange="onCompanySelected" placeholder="Compañía">
-                <core:Item id="EditCompanyItem" key="{COMPANYID}" text="{COMPANYNAMME}" />
+            <Input id="inputEditEmployeeID" placeholder="ID de empleado"/>
+
+            <Input id="inputEditExtension" placeholder="Extension "/>
+            
+            <Input id="inputEditPhoneNumber" placeholder="Número telefónico"/>
+
+            <Input id="inputEditEmail" placeholder="Correo Electrónico"/>
+
+            <DatePicker id="inputEditBirthdayDate" placeholder="Fecha de nacimiento"/>
+
+            <Input id="inputEditAvatar" placeholder="URL del Avatar"/>
+
+            <ComboBox id="comboBoxCompaniesEdit" items="{companiesModel>/companies}" selectionChange="onCompanySelected" placeholder="Compañía">
+                <core:Item id="CompanyItemEdit" key="{companiesModel>VALUEID}" text="{companiesModel>VALUE}" />
             </ComboBox>
             
-            <ComboBox id="comboBoxEditCedis" items="{/cedis}" selectionChange="onCediSelected" placeholder="Departamento">
-                <core:Item id="EditCediItem" key="{CEDIID}" text="{CEDINAME}" />
+            <ComboBox id="comboBoxCedisEdit" items="{departmentModel>/value}" selectionChange="onCediSelected" placeholder="Departamento">
+                <core:Item id="CediItemEdit" key="{departmentModel>VALUEID}" text="{departmentModel>VALUE}" />
             </ComboBox>
 
-            
-             <ComboBox id="comboBoxEditRoles"
+            <ComboBox id="comboBoxRolesEdit"
                 items="{ path: 'rolesModel>/roles'}"
                 placeholder="Selecciona un Rol"
                 selectionChange="onRoleSelected">
-                <core:Item id="EditRoleItem" key="{rolesModel>ROLEID}" text="{rolesModel>ROLENAME}" />
+                <core:Item id="idRolesCrearUsuarioEdit" key="{rolesModel>ROLEID}" text="{rolesModel>ROLENAME}" />
             </ComboBox>
             
-            <VBox id="selectedEditRolesVBox" class="sapUiSmallMarginTop">
+            <VBox id="selectedRolesVBoxEdit" class="sapUiSmallMarginTop">
                 <!--VBOx donde va añadiendo los roles -->
             </VBox>
+            
+            <Input id="inputEditFunction" placeholder="Función que ejerce"/>
 
-            <Input id="inputEditUserFunction" placeholder="Función que ejerce"/>
+            <Title id="EidTItle1" text="Dirección" level="H4" class="sapUiSmallMarginTop" />
+  
+            <Input id="inputEditStreetUser" placeholder="Calle" />
+            
+            <Input id="inputEditPostalCodeUser" placeholder="Código Postal"/>
+                
+            <Input id="inputEditCityUser" placeholder="Ciudad"/>
+
+            <Input id="inputEditRegionUser" placeholder="Región"/>
+
+            <Input id="inputEditStateUser" placeholder="Estado"/>
+
+            <Input id="inputEditCountryUser" placeholder="País"/>
 
         </VBox>
 

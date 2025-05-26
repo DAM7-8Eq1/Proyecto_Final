@@ -15,7 +15,6 @@ sap.ui.define([
 
     return BaseController.extend("com.inv.sapfiroriwebinversion.controller.security.pages.UsersList",{
         onInit: function(){
-
             // Esto desactiva los botones cuando entras a la vista, hasta que selecciones un usuario en la tabla se activan
             var oViewModel = new JSONModel({
                 buttonsEnabled: false
@@ -76,18 +75,72 @@ sap.ui.define([
         loadCompanies: function() {
              var oView = this.getView();
             // Datos estáticos para compañías y departamentos
-            var oStaticModel = new JSONModel({
-                companies: [
-                    { COMPANYID: 1001, COMPANYNAMME: "INSTITUTO TECNOLOGICO DE TEPIC" },
-                    { COMPANYID: 1002, COMPANYNAMME: "UNIVERSIDAD AUTONOMA DE NAYARIT" }
-                ],
-                cedis: [
-                    { CEDIID: "IdTepic", CEDINAME: "Sistemas y Computacion" },
-                    { CEDIID: "IdUan", CEDINAME: "Departamento de Finanzas" }
-                ]
+            var oCompaniesModel = new JSONModel()
+
+            var sUrl = "http://localhost:3020/api/security/catalogs?labelid=IdCompanies"; 
+
+            fetch(sUrl, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error("Error al obtener las compañías");
+                }
+                return response.json();
+            })
+            .then(function (data) {
+                // Asume que los roles vienen en data.value
+                oCompaniesModel.setData({ companies: data.value[0].VALUES });
+                oView.setModel(oCompaniesModel, "companiesModel");
+            })
+            .catch(function (error) {
+                MessageToast.show("Error: " + error.message);
             });
-            oView.setModel(oStaticModel);
+            
         },
+
+        onCompanySelected:function(oEvent){
+            var oComboBox = oEvent.getSource();
+            var sSelectedKey = oComboBox.getSelectedKey();
+            var sSelectedText = oComboBox.getSelectedItem().getText();
+            // Cargar los departamentos de la compañía seleccionada
+            this.loadDepartments(sSelectedKey);
+
+        },
+        
+        loadDepartments: function(LabelId) {
+             var oView = this.getView();
+            // Datos estáticos para compañías y departamentos
+            var oDepartmentsModel = new JSONModel()
+
+            var sUrl = "http://localhost:3020/api/security/catalogsCompanie?labelid="+LabelId; 
+
+            fetch(sUrl, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error("Error al obtener las compañías");
+                }
+                return response.json();
+            })
+            .then(function (data) {
+                // Asume que los roles vienen en data.value
+                oDepartmentsModel.setData(data.value[0]);
+                oView.setModel(oDepartmentsModel, "departmentModel");
+            })
+            .catch(function (error) {
+                MessageToast.show("Error: " + error.message);
+            });
+            
+        },
+
         statusText: function(bStatus) {
             return bStatus ?  "Activo":"Desactivado" ;
         },
@@ -123,7 +176,6 @@ sap.ui.define([
             .catch(function (error) {
                 MessageToast.show("Error: " + error.message);
             });
-           // this.loadCompanies();
         },
 
 
@@ -148,8 +200,8 @@ sap.ui.define([
 
             var oVBox;
             // Este if valida si es la modal de add user o edit user en la que se estáran colocando los roles
-            if (oComboBox.getId().includes("comboBoxEditRoles")) {
-                oVBox = this.getView().byId("selectedEditRolesVBox");  // Update User VBox
+            if (oComboBox.getId().includes("comboBoxRolesEdit")) {
+                oVBox = this.getView().byId("selectedRolesVBoxEdit");  // Update User VBox
             } else {
                 oVBox = this.getView().byId("selectedRolesVBox");   // Create User VBox
             }
@@ -167,7 +219,7 @@ sap.ui.define([
                     // @ts-ignore
                     new sap.m.Button({
                         icon: "sap-icon://decline",
-                        type: "Transparent",
+                        type: sap.m.ButtonType.Transparent,
                         press: () => oVBox.removeItem(oHBox)
                     })
                 ]
@@ -205,60 +257,96 @@ sap.ui.define([
         },
 
         onSaveUser: function(){
+       
             var oView = this.getView();
             var sFragmentId = oView.getId();
-            // Obtener valores de los campos
+            // Obtener valores de los campos del fragmento
             var sUserId = Fragment.byId(sFragmentId, "inputUserId")?.getValue().trim();
-            var sUsername = Fragment.byId(sFragmentId, "inputUsername")?.getValue().trim();
+            var sPassword = Fragment.byId(sFragmentId, "inputUserPassword")?.getValue().trim();
+            var sAlias = Fragment.byId(sFragmentId, "inputUserAlias")?.getValue().trim();
+            var sFirstName = Fragment.byId(sFragmentId, "inputUserFirstName")?.getValue().trim();
+            var sLastName = Fragment.byId(sFragmentId, "inputUserLastName")?.getValue().trim();
+            var sEmployeeID = Fragment.byId(sFragmentId, "inputUserEmployeeID")?.getValue().trim();
+            var sExtension = Fragment.byId(sFragmentId, "inputUserExtension")?.getValue().trim();
             var sPhone = Fragment.byId(sFragmentId, "inputUserPhoneNumber")?.getValue().trim();
             var sEmail = Fragment.byId(sFragmentId, "inputUserEmail")?.getValue().trim();
             var oBirthdayDate = Fragment.byId(sFragmentId, "inputUserBirthdayDate")?.getDateValue();
+            var sAvatar = Fragment.byId(sFragmentId, "inputUserAvatar")?.getValue().trim();
             var sCompanyId = Fragment.byId(sFragmentId, "comboBoxCompanies")?.getSelectedKey();
-            var sCompanyName = Fragment.byId(sFragmentId, "comboBoxCompanies")?.getSelectedItem()?.getText();
             var sCediId = Fragment.byId(sFragmentId, "comboBoxCedis")?.getSelectedKey();
-            var sCediName = Fragment.byId(sFragmentId, "comboBoxCedis")?.getSelectedItem()?.getText();
             var sFunction = Fragment.byId(sFragmentId, "inputUserFunction")?.getValue().trim();
-            var nCompanyId = Number(sCompanyId);
-
+            var sUserName = sFirstName + " " + sLastName;
+            var sCompanyName = Fragment.byId(sFragmentId, "comboBoxCompanies")?.getSelectedItem()?.getText();
+            // Dirección
+            var sStreet = Fragment.byId(sFragmentId, "inputUserStreetUser")?.getValue().trim();
+            var sPostalCode = Fragment.byId(sFragmentId, "inputUserPostalCodeUser")?.getValue().trim();
+            var sCity = Fragment.byId(sFragmentId, "inputUserCityUser")?.getValue().trim();
+            var sRegion = Fragment.byId(sFragmentId, "inputUserRegionUser")?.getValue().trim();
+            var sState = Fragment.byId(sFragmentId, "inputUserStateUser")?.getValue().trim();
+            var sCountry = Fragment.byId(sFragmentId, "inputUserCountryUser")?.getValue().trim();
             // Obtener roles seleccionados del VBox
             var oRolesVBox = Fragment.byId(sFragmentId, "selectedRolesVBox");
             var aRoles = oRolesVBox.getItems().map(function(oHBox) {
                 return { ROLEID: oHBox.data("roleId") };
             });
+
+            var sDepartment = Fragment.byId(sFragmentId, "comboBoxCedis")?.getSelectedItem()?.getText();
+            // Construir el objeto usuario
+
+            var oUserData = {
+                USERID: sUserId,
+                PASSWORD: sPassword,
+                USERNAME: sUserName,
+                ALIAS: sAlias,
+                FIRSTNAME: sFirstName,
+                LASTNAME: sLastName,
+                BIRTHDAYDATE: oBirthdayDate ? oBirthdayDate.toISOString().split("T")[0] : null,
+                AVATAR: sAvatar,
+                COMPANYID: "1",
+                COMPANYNAME: sCompanyName ,
+                COMPANYALIAS: "EMP",
+                CEDIID: sCediId,
+                EMPLOYEEID: sEmployeeID,
+                EMAIL: sEmail,
+                PHONENUMBER: sPhone,
+                EXTENSION: sExtension,
+                DEPARTMENT: sDepartment,
+                FUNCTION: sFunction,
+                STREET: sStreet,
+                POSTALCODE: sPostalCode,
+                CITY: sCity,
+                REGION: sRegion,
+                STATE: sState,
+                COUNTRY: sCountry,
+                ROLES: aRoles,
+            };
+
             
-            // Validaciones básicas
-            if (!sUserId || !sUsername || !sPhone || !sEmail || !sCompanyId || !sCediId) {
+            // Validaciones básicas 
+            if (!sUserId || !sPassword || !sFirstName || !sLastName  || !sCompanyId || !sCediId || !sDepartment || !sEmail) {
                 MessageToast.show("Por favor, completa todos los campos obligatorios.");
                 return;
             }
-            if (!this.isValidEmail(sEmail)) {
-                MessageToast.show("Correo electrónico inválido.");
-                return;
-            }
-            if (!this.isValidPhoneNumber(sPhone)) {
-                MessageToast.show("Número telefónico inválido.");
+            // Obtener el modelo y la lista de usuarios actuales
+            var oTable = this.byId("IdTable1SecurityTable");
+            var oModel = oTable.getModel();
+            var aUsers = oModel.getProperty("/value") || [];
+
+            // Validar si el correo ya existe
+
+             var bEmailExists = aUsers.some(function(user) {
+                return user.EMAIL && user.EMAIL.toLowerCase() === sEmail.toLowerCase();
+            });
+            if (bEmailExists) {
+                MessageToast.show("El correo electrónico ya está registrado.");
                 return;
             }
 
-            // Construir el objeto usuario
-            var oNewUser = {
-                USERID: sUserId,
-                USERNAME: sUsername,
-                PHONENUMBER: sPhone,
-                EMAIL: sEmail,
-                BIRTHDAYDATE: oBirthdayDate ? oBirthdayDate.toISOString().split("T")[0] : null,
-                COMPANYID: nCompanyId,
-                COMPANYNAME:sCompanyName,
-                CEDIID: sCediId,
-                DEPARTMENT:sCediName,
-                FUNCTION: sFunction,
-                ROLES: aRoles
-            };
             // Llamada a la API para guardar el usuario
             fetch("http://localhost:3020/api/security/createuser", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({user:oNewUser})
+                body: JSON.stringify({user:oUserData})
             })
             .then(response => {
                 if (!response.ok) throw new Error("Error al crear usuario");
@@ -266,59 +354,65 @@ sap.ui.define([
             })
             .then(data => {
                  MessageToast.show("Usuario creado exitosamente");
-                    // Insertar el nuevo usuario en la tabla
-                 var oTable = this.byId("IdTable1SecurityTable");
-                 var oModel = oTable.getModel();
-                 var aUsers = oModel.getProperty("/value") || [];
-                 var oInsertedUser = data.user || oNewUser;
-                 aUsers.push(oInsertedUser);
-                 oModel.setProperty("/value", aUsers);
+                // Insertar el nuevo usuario en la tabla
+                var oTable = this.byId("IdTable1SecurityTable");
+                var oModel = oTable.getModel();
+                var aUsers = oModel.getProperty("/value") || [];
+       
+                var idx = aUsers.findIndex(u => u.USERID === sUserId);
+                if (idx !== -1) {
+                    oUserData.DETAIL_ROW = oUserData.DETAIL_ROW || {};
+                    oUserData.DETAIL_ROW.ACTIVED = aUsers[idx].DETAIL_ROW ? aUsers[idx].DETAIL_ROW.ACTIVED : true;
+                    aUsers[idx] = oUserData;
+                    oUserData.ROLESm = this.formatRoles(oUserData.ROLES);
+
+                    oModel.setProperty("/value", aUsers);
+                }
+                 
                  
                  // Limpiar los campos del fragmento
-                 Fragment.byId(sFragmentId, "inputUserId")?.setValue("");
-                 Fragment.byId(sFragmentId, "inputUsername")?.setValue("");
-                 Fragment.byId(sFragmentId, "inputUserPhoneNumber")?.setValue("");
-                 Fragment.byId(sFragmentId, "inputUserEmail")?.setValue("");
-                 Fragment.byId(sFragmentId, "inputUserBirthdayDate")?.setDateValue(null);
-                 Fragment.byId(sFragmentId, "comboBoxCompanies")?.setSelectedKey("");
-                 Fragment.byId(sFragmentId, "comboBoxCedis")?.setSelectedKey("");
-                 Fragment.byId(sFragmentId, "comboBoxRoles")?.setSelectedKey("");
-                 Fragment.byId(sFragmentId, "inputUserFunction")?.setValue("");
-                 var oRolesVBox = Fragment.byId(sFragmentId, "selectedRolesVBox");
-                 if (oRolesVBox && oRolesVBox.removeAllItems) {
-                     oRolesVBox.removeAllItems();
-                 }
-
-                 this._oCreateUserDialog.close();
-
+               
               
             })
             .catch(error => {
                 MessageToast.show("Error: " + error.message);
             });
-
         },
 
         onCancelUser: function(){
             if (this._oCreateUserDialog) { 
                 var oView = this.getView();
                 var sFragmentId = oView.getId();   
-                 Fragment.byId(sFragmentId, "inputUserId")?.setValue("");
-                 Fragment.byId(sFragmentId, "inputUsername")?.setValue("");
-                 Fragment.byId(sFragmentId, "inputUserPhoneNumber")?.setValue("");
-                 Fragment.byId(sFragmentId, "inputUserEmail")?.setValue("");
-                 Fragment.byId(sFragmentId, "inputUserBirthdayDate")?.setDateValue(null);
-                 Fragment.byId(sFragmentId, "comboBoxCompanies")?.setSelectedKey("");
-                 Fragment.byId(sFragmentId, "comboBoxCedis")?.setSelectedKey("");
-                 Fragment.byId(sFragmentId, "comboBoxRoles")?.setSelectedKey("");
-                 Fragment.byId(sFragmentId, "inputUserFunction")?.setValue("");
-                 var oRolesVBox = Fragment.byId(sFragmentId, "selectedRolesVBox");
-                 if (oRolesVBox && oRolesVBox.removeAllItems) {
-                     oRolesVBox.removeAllItems();
-                 }
-
-                 this._oCreateUserDialog.close();
-            }
+                // Limpiar todos los campos del formulario
+                Fragment.byId(sFragmentId, "inputUserId")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserPassword")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserAlias")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserFirstName")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserLastName")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserEmployeeID")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserExtension")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserPhoneNumber")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserEmail")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserBirthdayDate")?.setDateValue(null);
+                Fragment.byId(sFragmentId, "inputUserAvatar")?.setValue("");
+                Fragment.byId(sFragmentId, "comboBoxCompanies")?.setSelectedKey("");
+                Fragment.byId(sFragmentId, "comboBoxCedis")?.setSelectedKey("");
+                Fragment.byId(sFragmentId, "comboBoxRoles")?.setSelectedKey("");
+                Fragment.byId(sFragmentId, "inputUserFunction")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserStreetUser")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserPostalCodeUser")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserCityUser")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserRegionUser")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserStateUser")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserCountryUser")?.setValue("");
+                // Limpiar roles seleccionados
+                var oRolesVBox = Fragment.byId(sFragmentId, "selectedRolesVBox");
+                if (oRolesVBox && oRolesVBox.removeAllItems) {
+                    oRolesVBox.removeAllItems();
+                }
+                // Cierra el diálogo
+                this._oCreateUserDialog.close();
+                    }
         },
 
         //===================================================
@@ -356,60 +450,84 @@ sap.ui.define([
         onEditSaveUser: function(){
             var oView = this.getView();
             var sFragmentId = oView.getId();
-
-            // Obtener valores de los campos del fragmento de edición
-            var sUserId = Fragment.byId(sFragmentId, "editInputUserId")?.getValue().trim();
-            var sUsername = Fragment.byId(sFragmentId, "editInputUsername")?.getValue().trim();
-            var sPhone = Fragment.byId(sFragmentId, "editInputUserPhoneNumber")?.getValue().trim();
-            var sEmail = Fragment.byId(sFragmentId, "editInputUserEmail")?.getValue().trim();
-            var oBirthdayDate = Fragment.byId(sFragmentId, "editInputUserBirthdayDate")?.getDateValue();
-            var sCompanyId = Fragment.byId(sFragmentId, "comboBoxEditCompanies")?.getSelectedKey();
-            var sCompanyName = Fragment.byId(sFragmentId, "comboBoxEditCompanies")?.getSelectedItem()?.getText();
-            var sCediId = Fragment.byId(sFragmentId, "comboBoxEditCedis")?.getSelectedKey();
-            var sCediName = Fragment.byId(sFragmentId, "comboBoxEditCedis")?.getSelectedItem()?.getText();
-            var sFunction = Fragment.byId(sFragmentId, "inputEditUserFunction")?.getValue().trim();
-            var nCompanyId = Number(sCompanyId);
-
+            // Obtener valores de los campos del fragmento (IDs corregidos)
+            var sUserId = Fragment.byId(sFragmentId, "inputEditId")?.getValue().trim();
+            var sPassword = Fragment.byId(sFragmentId, "inputEditPassword")?.getValue().trim();
+            var sAlias = Fragment.byId(sFragmentId, "inputEditAlias")?.getValue().trim();
+            var sFirstName = Fragment.byId(sFragmentId, "inputEditFirstName")?.getValue().trim();
+            var sLastName = Fragment.byId(sFragmentId, "inputEditLastName")?.getValue().trim();
+            var sEmployeeID = Fragment.byId(sFragmentId, "inputEditEmployeeID")?.getValue().trim();
+            var sExtension = Fragment.byId(sFragmentId, "inputEditExtension")?.getValue().trim();
+            var sPhone = Fragment.byId(sFragmentId, "inputEditPhoneNumber")?.getValue().trim();
+            var sEmail = Fragment.byId(sFragmentId, "inputEditEmail")?.getValue().trim();
+            var oBirthdayDate = Fragment.byId(sFragmentId, "inputEditBirthdayDate")?.getDateValue();
+            var sAvatar = Fragment.byId(sFragmentId, "inputEditAvatar")?.getValue().trim();
+            var sCompanyId = Fragment.byId(sFragmentId, "comboBoxCompaniesEdit")?.getSelectedKey();
+            var sCediId = Fragment.byId(sFragmentId, "comboBoxCedisEdit")?.getSelectedKey();
+            var sFunction = Fragment.byId(sFragmentId, "inputEditFunction")?.getValue().trim();
+            var sUserName = sFirstName + " " + sLastName;
+            var sCompanyName = Fragment.byId(sFragmentId, "comboBoxCompaniesEdit")?.getSelectedItem()?.getText();
+            // Dirección
+            var sStreet = Fragment.byId(sFragmentId, "inputEditStreetUser")?.getValue().trim();
+            var sPostalCode = Fragment.byId(sFragmentId, "inputEditPostalCodeUser")?.getValue().trim();
+            var sCity = Fragment.byId(sFragmentId, "inputEditCityUser")?.getValue().trim();
+            var sRegion = Fragment.byId(sFragmentId, "inputEditRegionUser")?.getValue().trim();
+            var sState = Fragment.byId(sFragmentId, "inputEditStateUser")?.getValue().trim();
+            var sCountry = Fragment.byId(sFragmentId, "inputEditCountryUser")?.getValue().trim();
             // Obtener roles seleccionados del VBox
-            var oRolesVBox = Fragment.byId(sFragmentId, "selectedEditRolesVBox");
-            var aRoles = oRolesVBox.getItems().map(function(oHBox) {
-                return { ROLEID: oHBox.data("roleId") };
-            });
+            var oRolesVBox = Fragment.byId(sFragmentId, "selectedRolesVBoxEdit");
+            var aRoles = [];
+            if (oRolesVBox && oRolesVBox.getItems) {
+                aRoles = oRolesVBox.getItems().map(function(oHBox) {
+                    return { ROLEID: oHBox.data("roleId") };
+                });
+            }
 
-            // Validaciones básicas
-            if (!sUserId || !sUsername || !sPhone || !sEmail || !sCompanyId || !sCediId ) {
+
+            var sDepartment = Fragment.byId(sFragmentId, "comboBoxCedisEdit")?.getSelectedItem()?.getText();
+
+            // Construir el objeto usuario
+            var oUserData = {
+                USERID: sUserId,
+                PASSWORD: sPassword,
+                USERNAME: sUserName,
+                ALIAS: sAlias,
+                FIRSTNAME: sFirstName,
+                LASTNAME: sLastName,
+                BIRTHDAYDATE: oBirthdayDate ? oBirthdayDate.toISOString().split("T")[0] : null,
+                AVATAR: sAvatar,
+                COMPANYID:"1",
+                COMPANYNAME: sCompanyName,
+                COMPANYALIAS: "EMP",
+                CEDIID: sCediId,
+                EMPLOYEEID: sEmployeeID,
+                EMAIL: sEmail,
+                PHONENUMBER: sPhone,
+                EXTENSION: sExtension,
+                DEPARTMENT: sDepartment,
+                FUNCTION: sFunction,
+                STREET: sStreet,
+                POSTALCODE: sPostalCode,
+                CITY: sCity,
+                REGION: sRegion,
+                STATE: sState,
+                COUNTRY: sCountry,
+                ROLES: aRoles,
+            };
+
+            // Validaciones básicas 
+            if (!sUserId || !sPassword || !sFirstName || !sLastName  || !sCompanyId || !sCediId || !sDepartment || !sEmail) {
                 MessageToast.show("Por favor, completa todos los campos obligatorios.");
                 return;
             }
-            if (!this.isValidEmail(sEmail)) {
-                MessageToast.show("Correo electrónico inválido.");
-                return;
-            }
-            if (!this.isValidPhoneNumber(sPhone)) {
-                MessageToast.show("Número telefónico inválido.");
-                return;
-            }
 
-            // Construir el objeto usuario actualizado
-            var oUpdatedUser = {
-                USERID: sUserId,
-                USERNAME: sUsername,
-                PHONENUMBER: sPhone,
-                EMAIL: sEmail,
-                BIRTHDAYDATE: oBirthdayDate ? oBirthdayDate.toISOString().split("T")[0] : null,
-                COMPANYID: nCompanyId,
-                COMPANYNAME: sCompanyName,
-                CEDIID: sCediId,
-                DEPARTMENT: sCediName,
-                FUNCTION: sFunction,
-                ROLES: aRoles
-            };
-
+            var oAppViewModel = this.getOwnerComponent().getModel("appView");
+            var sUserIDGlobal = oAppViewModel.getProperty("/currentUser/USERID");
             // Llamada a la API para actualizar el usuario
-            fetch("http://localhost:3020/api/security/updateuser?userid=" + this.uid, {
+            fetch("http://localhost:3020/api/security/updateuser?userid=" + sUserId+"&&user="+sUserIDGlobal, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user: oUpdatedUser })
+                body: JSON.stringify({ user: oUserData })
             })
             .then(response => {
                 if (!response.ok) throw new Error("Error al modificar usuario");
@@ -418,71 +536,72 @@ sap.ui.define([
             .then(data => {
                 MessageToast.show("Usuario modificado exitosamente");
 
-                // Limpiar los campos del fragmento de edición
-                Fragment.byId(sFragmentId, "editInputUserId")?.setValue("");
-                Fragment.byId(sFragmentId, "editInputUsername")?.setValue("");
-                Fragment.byId(sFragmentId, "editInputUserPhoneNumber")?.setValue("");
-                Fragment.byId(sFragmentId, "editInputUserEmail")?.setValue("");
-                Fragment.byId(sFragmentId, "editInputUserBirthdayDate")?.setDateValue(null);
-                Fragment.byId(sFragmentId, "comboBoxEditCompanies")?.setSelectedKey("");
-                Fragment.byId(sFragmentId, "comboBoxEditCedis")?.setSelectedKey("");
-                Fragment.byId(sFragmentId, "comboBoxEditRoles")?.setSelectedKey("");
-                Fragment.byId(sFragmentId, "inputEditUserFunction")?.setValue("");
-                var oRolesVBox = Fragment.byId(sFragmentId, "selectedEditRolesVBox");
-                if (oRolesVBox && oRolesVBox.removeAllItems) {
-                    oRolesVBox.removeAllItems();
-                }
-
-                this._oEditUserDialog.close();
-
                 // Actualizar el usuario en la tabla
                 var oTable = this.byId("IdTable1SecurityTable");
                 var oModel = oTable.getModel();
                 var aUsers = oModel.getProperty("/value") || [];
+       
                 var idx = aUsers.findIndex(u => u.USERID === sUserId);
                 if (idx !== -1) {
-                    aUsers[idx] = oUpdatedUser;
+                    oUserData.DETAIL_ROW = oUserData.DETAIL_ROW || {};
+                    oUserData.DETAIL_ROW.ACTIVED = aUsers[idx].DETAIL_ROW ? aUsers[idx].DETAIL_ROW.ACTIVED : true;
+                    aUsers[idx] = oUserData;
+                    oUserData.ROLESm = this.formatRoles(oUserData.ROLES);
                     oModel.setProperty("/value", aUsers);
+                }
+
+                // Cierra el diálogo de edición
+                if (this._oEditUserDialog) {
+                    // Desactiva los botones de la vista
+                    this.getView().getModel("viewModel").setProperty("/buttonsEnabled", false);
+                    this._oEditUserDialog.close();
+                    
                 }
             })
             .catch(error => {
                 MessageToast.show("Error: " + error.message);
             });
-
         },
-        setEditUserDialogFields: function(user) {
+       setEditUserDialogFields: function(user) {
             var oView = this.getView();
             var sFragmentId = oView.getId();
 
-            Fragment.byId(sFragmentId, "editInputUserId")?.setValue(user.USERID || "");
-            Fragment.byId(sFragmentId, "editInputUsername")?.setValue(user.USERNAME || "");
-            Fragment.byId(sFragmentId, "editInputUserPhoneNumber")?.setValue(user.PHONENUMBER || "");
-            Fragment.byId(sFragmentId, "editInputUserEmail")?.setValue(user.EMAIL || "");
-            Fragment.byId(sFragmentId, "editInputUserBirthdayDate")?.setDateValue(user.BIRTHDAYDATE ? new Date(user.BIRTHDAYDATE) : null);
-            Fragment.byId(sFragmentId, "inputEditUserFunction")?.setValue(user.FUNCTION || "");
-
-            // Si quieres setear la compañía, cedis y roles, deberás hacerlo así:
-            Fragment.byId(sFragmentId, "comboBoxEditCompanies")?.setSelectedKey(user.COMPANYID || "");
-            Fragment.byId(sFragmentId, "comboBoxEditCedis")?.setSelectedKey(user.CEDIID || "");
-
-            //para los roles, limpia el VBox y agrega los roles del usuario:
-            var oRolesVBox = Fragment.byId(sFragmentId, "selectedEditRolesVBox");
+            Fragment.byId(sFragmentId, "inputEditId")?.setValue(user.USERID || "");
+            Fragment.byId(sFragmentId, "inputEditPassword")?.setValue(user.PASSWORD || "");
+            Fragment.byId(sFragmentId, "inputEditAlias")?.setValue(user.ALIAS || "");
+            Fragment.byId(sFragmentId, "inputEditFirstName")?.setValue(user.FIRSTNAME || "");
+            Fragment.byId(sFragmentId, "inputEditLastName")?.setValue(user.LASTNAME || "");
+            Fragment.byId(sFragmentId, "inputEditEmployeeID")?.setValue(user.EMPLOYEEID || "");
+            Fragment.byId(sFragmentId, "inputEditExtension")?.setValue(user.EXTENSION || "");
+            Fragment.byId(sFragmentId, "inputEditPhoneNumber")?.setValue(user.PHONENUMBER || "");
+            Fragment.byId(sFragmentId, "inputEditEmail")?.setValue(user.EMAIL || "");
+            Fragment.byId(sFragmentId, "inputEditBirthdayDate")?.setDateValue(user.BIRTHDAYDATE ? new Date(user.BIRTHDAYDATE) : null);
+            Fragment.byId(sFragmentId, "inputEditAvatar")?.setValue(user.AVATAR || "");
+            Fragment.byId(sFragmentId, "comboBoxCompaniesEdit")?.setSelectedKey(user.COMPANYID || "");
+            Fragment.byId(sFragmentId, "comboBoxCedisEdit")?.setSelectedKey(user.CEDIID  || "");
+            Fragment.byId(sFragmentId, "inputEditFunction")?.setValue(user.FUNCTION || "");
+            Fragment.byId(sFragmentId, "inputEditStreetUser")?.setValue(user.STREET || "");
+            Fragment.byId(sFragmentId, "inputEditPostalCodeUser")?.setValue(user.POSTALCODE || "");
+            Fragment.byId(sFragmentId, "inputEditCityUser")?.setValue(user.CITY || "");
+            Fragment.byId(sFragmentId, "inputEditRegionUser")?.setValue(user.REGION || "");
+            Fragment.byId(sFragmentId, "inputEditStateUser")?.setValue(user.STATE || "");
+            Fragment.byId(sFragmentId, "inputEditCountryUser")?.setValue(user.COUNTRY || "");
+            // Para los roles, limpia el VBox y agrega los roles del usuario:
+            var oRolesVBox = Fragment.byId(sFragmentId, "selectedRolesVBoxEdit");
             if (oRolesVBox && oRolesVBox.removeAllItems) {
                 oRolesVBox.removeAllItems();
                 if (Array.isArray(user.ROLES)) {
                     user.ROLES.forEach(function(role) {
-                         var oHBox = new sap.m.HBox({
+                        var oHBox = new sap.m.HBox({
                             items: [
                                 new sap.m.Label({ text: role.ROLENAME || role.ROLEID }).addStyleClass("sapUiSmallMarginEnd"),
-                                // @ts-ignore
                                 new sap.m.Button({
                                     icon: "sap-icon://decline",
-                                    type: "Transparent",
-                                    press: () => oRolesVBox.removeItem(oHBox)
+                                    type: sap.m.ButtonType.Transparent,
+                                    press: function() { oRolesVBox.removeItem(oHBox); }
                                 })
                             ]
                         });
-
                         oHBox.data("roleId", role.ROLEID);
                         oRolesVBox.addItem(oHBox);
                     });
@@ -751,25 +870,6 @@ sap.ui.define([
             oModel.setProperty("/filtered", aFiltered);
             oTable.bindRows("/filtered");
         },
-
-        onRefresh: function(){
-            this.loadUsers();
-        },
-
-
-        //===================================================
-        //=========== Validar email y phonenumber ===========
-        //===================================================
-
-        isValidEmail: function(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        },
-
-        isValidPhoneNumber: function(phone) {
-            return /^\d{10}$/.test(phone); // Ejemplo: 10 dígitos numéricos
-        }
-
 
     });
 });
