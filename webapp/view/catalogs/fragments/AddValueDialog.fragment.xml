@@ -72,7 +72,7 @@
         </content>
 
         <beginButton>
-            <Button id="_IDGenButton9"
+            <Button id="_IDGenButton92"
                 text="Guardar"
                 type="Emphasized"
                 press="onSaveValues"

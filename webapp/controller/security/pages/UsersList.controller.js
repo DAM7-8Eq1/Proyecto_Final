@@ -24,6 +24,8 @@ sap.ui.define([
 
             // Carga los usuarios
             this.loadUsers();
+            this.loadCompanies();
+            this.loadRoles();
         },
 
         /**
@@ -238,7 +240,6 @@ sap.ui.define([
          */
         onAddUser : function() {
             var oView = this.getView();
-             this.loadCompanies(); 
             if (!this._oCreateUserDialog) {
                 Fragment.load({
                     id: oView.getId(),
@@ -247,7 +248,6 @@ sap.ui.define([
                 }).then(oDialog => {
                     this._oCreateUserDialog = oDialog;
                     oView.addDependent(oDialog);
-                    this.loadRoles();
                     this._oCreateUserDialog.open();
                 });
             } else {
@@ -425,7 +425,6 @@ sap.ui.define([
          */
         onEditUser: function() {
                 var oView = this.getView();
-                this.loadCompanies(); 
                 this.uid = this.selectedUser && this.selectedUser.USERID ? this.selectedUser.USERID : null;
 
                 if (!this._oEditUserDialog) {
@@ -436,7 +435,6 @@ sap.ui.define([
                     }).then(oDialog => {
                         this._oEditUserDialog = oDialog;
                         oView.addDependent(oDialog);
-                        this.loadRoles();
                         this.setEditUserDialogFields(this.selectedUser); 
                         this._oEditUserDialog.open();
                     });
@@ -524,7 +522,7 @@ sap.ui.define([
             var oAppViewModel = this.getOwnerComponent().getModel("appView");
             var sUserIDGlobal = oAppViewModel.getProperty("/currentUser/USERID");
             // Llamada a la API para actualizar el usuario
-            fetch("http://localhost:3020/api/security/updateuser?userid=" + sUserId+"&&user="+sUserIDGlobal, {
+            fetch("http://localhost:3020/api/security/updateuser?userid=" + sUserId+"&&usermod="+sUserIDGlobal, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ user: oUserData })
@@ -643,7 +641,7 @@ sap.ui.define([
 
         deleteUser: function(UserId){
             var that = this;
-            // Llamada a la API para eliminar el usuario
+            // Llamada a la API para eliminar el usuario+ sUserId
             fetch("http://localhost:3020/api/security/removeuser?userid=" + encodeURIComponent(UserId), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" }
@@ -710,8 +708,10 @@ sap.ui.define([
 
         desactivateUser: function(UserId){
             var that = this;
+            var oAppViewModel = this.getOwnerComponent().getModel("appView");
+            var sUserIDGlobal = oAppViewModel.getProperty("/currentUser/USERID");
             // Llamada a la API para desactivar el usuario
-            fetch("http://localhost:3020/api/security/deleteusers?userid=" + encodeURIComponent(UserId), {
+            fetch("http://localhost:3020/api/security/deleteusers?userid=" + encodeURIComponent(UserId)+"&&usermod="+sUserIDGlobal, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" }
             })
@@ -780,8 +780,10 @@ sap.ui.define([
 
         activateUser: function(UserId){
             var that = this;
+            var oAppViewModel = this.getOwnerComponent().getModel("appView");
+            var sUserIDGlobal = oAppViewModel.getProperty("/currentUser/USERID");
             // Llamada a la API para activar el usuario
-            fetch("http://localhost:3020/api/security/activateusers?userid=" + encodeURIComponent(UserId), {
+            fetch("http://localhost:3020/api/security/activateusers?userid=" + encodeURIComponent(UserId)+"&&usermod="+sUserIDGlobal, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" }
             })
