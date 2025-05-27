@@ -1,45 +1,89 @@
 <core:FragmentDefinition
-  xmlns="sap.m"
-  xmlns:core="sap.ui.core"
-  xmlns:form="sap.ui.layout.form"
-  xmlns:layout="sap.ui.layout">
-  
-  <Dialog
-    id="addValueDialog"
-    title="Agregar Value"
-    contentWidth="600px">
-    
-    <content>
-      <form:SimpleForm id="_IDGenSimpleForm5" editable="true" layout="ResponsiveGridLayout">
-                <Label id="_IDGenLabel36" text="LABELID" required="true"/>
-        <Text id="_IDGenText73" text="{values>/selectedValue/LABELID}" />
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:form="sap.ui.layout.form"
+    xmlns:layout="sap.ui.layout"
+>
+    <Dialog
+        id="addValueDialog"
+        title="Agregar Value"
+        contentWidth="600px"
+    >
+        <content>
+            <form:SimpleForm id="_IDGenSimpleForm"
+                editable="true"
+                layout="ResponsiveGridLayout"
+            >
+                <Label id="_IDGenLabel10" text="LABELID" required="true" />
+                <Text id="_IDGenText8" text="{values>/selectedValue/LABELID}" />
 
-        <Label id="_IDGenLabel37" text="VALUEID" required="true"/>
-        <Input value="{newValueModel>/VALUEID}"  id="InputValueId"/>
+                <Label id="_IDGenLabel11" text="VALUEID" required="true" />
+                <Input value="{newValueModel>/VALUEID}" id="InputValueId"  />
 
-        <Label id="_IDGenLabel38" text="VALUE" required="true"/>
-        <Input id="_IDGenInput16" value="{newValueModel>/VALUE}" />
+                <Label id="_IDGenLabel12" text="VALUE" required="true"  />
+                <Input id="_IDGenInput16" value="{newValueModel>/VALUE}" />
 
-        <Label id="_IDGenLabel39" text="VALUEPAID" />
-        <Input id="_IDGenInput17" value="{newValueModel>/VALUEPAID}" />
+                <Label id="_IDGenLabel13" text="Label ID" />
+                <ComboBox
+                    id="_IDGenComboBox2"
+                    items="{
+                        path: 'values>/AllLabels'
+                    }"
+                    selectedKey="{newValueModel>/ValuePaid1}"
+                    selectionChange=".onLabelIdChange"
+                >
+                    <core:Item
+                        id="_IDGenItem5"
+                        key="{values>LABELIDC}"
+                        text="{values>LABEL}"
+                    />
+                </ComboBox>
 
-        <Label id="_IDGenLabel40" text="ALIAS" />
-        <Input id="_IDGenInput18" value="{newValueModel>/ALIAS}" />
 
-        <Label id="_IDGenLabel41" text="IMAGE" />
-        <Input id="_IDGenInput19" value="{newValueModel>/IMAGE}" />
 
-        <Label id="_IDGenLabel42" text="DESCRIPTION" />
-        <TextArea id="_IDGenTextArea2" value="{newValueModel>/DESCRIPTION}" rows="3"/>
-      </form:SimpleForm>
-    </content>
-    
-    <beginButton>
-      <Button id="_IDGenButton23" text="Guardar" type="Emphasized" press="onSaveValues"/>
-    </beginButton>
-    
-    <endButton>
-      <Button id="_IDGenButton24" text="Cancelar" press="onCancelValues"/>
-    </endButton>
-  </Dialog>
+                <Label id="_IDGenLabel15" text="Values ID que están en LABELID" />
+               <ComboBox
+                    id="valueIdComboBox1"
+                    items="{ path: 'values>/filteredValues', sorter: { path: 'VALUEIDC' } }"
+                    selectedKey="{newValueModel>/VALUEIDC}"
+                >
+                    <core:Item id="_IDGenItem9" key="{values>VALUEIDC}" text="{values>VALUE}" />
+                </ComboBox>
+
+                <Label id="_IDGenLabel16" text="ALIAS" />
+                <Input id="_IDGenInput17" value="{newValueModel>/ALIAS}" />
+
+                <Label id="_IDGenLabel17" text="IMAGE" />
+                <Input id="_IDGenInput18" value="{newValueModel>/IMAGE}" />
+
+                <Label id="_IDGenLabel18" text="DESCRIPTION" />
+                <TextArea id="_IDGenTextArea4"
+                    value="{newValueModel>/DESCRIPTION}"
+                    rows="3"
+                />
+                <Label id="_IDGenLabel19" text="Estado Inicial" />
+                <Switch id="_IDGenSwitch1"
+                    state="{newValueModel>/DETAIL_ROW/ACTIVED}"
+                    customTextOn="ACTIVO"
+                    customTextOff="INACTIVO"
+                    change=".onSwitchChange"
+                />
+            </form:SimpleForm>
+        </content>
+
+        <beginButton>
+            <Button id="_IDGenButton9"
+                text="Guardar"
+                type="Emphasized"
+                press="onSaveValues"
+            />
+        </beginButton>
+
+        <endButton>
+            <Button id="_IDGenButton23"
+                text="Cancelar"
+                press="onCancelValues"
+            />
+        </endButton>
+    </Dialog>
 </core:FragmentDefinition>

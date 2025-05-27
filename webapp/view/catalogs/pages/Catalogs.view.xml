@@ -33,7 +33,7 @@
                                 width="20rem"
                                 id="searchField"
                                 placeholder="Buscar en todos los campos..."
-                                liveChange="onFilterChange"
+                                liveChange="onSearchUser"
                                 showSearchButton="false"
                             />
                             <Button id="_IDGenButton15"

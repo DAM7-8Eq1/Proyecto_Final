@@ -42,13 +42,13 @@
             <Button id="_IDGenButton21" 
                 text="Guardar" 
                 type="Emphasized" 
-                press="onSaveEdit"/>
+                press="onSaveEditCatalog"/>
         </beginButton>
         
         <endButton>
             <Button id="_IDGenButton22" 
                 text="Cancelar" 
-                press="onCancelEdit"/>
+                press="onCancelEditCatalog"/>
         </endButton>
     </Dialog>
 </core:FragmentDefinition>
