@@ -46,6 +46,19 @@ sap.ui.define(
             //Colocar la data obtenida en el modelo de la tabla
             oModel.setData({ value: data.value });
             that.getView().setModel(oModel);
+            // Mandar todos los LABELID al modelo "values" (si la vista lateral está cargada)
+            var aLabelIds = (data.value || []).map(function(item) {
+                return { LABELIDC: item.LABELID, LABEL: item.LABEL };
+            });
+            var oValuesView = that.byId("XMLViewValues");
+            if (oValuesView) {
+                oValuesView.loaded().then(function () {
+                    var oValuesModel = oValuesView.getModel("values");
+                    if (oValuesModel) {
+                        oValuesModel.setProperty("/AllLabels", aLabelIds);
+                    }
+                });
+            } 
           })
           .catch(error => {
             console.log(error.message)

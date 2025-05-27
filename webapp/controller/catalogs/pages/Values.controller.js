@@ -32,6 +32,20 @@ sap.ui.define([
             if (!this.getView().getModel("values")) {
                 this.getView().setModel(new sap.ui.model.json.JSONModel(), "values");
             }
+            // Cargar los valores iniciales
+            this.loadCombboLabelId();
+        },
+        loadCombboLabelId: function () {
+            var oValuesModel = this.getView().getModel("values");
+            var aLabels = oValuesModel.getProperty("/AllLabels") || [];
+            // Asegúrate de que cada objeto tenga LABELIDC y LABEL
+            var aComboItems = aLabels.map(function(label) {
+                return {
+                    LABELIDC: label.LABELIDC || label.LABELID, // Soporta ambos nombres
+                    LABEL: label.LABEL
+                };
+            });
+            oValuesModel.setProperty("/ComboLabels", aComboItems);
         },
         // Método para cargar los valores en el modelo
         loadValues: function (aValues) {
@@ -83,12 +97,10 @@ sap.ui.define([
                     (oDialog) => {
                         this._oAddDialog = oDialog;
                         this.getView().addDependent(oDialog);
-                        this.loadCombboLabelId();
                         oDialog.open();
                     }
                 );
             } else {
-                this.loadCombboLabelId();
                 this._oAddDialog.open();
             }
         },
@@ -193,12 +205,10 @@ sap.ui.define([
                     (oDialog) => {
                         this._oEditDialog = oDialog;
                         this.getView().addDependent(oDialog);
-                        this.loadCombboLabelId();
                         oDialog.open();
                     }
                 );
             } else {
-                this.loadCombboLabelId();
                 this._oEditDialog.open();
             }
         },
@@ -228,7 +238,7 @@ sap.ui.define([
                 LABELID: sText,
                 ROUTE: "https://investments/pages/portfolio.html"
             };
-            console.log("Datos enviados:", JSON.stringify({ value: oData }));
+            
             fetch("http://localhost:3020/api/security/updateValue?valueid="+oNewValueData.VALUEID, {
                 method: "POST",
                 headers: {
@@ -286,51 +296,22 @@ sap.ui.define([
 
         },
 
-        loadCombboLabelId: function () {
-        //Creacion de un modelo de Json dond se guardaran los datos
-          var oModel = new JSONModel();
-          var that = this;
-
-        //Realizacion del FETCH con un GET para traer los catalogos
-          fetch("http://localhost:3020/api/security/allCatalogs", {
-              method: "GET",
-              headers: { "Content-Type": "application/json" }
-          })
-          .then(response => {
-            //En caso de erros
-              if (!response.ok) throw new Error("Error al obtener catálogos");
-              return response.json();
-          })
-          .then(data => {
-            that.getView().getModel("values").setProperty("/AllCatalogs", data.value);
-        
-            // Guarda ambos LABELID y LABEL en el modelo
-           var aLabels = data.value.map(function (item) {
-            return {
-                        LABELIDC: item.LABELID,
-                        LABEL: item.LABEL
-                    };
-                });
-                that.getView().getModel("values").setProperty("/AllLabels", aLabels);
-            })
-          .catch(error => {
-            console.log(error.message)
-              MessageToast.show("Error: " + error.message);
-          });
-        },
         onLabelIdChange: function(oEvent) {
+            // Obtiene el key seleccionado del ComboBox
             var sLabelIdc = oEvent.getSource().getSelectedKey();
-            var aLabels = this.getView().getModel("values").getProperty("/AllLabels") || [];
+
+            // Si necesitas el objeto completo del label:
+            var aLabels = this.getView().getModel("values").getProperty("/ComboLabels") || [];
+           
             var oSelectedLabel = aLabels.find(function(label) {
                 return label.LABELIDC === sLabelIdc;
             });
 
-            // Aquí obtienes el LABELID real:
-            var sLabelId = oSelectedLabel ? oSelectedLabel.LABELID : "";
-
-            // Lo guardas en el modelo:
+            // Puedes guardar el LABELIDC en el modelo si lo necesitas
             this.getView().getModel("newValueModel").setProperty("/LABELIDC", sLabelIdc);
-            this.getView().getModel("newValueModel").setProperty("/LABELID", sLabelId);
+
+            // Llama a la función para cargar los valores por LABELID
+            
             this.loadValuesByLabelId(sLabelIdc);
         },
 
@@ -432,8 +413,11 @@ sap.ui.define([
                                 return item.VALUEID === sValueId;
                             });
                             if (iIndex !== -1) {
-                                aValues[iIndex].ACTIVED = false;
+                
+                                aValues[iIndex].DETAIL_ROW = aValues[iIndex].DETAIL_ROW || {};
+                                aValues[iIndex].DETAIL_ROW.ACTIVED = false; 
                                 oValuesModel.setProperty("/values", aValues);
+                                oValuesModel.refresh(true);
                             }
                             MessageToast.show("Valor desactivado exitosamente.");
                         })
@@ -474,8 +458,11 @@ sap.ui.define([
                                 return item.VALUEID === sValueId;
                             });
                             if (iIndex !== -1) {
-                                aValues[iIndex].ACTIVED = true;
+                
+                                aValues[iIndex].DETAIL_ROW = aValues[iIndex].DETAIL_ROW || {};
+                                aValues[iIndex].DETAIL_ROW.ACTIVED = true;
                                 oValuesModel.setProperty("/values", aValues);
+                                oValuesModel.refresh(true);
                             }
                             MessageToast.show("Valor activado exitosamente.");
                         })
@@ -488,6 +475,32 @@ sap.ui.define([
             });
         },
 
+       onFilterChange: function (oEvent) {
+            var sQuery = oEvent.getParameter("query") || oEvent.getParameter("newValue"); // Soporta SearchField y liveChange
+            var oTable = this.byId("valuesTable");
+
+            var oBinding = oTable.getBinding("items");
+            if (!oBinding) {
+                // El control no existe, evita el error
+                return;
+            }
+
+            if (!sQuery) {
+                // Limpia el filtro si no hay búsqueda
+                oBinding.filter([]);
+                return;
+            }
+
+            // Lista de campos a filtrar
+            var aFields = ["VALUEID", "VALUE", "VALUEPAID", "ALIAS", "IMAGE", "DESCRIPTION", "LABELID"];
+            var aFilters = aFields.map(function (sField) {
+                return new sap.ui.model.Filter(sField, sap.ui.model.FilterOperator.Contains, sQuery);
+            });
+
+            // Filtro OR sobre todos los campos
+            var oMultiFilter = new sap.ui.model.Filter(aFilters, false);
+            oBinding.filter([oMultiFilter]);
+        }
 
     });
 
