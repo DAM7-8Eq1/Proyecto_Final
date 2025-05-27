@@ -25,6 +25,8 @@ sap.ui.define([
         onInit: function () {
       //cargar los roles
       this.loadRoles();
+      this.loadProcess();
+      this.loadPrivilegios();
     },
     loadRoles: function () {
         var oModel = new JSONModel();
@@ -57,8 +59,53 @@ sap.ui.define([
         var oData = oContext.getObject();
         this.getView().getModel("roles").setProperty("/selectedRole", oData);
     },
+    
+
+    loadProcess: function() {
+        var oProcessModel = new JSONModel();
+        this.getView().setModel(oProcessModel, "processes");
+
+        fetch("http://localhost:3020/api/security/catalogs?labelid=IdProcesses", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Error al obtener procesos");
+            return response.json();
+        })
+        .then(data => {
+            this.Procesos = data.value[0].VALUES;
+            oProcessModel.setData({ value: data.value[0].VALUES });
+        })
+        .catch(error => {
+            MessageToast.show("Error: " + error.message);
+        });
+    },
+
+        loadPrivilegios: function() {
+        var oProcessModel = new JSONModel();
+        this.getView().setModel(oProcessModel, "privilegios");
+
+        fetch("http://localhost:3020/api/security/catalogs?labelid=IdPrivileges", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Error al obtener procesos");
+            return response.json();
+        })
+        .then(data => {
+            this.Privilegios = data.value[0].VALUES;
+            oProcessModel.setData({ value: data.value[0].VALUES });
+        })
+        .catch(error => {
+            MessageToast.show("Error: " + error.message);
+        });
+    },
+
     // abrir el modal para usuarios
     onOpenDialog:function(){
+
       var oView = this.getView();
       if (!this._oCreateRoleDialog) {
           Fragment.load({
@@ -67,6 +114,8 @@ sap.ui.define([
               controller: this
           }).then(oDialog => {
               this._oCreateRoleDialog = oDialog;
+
+
               oView.addDependent(oDialog);
               this._oCreateRoleDialog.open();
           });
