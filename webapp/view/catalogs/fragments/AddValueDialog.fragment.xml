@@ -2,26 +2,48 @@
   xmlns="sap.m"
   xmlns:core="sap.ui.core"
   xmlns:form="sap.ui.layout.form"
-  xmlns:layout="sap.ui.layout">
+  xmlns:layout="sap.ui.layout"
+  >
   
+
   <Dialog
     id="addValueDialog"
     title="Agregar Value"
     contentWidth="600px">
-    
+
     <content>
       <form:SimpleForm id="_IDGenSimpleForm5" editable="true" layout="ResponsiveGridLayout">
-                <Label id="_IDGenLabel36" text="LABELID" required="true"/>
-        <Text id="_IDGenText73" text="{values>/selectedValue/LABELID}" />
 
-        <Label id="_IDGenLabel37" text="VALUEID" required="true"/>
-        <Input value="{newValueModel>/VALUEID}"  id="InputValueId"/>
+        <Label id="_IDGenLabel43" text="LABELID" required="true" />
+        <Text id="_IDGenText73" text="{newValueModel>/LABELID}" />
 
-        <Label id="_IDGenLabel38" text="VALUE" required="true"/>
+        <Label id="_IDGenLabel37" text="VALUEID" required="true" />
+        <Input value="{newValueModel>/VALUEID}" id="InputValueId" />
+
+        <Label id="_IDGenLabel38" text="VALUE" required="true" />
         <Input id="_IDGenInput16" value="{newValueModel>/VALUE}" />
+        <!--  -->
 
-        <Label id="_IDGenLabel39" text="VALUEPAID" />
-        <Input id="_IDGenInput17" value="{newValueModel>/VALUEPAID}" />
+        <!--  <Label id="_IDGenLabel39" text="VALUEPAID" />
+        <ComboBox id="_IDGenInput17" value="{newValueModel>/VALUEPAID}" items="{ path:
+        'valuePaidModel>/items'}">
+          <core:Item key="{valuePaidModel>id}" text="{valuePaidModel>name}" />
+        </ComboBox> -->
+
+        <Label id="_IDGenLabel44" text="Label ID" />
+        <ComboBox id="_IDComboBox30" items="{  path: 'values>/AllLabels', sorter: { path: 'LABELID' } }"
+          selectedKey="{newValueModel>/ValuePaid1}" selectionChange=".onLabelIdChange">
+          <core:Item key="{values>LABELID}" text="{values>LABELID}" />
+        </ComboBox>
+
+        <Label id="_IDGenLabel45" text="Values ID que están en LABELID" />
+        <ComboBox id="_IDComboBox31"
+          items="{ path: 'values>/FilteredValues', sorter: { path: 'VALUEID' } }"
+          selectedKey="{newValueModel>/ValuePaid2}">
+          <core:Item key="{values>VALUEID}" text="{values>VALUEID}" />
+        </ComboBox>
+
+        <!--  -->
 
         <Label id="_IDGenLabel40" text="ALIAS" />
         <Input id="_IDGenInput18" value="{newValueModel>/ALIAS}" />
@@ -30,16 +52,25 @@
         <Input id="_IDGenInput19" value="{newValueModel>/IMAGE}" />
 
         <Label id="_IDGenLabel42" text="DESCRIPTION" />
-        <TextArea id="_IDGenTextArea2" value="{newValueModel>/DESCRIPTION}" rows="3"/>
+        <TextArea id="_IDGenTextArea2" value="{newValueModel>/DESCRIPTION}" rows="3" />
+
+        <Label id="_IDGenButton25" text="Estado Inicial" />
+        <Switch
+          state="{newValueModel>/DETAIL_ROW/ACTIVED}"
+          customTextOn="ACTIVO"
+          customTextOff="INACTIVO"
+          change=".onSwitchChange"
+        />
       </form:SimpleForm>
     </content>
-    
+
+    <!--  -->
     <beginButton>
-      <Button id="_IDGenButton23" text="Guardar" type="Emphasized" press="onSaveValues"/>
+      <Button id="_IDGenButton23" text="Guardar" type="Emphasized" press="onSaveValues" />
     </beginButton>
-    
+
     <endButton>
-      <Button id="_IDGenButton24" text="Cancelar" press="onCancelValues"/>
+      <Button id="_IDGenButton24" text="Cancelar" press="onCancelValues" />
     </endButton>
   </Dialog>
 </core:FragmentDefinition>

@@ -2,53 +2,58 @@
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
     xmlns:form="sap.ui.layout.form">
-    
+
     <Dialog
         id="editDialog"
         title="Editar Catálogo"
         contentWidth="600px">
-        
+
         <content>
             <form:SimpleForm id="_IDGenSimpleForm4" editable="true">
-                <Label id="_IDGenLabel28" text="LABELID" required="true"/>
-                <Text id="_IDGenText72" text="{editModel>/LABELID}"/>
-                
-                <Label id="_IDGenLabel29" text="LABEL" required="true"/>
-                <Input id="_IDGenInput10" value="{editModel>/LABEL}"/>
-                
-                <Label id="_IDGenLabel30" text="INDEX"/>
-                <Input id="_IDGenInput11" value="{editModel>/INDEX}"/>
-                
-                <Label id="_IDGenLabel31" text="COLLECTION"/>
-                <Input id="_IDGenInput12" value="{editModel>/COLLECTION}"/>
-                
-                <Label id="_IDGenLabel32" text="SECTION"/>
-                <Input id="_IDGenInput13" value="{editModel>/SECTION}"/>
-                
-                <Label id="_IDGenLabel33" text="SEQUENCE"/>
-                <Input id="_IDGenInput14" value="{editModel>/SEQUENCE}" type="Number"/>
-                
-                <Label id="_IDGenLabel34" text="IMAGE URL"/>
-                <Input id="_IDGenInput15" value="{editModel>/IMAGE}"/>
-                
-                <Label id="_IDGenLabel35" text="DESCRIPTION"/>
-                <TextArea id="_IDGenTextArea1" value="{editModel>/DESCRIPTION}" rows="3"/>
-                
+                <Label id="_IDGenLabel28" text="LABELID" required="true" />
+                <Text id="_IDGenText72" text="{editModel>/LABELID}" />
+
+                <Label id="_IDGenLabel29" text="LABEL" required="true" />
+                <Input id="_IDGenInput10" value="{editModel>/LABEL}" />
+
+                <Label id="_IDGenLabel30" text="INDEX" />
+                <Input id="_IDGenInput11" value="{editModel>/INDEX}" />
+
+                <Label id="_IDGenLabel31" text="COLLECTION" />
+                <Input id="_IDGenInput12" value="{editModel>/COLLECTION}" />
+
+                <Label id="_IDGenLabel32" text="SECTION" />
+                <Input id="_IDGenInput13" value="{editModel>/SECTION}" />
+
+                <Label id="_IDGenLabel33" text="SEQUENCE" />
+                <Input id="_IDGenInput14" value="{editModel>/SEQUENCE}" type="Number" />
+
+                <Label id="_IDGenLabel34" text="IMAGE URL" />
+                <Input id="_IDGenInput15" value="{editModel>/IMAGE}" />
+
+                <Label id="_IDGenLabel35" text="DESCRIPTION" />
+                <TextArea id="_IDGenTextArea1" value="{editModel>/DESCRIPTION}" rows="3" />
+
+                <Label id="_IDGenLabel36" text="ESTADO" />
+                <Switch state="{editModel>/DETAIL_ROW/ACTIVED}" customTextOn="ACTIVO"
+                    customTextOff="INACTIVO"
+                />
+
                 <!-- Agrega más campos según necesites -->
             </form:SimpleForm>
         </content>
-        
+
         <beginButton>
-            <Button id="_IDGenButton21" 
-                text="Guardar" 
-                type="Emphasized" 
-                press="onSaveEdit"/>
+            <Button id="_IDGenButton21"
+                text="Guardar"
+                type="Emphasized"
+                press="onSaveEdit" />
         </beginButton>
-        
+
         <endButton>
-            <Button id="_IDGenButton22" 
-                text="Cancelar" 
-                press="onCancelEdit"/>
+            <Button id="_IDGenButton22"
+                text="Cancelar"
+                press="onCancelEdit" />
         </endButton>
     </Dialog>
 </core:FragmentDefinition>
