@@ -170,7 +170,7 @@
                         <mvc:XMLView
                             id="XMLViewValues"
                             viewName="com.inv.sapfiroriwebinversion.view.catalogs.pages.Values"
-                        />w
+                        />
                     </Panel>
                 </cc:CustomSplitter>
             </VBox>

@@ -31,20 +31,19 @@
 
               <core:Title id="_IDGenTitle2" text="Privilegios por Proceso" />
 
-              <m:Label id="_IDGenLabel8" text="Proceso" />
               <m:ComboBox id="_IDGenComboBox1"
-                items="{processCatalogModel>/values}"
+                items="{processes>/value}"
                 selectedKey="{newRoleModel>/NEW_PROCESSID}"
                 placeholder="Selecciona un proceso">
-                <core:Item id="_IDGenItem2" key="{processCatalogModel>VALUEID}" text="{processCatalogModel>VALUE} -{processCatalogModel>VALUEPAID}" />
-              </m:ComboBox>
+                <core:Item id="_IDGenItem2" key="{processes>VALUEID}" text="{processes>VALUE} - {processes>VALUEPAID}" />
+            </m:ComboBox>
 
               <m:Label id="_IDGenLabel9" text="Privilegios" />
               <m:MultiComboBox id="_IDGenMultiComboBox1"
-                items="{privilegeCatalogModel>/values}"
+                items="{privilegios>/value}"
                 selectedKeys="{newRoleModel>/NEW_PRIVILEGES}"
                 placeholder="Selecciona privilegios">
-                <core:Item id="_IDGenItem3" key="{privilegeCatalogModel>VALUEID}" text="{privilegeCatalogModel>VALUE}" />
+                <core:Item id="_IDGenItem3" key="{privilegios>VALUEID}" text="{privilegios>VALUE}" />
               </m:MultiComboBox>
 
               <m:Button id="_IDGenButton5" text="Agregar Privilegio" icon="sap-icon://add" press=".onAddPrivilege" />
