@@ -34,11 +34,11 @@
             <m:ToolbarSpacer id="_IDGenToolbarSpacer2"/>
             <m:Button
                 id="_IDGenButton9"
-                text="Catálogos"
-                icon="sap-icon://list"
-                type="Emphasized"
-                class="myBlackButton"
-                press=".onCatalogsPress"
+            text="Catálogos"
+            icon="sap-icon://folder"
+            type="Emphasized"
+            class="myBlackButton"
+            press=".onCatalogsPress"
             />
           </m:Toolbar>
         </m:headerToolbar>
@@ -107,7 +107,7 @@
                     id="_IDGenButton28"
                     text="Usuarios"
                     press=".onUsersPress"
-                    icon="sap-icon://user"
+                    icon="sap-icon://employee-approvals"
                     type="Emphasized"
                     class="myBlackButton"
                     enabled="{viewModel>/buttonsEnabled}"
