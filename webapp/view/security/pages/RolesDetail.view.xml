@@ -26,9 +26,22 @@
       <!-- 🔹 Procesos del rol -->
       <m:Panel
         id="processesPanel"
-        headerText="Procesos y Privilegios"
         expandable="false"
         class="sapUiMediumMarginTop">
+        <m:headerToolbar>
+          <m:Toolbar id="_IDGenToolbar1">
+            <m:Title id="_IDGenTitle3" text="Procesos y Privilegios" />
+            <m:ToolbarSpacer id="_IDGenToolbarSpacer2"/>
+            <m:Button
+                id="_IDGenButton9"
+            text="Catálogos"
+            icon="sap-icon://folder"
+            type="Emphasized"
+            class="myBlackButton"
+            press=".onCatalogsPress"
+            />
+          </m:Toolbar>
+        </m:headerToolbar>
 
         <tl:Table
           id="processesTable"
@@ -82,10 +95,25 @@
       </m:Panel>
 
       <!-- 🔹 Usuarios del rol -->
-      <m:Panel id="_IDGenPanel2"
-        headerText="Usuarios con este Rol"
+      <m:Panel
+        id="_IDGenPanel2"
         class="sapUiMediumMarginTop"
         expandable="false">
+        <m:headerToolbar>
+            <m:Toolbar id="_IDGenToolbar4">
+                <m:Title id="_IDGenTitle6" text="Usuarios con este Rol" />
+                <m:ToolbarSpacer id="_IDGenToolbarSpacer6"/>
+                <m:Button
+                    id="_IDGenButton28"
+                    text="Usuarios"
+                    press=".onUsersPress"
+                    icon="sap-icon://employee-approvals"
+                    type="Emphasized"
+                    class="myBlackButton"
+                    enabled="{viewModel>/buttonsEnabled}"
+                />
+            </m:Toolbar>
+        </m:headerToolbar>
 
         <tl:Table
           id="usersTable"

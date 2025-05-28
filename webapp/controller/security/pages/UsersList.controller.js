@@ -24,6 +24,8 @@ sap.ui.define([
 
             // Carga los usuarios
             this.loadUsers();
+            this.loadCompanies();
+            this.loadRoles();
         },
 
         /**
@@ -64,6 +66,7 @@ sap.ui.define([
                     oModel.setData(data);
                     // Asignar el modelo a la tabla
                     oTable.setModel(oModel);
+                    oTable.bindRows("/value"); // Asigar la ruta de los datos a la tabla
                 }.bind(this))
                 .catch(function (error) {
                    
@@ -238,7 +241,6 @@ sap.ui.define([
          */
         onAddUser : function() {
             var oView = this.getView();
-             this.loadCompanies(); 
             if (!this._oCreateUserDialog) {
                 Fragment.load({
                     id: oView.getId(),
@@ -247,7 +249,6 @@ sap.ui.define([
                 }).then(oDialog => {
                     this._oCreateUserDialog = oDialog;
                     oView.addDependent(oDialog);
-                    this.loadRoles();
                     this._oCreateUserDialog.open();
                 });
             } else {
@@ -257,7 +258,9 @@ sap.ui.define([
         },
 
         onSaveUser: function(){
-       
+            
+            var oAppViewModel = this.getOwnerComponent().getModel("appView");
+            var sUserIDGlobal = oAppViewModel.getProperty("/currentUser/USERID"); 
             var oView = this.getView();
             var sFragmentId = oView.getId();
             // Obtener valores de los campos del fragmento
@@ -343,7 +346,7 @@ sap.ui.define([
             }
 
             // Llamada a la API para guardar el usuario
-            fetch("http://localhost:3020/api/security/createuser", {
+            fetch("http://localhost:3020/api/security/createuser?usermod="+sUserIDGlobal, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({user:oUserData})
@@ -353,25 +356,54 @@ sap.ui.define([
                 return response.json();
             })
             .then(data => {
-                 MessageToast.show("Usuario creado exitosamente");
+                 
                 // Insertar el nuevo usuario en la tabla
                 var oTable = this.byId("IdTable1SecurityTable");
                 var oModel = oTable.getModel();
                 var aUsers = oModel.getProperty("/value") || [];
-       
-                var idx = aUsers.findIndex(u => u.USERID === sUserId);
-                if (idx !== -1) {
-                    oUserData.DETAIL_ROW = oUserData.DETAIL_ROW || {};
-                    oUserData.DETAIL_ROW.ACTIVED = aUsers[idx].DETAIL_ROW ? aUsers[idx].DETAIL_ROW.ACTIVED : true;
-                    aUsers[idx] = oUserData;
-                    oUserData.ROLESm = this.formatRoles(oUserData.ROLES);
+                    
+            var idx = aUsers.findIndex(u => u.USERID === sUserId);
+                oUserData.DETAIL_ROW = oUserData.DETAIL_ROW || {};
+                oUserData.DETAIL_ROW.ACTIVED = (idx !== -1 && aUsers[idx].DETAIL_ROW) ? aUsers[idx].DETAIL_ROW.ACTIVED : true;
+                oUserData.ROLESm = this.formatRoles(oUserData.ROLES);
 
-                    oModel.setProperty("/value", aUsers);
+                if (idx !== -1) {
+                    aUsers[idx] = oUserData; // Actualiza si existe
+                } else {
+                    aUsers.push(oUserData);  // Agrega si es nuevo
                 }
+                oModel.setProperty("/value", aUsers);
                  
-                 
+                 MessageToast.show("Usuario creado exitosamente");
                  // Limpiar los campos del fragmento
-               
+                                Fragment.byId(sFragmentId, "inputUserId")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserPassword")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserAlias")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserFirstName")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserLastName")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserEmployeeID")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserExtension")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserPhoneNumber")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserEmail")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserBirthdayDate")?.setDateValue(null);
+                Fragment.byId(sFragmentId, "inputUserAvatar")?.setValue("");
+                Fragment.byId(sFragmentId, "comboBoxCompanies")?.setSelectedKey("");
+                Fragment.byId(sFragmentId, "comboBoxCedis")?.setSelectedKey("");
+                Fragment.byId(sFragmentId, "comboBoxRoles")?.setSelectedKey("");
+                Fragment.byId(sFragmentId, "inputUserFunction")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserStreetUser")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserPostalCodeUser")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserCityUser")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserRegionUser")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserStateUser")?.setValue("");
+                Fragment.byId(sFragmentId, "inputUserCountryUser")?.setValue("");
+                // Limpiar roles seleccionados
+                var oRolesVBox = Fragment.byId(sFragmentId, "selectedRolesVBox");
+                if (oRolesVBox && oRolesVBox.removeAllItems) {
+                    oRolesVBox.removeAllItems();
+                }
+                // Cierra el diálogo
+                this._oCreateUserDialog.close();
               
             })
             .catch(error => {
@@ -425,7 +457,6 @@ sap.ui.define([
          */
         onEditUser: function() {
                 var oView = this.getView();
-                this.loadCompanies(); 
                 this.uid = this.selectedUser && this.selectedUser.USERID ? this.selectedUser.USERID : null;
 
                 if (!this._oEditUserDialog) {
@@ -436,7 +467,6 @@ sap.ui.define([
                     }).then(oDialog => {
                         this._oEditUserDialog = oDialog;
                         oView.addDependent(oDialog);
-                        this.loadRoles();
                         this.setEditUserDialogFields(this.selectedUser); 
                         this._oEditUserDialog.open();
                     });
@@ -524,7 +554,7 @@ sap.ui.define([
             var oAppViewModel = this.getOwnerComponent().getModel("appView");
             var sUserIDGlobal = oAppViewModel.getProperty("/currentUser/USERID");
             // Llamada a la API para actualizar el usuario
-            fetch("http://localhost:3020/api/security/updateuser?userid=" + sUserId+"&&user="+sUserIDGlobal, {
+            fetch("http://localhost:3020/api/security/updateuser?userid=" + sUserId+"&&usermod="+sUserIDGlobal, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ user: oUserData })
@@ -643,7 +673,7 @@ sap.ui.define([
 
         deleteUser: function(UserId){
             var that = this;
-            // Llamada a la API para eliminar el usuario
+            // Llamada a la API para eliminar el usuario+ sUserId
             fetch("http://localhost:3020/api/security/removeuser?userid=" + encodeURIComponent(UserId), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" }
@@ -710,8 +740,10 @@ sap.ui.define([
 
         desactivateUser: function(UserId){
             var that = this;
+            var oAppViewModel = this.getOwnerComponent().getModel("appView");
+            var sUserIDGlobal = oAppViewModel.getProperty("/currentUser/USERID");
             // Llamada a la API para desactivar el usuario
-            fetch("http://localhost:3020/api/security/deleteusers?userid=" + encodeURIComponent(UserId), {
+            fetch("http://localhost:3020/api/security/deleteusers?userid=" + encodeURIComponent(UserId)+"&&usermod="+sUserIDGlobal, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" }
             })
@@ -780,8 +812,10 @@ sap.ui.define([
 
         activateUser: function(UserId){
             var that = this;
+            var oAppViewModel = this.getOwnerComponent().getModel("appView");
+            var sUserIDGlobal = oAppViewModel.getProperty("/currentUser/USERID"); 
             // Llamada a la API para activar el usuario
-            fetch("http://localhost:3020/api/security/activateusers?userid=" + encodeURIComponent(UserId), {
+            fetch("http://localhost:3020/api/security/activateusers?userid=" + encodeURIComponent(UserId)+"&&usermod="+sUserIDGlobal, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" }
             })

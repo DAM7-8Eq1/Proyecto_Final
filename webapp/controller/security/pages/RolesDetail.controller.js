@@ -9,7 +9,15 @@ sap.ui.define([
        
         },
 
-
+        onUsersPress: function() {
+            var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
+            oRouter.navTo("RouteUserList");
+        },
+        
+        onCatalogsPress: function() {
+            var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
+            oRouter.navTo("RouteCatalogs");
+        }
     
     });
 });

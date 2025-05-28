@@ -436,6 +436,8 @@ sap.ui.define(
             apiStrategyName = "supertrend";
           }else if (strategy === "Momentum"){
             apiStrategyName = "momentum";
+          }else if (strategy === "MACrossover"){
+            apiStrategyName = "macrossover"
           }
 
           var SPECS = []; 
@@ -496,6 +498,17 @@ sap.ui.define(
               {
                 INDICATOR: "RSI",
                 VALUE: oStrategyModel.getProperty("/rsi"),
+              }
+            ]
+          } else {
+               SPECS = [
+              {
+                INDICATOR: "SHORT_MA",
+                VALUE: oStrategyModel.getProperty("/shortSMA"),
+              },
+              {
+                INDICATOR: "LONG_MA",
+                VALUE: oStrategyModel.getProperty("/longSMA"),
               },
             ];
           }

@@ -29,27 +29,27 @@
         <Button id="_IDGenButton11"
             text="Editar"
             icon="sap-icon://edit"
-            press=".onChangeValue"
+            press=".onEditValues"
             enabled="{= !!${values>/selectedValueIn}}"
         />
         <Button id="_IDGenButton12"
             text="Activar"
             icon="sap-icon://accept"
-            press=".StatusValueAccept"
-            enabled="{= !!${values>/selectedValueIn}}"
+            press=".activateValueById"
+            enabled="{= !!${values>/selectedValueIn}}"              
         />
         <Button id="_IDGenButton13"
             text="Desactivar"
             icon="sap-icon://decline"
             type="Reject"
-            press=".StatusValueDecline"
+            press=".deactivateValueById"
             enabled="{= !!${values>/selectedValueIn}}"
         />
         <Button id="_IDGenButton14"
             text="Eliminar"
             icon="sap-icon://delete"
             type="Reject"
-            press=".onDeleteValue"
+            press=".deleteValueById"
             enabled="{= !!${values>/selectedValueIn}}"
         />
     </OverflowToolbar>
