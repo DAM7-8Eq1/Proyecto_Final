@@ -45,36 +45,23 @@
 
         <tl:Table
           id="processesTable"
-          rows="{selectedRole>/PROCESSES}"
+          rows="{RolesDetail>/value}"
           selectionMode="None"
           alternateRowColors="true"
           enableColumnReordering="true"
           width="100%"
-          noData="Este rol no tiene procesos asignados.">
+          >
 
           <tl:rowMode>
             <rowmodes:Fixed id="_IDGenFixed1" rowCount="5" />
           </tl:rowMode>
 
           <tl:columns>
-            <tl:Column id="_IDGenColumn40">
-              <m:Label id="_IDGenLabel56" text="Proceso" />
-              <tl:template>
-                <m:Text id="_IDGenText77" text="{selectedRole>PROCESSNAME}" />
-              </tl:template>
-            </tl:Column>
-
-            <tl:Column id="_IDGenColumn41">
-              <m:Label id="_IDGenLabel57" text="Aplicación" />
-              <tl:template>
-                <m:Text id="_IDGenText78" text="{selectedRole>APPLICATIONNAME}" />
-              </tl:template>
-            </tl:Column>
-
+            
             <tl:Column id="_IDGenColumn42">
-              <m:Label id="_IDGenLabel58" text="Vista" />
+              <m:Label id="_IDGenLabel58" text="Proceso" />
               <tl:template>
-                <m:Text id="_IDGenText79" text="{selectedRole>VIEWNAME}" />
+                <m:Text id="_IDGenText79" text="{RolesDetail>VIEWNAME}" />
               </tl:template>
             </tl:Column>
 
@@ -82,9 +69,9 @@
               <m:Label id="_IDGenLabel59" text="Privilegios" />
               <tl:template>
                 <m:HBox id="_IDGenHBox5" wrap="Wrap">
-                  <m:FlexBox id="_IDGenFlexBox2" wrap="Wrap" items="{selectedRole>PRIVILEGES}">
+                  <m:FlexBox id="_IDGenFlexBox2" wrap="Wrap" items="{RolesDetail>PRIVILEGES}">
                     <m:items>
-                      <m:ObjectStatus id="_IDGenObjectStatus1" text="{selectedRole>PRIVILEGENAME}" class="sapUiTinyMarginEnd sapUiTinyMarginTop" />
+                      <m:ObjectStatus id="_IDGenObjectStatus1" text="{RolesDetail>PRIVILEGENAME}" class="sapUiTinyMarginEnd sapUiTinyMarginTop" />
                     </m:items>
                   </m:FlexBox>
                 </m:HBox>
