@@ -36,6 +36,11 @@ sap.ui.define(
           // 1. Initialize Symbol Model (static data for now)
           this._initSymbolModel();
 
+          this._pendingChanges = []; // aquí iremos almacenando los cambios
+          this._pendingDeletes = [];
+          // Deshabilitar el botón al inicio
+          this._toggleLoadButton(false);
+          this._toggleDeleteButton(false);
           // 2. Initialize Price Data Model (empty for now)
           this.getView().setModel(
             new JSONModel({
@@ -69,7 +74,8 @@ sap.ui.define(
               { key: "", text: "Cargando textos..." }, // Placeholder for i18n
               { key: "MACrossover", text: "Cargando textos..." },
               { key: "Reversión Simple", text: "Cargando textos..." },
-              { key: "Supertrend", text: "Cargando textos..."}
+              { key: "Supertrend", text: "Cargando textos..."},
+              { key: "Momentum", text: "Cargando textos..."}
             ],
             // IMPORTANT: Initialize as an ARRAY of strings for VizFrame FeedItem
             chartMeasuresFeed: ["PrecioCierre", "Señal BUY", "Señal SELL"],
@@ -81,46 +87,48 @@ sap.ui.define(
             oStrategyAnalysisModel,
             "strategyAnalysisModel"
           );
+          
+          const PORT = 3020;
+          const sUrl = `http://localhost:${PORT}/api/inv/history`;
 
-          // 6. Initialize Investment History Model
-          this.getView().setModel(
-            new JSONModel({
-              strategies: [
-                {
-                  date: new Date(2024, 4, 15),
-                  strategyName: "Moving Average Crossover 1",
-                  symbol: "AAPL",
-                  result: 2500.5,
-                  status: "Completado",
-                },
-                {
-                  date: new Date(2024, 4, 16),
-                  strategyName: "Moving Average Crossover 2",
-                  symbol: "TSLA",
-                  result: -1200.3,
-                  status: "Completado",
-                },
-                {
-                  date: new Date(2024, 4, 17),
-                  strategyName: "Moving Average Crossover 3",
-                  symbol: "MSFT",
-                  result: 3400.8,
-                  status: "En Proceso",
-                },
-              ],
-              filteredCount: 0,
-              selectedCount: 0,
-              filters: {
-                dateRange: null,
-                investmentRange: [0, 10000],
-                profitRange: [-100, 100],
-              },
-            }),
-            "historyModel"
-          );
+          // 1) Llamada al servicio
+          fetch(sUrl, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+          })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error("Error en la petición: " + response.status);
+              }
+              return response.json();
+            })
+            .then(data => {
+              // 2) data ya tiene la forma:
+              //    { strategies: [...], filteredCount: 0, selectedCount: 0, filters: {...}, isDeleteMode: false }
+              //    Así que solamente creamos el JSONModel con él.
+              const payload = data.value[0]; // aquí están tus datos: filteredCount, strategies, etc.
+              console.log("HistoryModel cargado:", payload); // <-- esto ahora sí mostrará lo que esperas
+
+              const oHistoryModel = new sap.ui.model.json.JSONModel(payload);
+              this.getView().setModel(oHistoryModel, "historyModel");
+              this._originalList = JSON.parse(JSON.stringify(this.getView().getModel("historyModel").getProperty("/strategies")));
+
+              console.log("this",this._originalList);
+
+              // 3) (Opcional) comprobar por consola
+              
+            })
+            .catch(err => {
+              // gestionar errores
+               MessageToast.show(
+                "No se pudo cargar el historial"
+              );
+              console.error(err);
+            });
 
           // 7. Initialize Strategy Result Model
           var oStrategyResultModel = new JSONModel({
+            busy: false,
             hasResults: false,
             idSimulation: null,
             signal: null,
@@ -168,21 +176,19 @@ sap.ui.define(
                   },
                   {
                     key: "MACrossover",
-                    text: this._oResourceBundle.getText(
-                      "movingAverageCrossoverStrategy"
-                    ),
+                    text: "MACrossover"
                   },
                   {
                     key: "Reversión Simple",
-                    text: this._oResourceBundle.getText(
-                      "movingAverageReversionSimpleStrategy"
-                    ),
+                    text: "Reversión Simple"
                   },
                   {
                     key: "Supertrend",
-                    text: this._oResourceBundle.getText(
-                      "movingAverageSupertrendStrategy"
-                    ),
+                    text: "Supertrend"
+                  },
+                  {
+                    key: "Momentum",
+                    text: "Momentum"
                   }
                 ]);
                 console.log("Textos de i18n cargados correctamente.");
@@ -198,6 +204,14 @@ sap.ui.define(
                   key: "Reversión Simple",
                   text: "Error i18n: Reversion Simple...",
                 },
+                {
+                  key: "Supertrend",
+                  text: "Error i18n: Reversion Simple...",
+                },
+                {
+                  key: "Momentum",
+                  text: "Error i18n: Reversion Simple...",
+                }
               ]);
             }
           } else {
@@ -208,7 +222,8 @@ sap.ui.define(
               { key: "", text: "No i18n: Seleccione..." },
               { key: "MACrossover", text: "No i18n: Cruce Medias..." },
               { key: "Reversión Simple", text: "No i18n: Reversion Simple..." },
-              { key: "Supertrend", text: "No i18n: Supertrend"}
+              { key: "Supertrend", text: "No i18n: Supertrend"},
+              { key: "Momentum", text: "No i18n: Momentum"}
             ]);
           }
 
@@ -260,6 +275,11 @@ sap.ui.define(
               { symbol: "AAPL", name: "Apple" },
               { symbol: "MSFT", name: "Microsoft" },
               { symbol: "IBM", name: "IBM" },
+              { symbol: "AMZN", name: "Amazon"},
+              { symbol: "GOOGL", name: "Google"},
+              { symbol: "META", name: "Meta"},
+              { symbol: "NFLX", name: "Netflix"},
+              { symbol: "NVDA", name: "NVIDIA"}
             ],
           });
           this.getView().setModel(oSymbolModel, "symbolModel");
@@ -360,7 +380,12 @@ sap.ui.define(
                 oStrategyAnalysisModel.setProperty("/atr", 10);
                 oStrategyAnalysisModel.setProperty("/mult", 2.0);
                 oStrategyAnalysisModel.setProperty("/rr", 1.5);
-          };
+          } else if (sSelectedKey === "Momentum") {
+                oStrategyAnalysisModel.setProperty("/long", 50);
+                oStrategyAnalysisModel.setProperty("/short", 21);
+                oStrategyAnalysisModel.setProperty("/adx", 14);
+                oStrategyAnalysisModel.setProperty("/rsi", 14);
+          }
         },
 
         /**
@@ -372,6 +397,7 @@ sap.ui.define(
           var oView = this.getView();
           var oStrategyModel = oView.getModel("strategyAnalysisModel");
           var oResultModel = oView.getModel("strategyResultModel");
+          oResultModel.setProperty("/busy", true);
           var oAnalysisPanel =
             this.byId("strategyAnalysisPanelTable")?.byId(
               "strategyAnalysisPanel"
@@ -379,11 +405,10 @@ sap.ui.define(
             this.byId("strategyAnalysisPanelChart")?.byId(
               "strategyAnalysisPanel"
             );
-          var oResultPanel = this.byId("strategyResultPanel"); // Ensure this ID is correct
+          var oResultPanel = this.byId("strategyResultPanel"); 
 
           var sSymbol = oView.byId("symbolSelector").getSelectedKey();
 
-          // Basic validations
           if (!oStrategyModel.getProperty("/strategyKey")) {
             MessageBox.warning("Seleccione una estrategia");
             return;
@@ -409,9 +434,11 @@ sap.ui.define(
             apiStrategyName = "reversionsimple";
           }else if (strategy === "Supertrend"){
             apiStrategyName = "supertrend";
+          }else if (strategy === "Momentum"){
+            apiStrategyName = "momentum";
           }
 
-          var SPECS = []; // Initialize as array
+          var SPECS = []; 
 
           if (apiStrategyName === "reversionsimple") {
             const rsi = oStrategyModel.getProperty("/rsi");
@@ -421,28 +448,27 @@ sap.ui.define(
                 VALUE: rsi,
               },
             ];
-          } else if(strategy === "supertrend"){
-                        SPECS = [
+          } else if(apiStrategyName === "supertrend"){
+              SPECS = [
               {
                 INDICATOR: "ma_length",
-                VALUE: oStrategyModel.getProperty("/ma_length"), // Asegúrate de que el tipo de dato sea correcto (número si lo esperas como número)
+                VALUE: oStrategyModel.getProperty("/ma_length"), 
               },
               {
                 INDICATOR: "atr",
-                VALUE: oStrategyModel.getProperty("/atr"), // Asegúrate de que el tipo de dato sea correcto
+                VALUE: oStrategyModel.getProperty("/atr"), 
               },
               {
                 INDICATOR: "mult",
-                VALUE: oStrategyModel.getProperty("/mult"), // Asegúrate de que el tipo de dato sea correcto
+                VALUE: oStrategyModel.getProperty("/mult"), 
               },
               {
                 INDICATOR: "rr",
-                VALUE: oStrategyModel.getProperty("/rr"), // Asegúrate de que el tipo de dato sea correcto
+                VALUE: oStrategyModel.getProperty("/rr"), 
               },
             ];
           }
-           else {
-            // Default for MACrossover or any other strategy
+           else if(apiStrategyName === "macrossover"){
             SPECS = [
               {
                 INDICATOR: "SHORT_MA",
@@ -451,6 +477,25 @@ sap.ui.define(
               {
                 INDICATOR: "LONG_MA",
                 VALUE: oStrategyModel.getProperty("/longSMA"),
+              },
+            ];
+          } else if(apiStrategyName === "momentum") {
+             SPECS = [
+              {
+                INDICATOR: "LONG",
+                VALUE: oStrategyModel.getProperty("/long"),
+              },
+              {
+                INDICATOR: "SHORT",
+                VALUE: oStrategyModel.getProperty("/short"),
+              },
+              {
+                INDICATOR: "ADX",
+                VALUE: oStrategyModel.getProperty("/adx"),
+              },
+              {
+                INDICATOR: "RSI",
+                VALUE: oStrategyModel.getProperty("/rsi"),
               },
             ];
           }
@@ -468,8 +513,8 @@ sap.ui.define(
               USERID: "ARAMIS", // Assuming a fixed user ID for now
               SPECS: SPECS,
             },
-          };
-
+          };  
+          console.log("Datos enviados: ",oRequestBody);
           // API call
           const PORT = 3020; // Ensure this matches your backend port
 
@@ -496,6 +541,7 @@ sap.ui.define(
 
               // Update result model with transformed data for chart and table
               oResultModel.setData({
+                busy: false,
                 hasResults: true,
                 chart_data: aChartData,
                 signals: aSignals,
@@ -541,6 +587,7 @@ sap.ui.define(
             })
             .catch((error) => {
               console.error("Error:", error);
+              oResultModel.setProperty("/busy", false);
               MessageBox.error("Error al obtener datos de simulación");
             });
         },
@@ -618,6 +665,27 @@ sap.ui.define(
          * @returns {Array} Transformed data suitable for binding.
          * @private
          */
+
+        formatCurrency: function(value) {
+            if (!value) return "$0.00";
+            return `$${parseFloat(value).toFixed(2)}`;
+        },
+
+       formatDateRange: function(sStartDate, sEndDate) {
+            if (!sStartDate || !sEndDate) return "";
+            
+            const oDateFormat = sap.ui.core.format.DateFormat.getDateInstance({
+                pattern: "dd/MM/yyyy"
+            });
+            
+            const oStartDate = new Date(sStartDate);
+            const oEndDate = new Date(sEndDate);
+            
+            return oDateFormat.format(oStartDate) + " - " + oDateFormat.format(oEndDate);
+        },
+
+
+
         _prepareTableData: function (aData, aSignals) {
           if (!Array.isArray(aData)) return [];
 
@@ -644,6 +712,7 @@ sap.ui.define(
             let sma = null; // Variable para la SMA simple
             let ma = null;
             let atr = null;
+            let adx = null;
             if (Array.isArray(oItem.INDICATORS)) {
               oItem.INDICATORS.forEach((indicator) => {
                 // Asegúrate de que estos nombres coincidan EXACTAMENTE con lo que tu API devuelve
@@ -654,20 +723,20 @@ sap.ui.define(
                   longMA = parseFloat(indicator.VALUE);
                 } else if (indicator.INDICATOR === "rsi") {
                   rsi = parseFloat(indicator.VALUE);
+                  console.log("rsi: ",rsi);
                 } else if (indicator.INDICATOR === "sma") {
-                  // Nuevo indicador para Reversión Simple
                   sma = parseFloat(indicator.VALUE);
                 } else if (indicator.INDICATOR === "ma") {
-                  // Nuevo indicador para longitud de MA
                   ma = parseFloat(indicator.VALUE);
-                } 
-                else if (indicator.INDICATOR === "atr") {
-                  // Nuevo indicador para ATR
+                } else if (indicator.INDICATOR === "atr") {
                   atr = parseFloat(indicator.VALUE);
-                } 
+                } else if (indicator.INDICATOR === "adx") {
+                  adx = parseFloat(indicator.VALUE);
+                  console.log("adx:", adx);
+                }  
               });
             }
-
+            
             // Construcción dinámica de la cadena de texto de indicadores para la tabla
             let indicatorParts = [];
             if (shortMA !== null && !isNaN(shortMA)) {
@@ -689,7 +758,9 @@ sap.ui.define(
             if (atr !== null && !isNaN(atr)) {
               indicatorParts.push(`ATR: ${atr.toFixed(2)}`); // Formatear a 2 decimales
             }
-
+            if (adx !== null && !isNaN(adx)) {
+              indicatorParts.push(`ADX: ${adx.toFixed(2)}`); // Formatear a 2 decimales
+            }
             const indicatorsText =
               indicatorParts.length > 0 ? indicatorParts.join(", ") : "N/A";
 
@@ -709,10 +780,10 @@ sap.ui.define(
               SHORT_MA: shortMA,
               LONG_MA: longMA,
               RSI: rsi,
-              SMA: sma, // Asegúrate de incluir SMA aquí para que el gráfico pueda acceder a él
-              // Signal points on chart (only show value if a signal exists)
+              SMA: sma, 
               MA: ma,
               ATR: atr,
+              ADX: adx,
               BUY_SIGNAL:
                 signal.TYPE === "buy" ? parseFloat(oItem.CLOSE) : null,
               SELL_SIGNAL:
@@ -758,7 +829,9 @@ sap.ui.define(
             aMeasures.push("RSI", "SMA"); // Estos nombres coinciden en tu XML
           } else if( sStrategyKey === "Supertrend") {
             aMeasures.push("MA","ATR");
-          }
+          } else if( sStrategyKey === "Momentum") {
+            aMeasures.push("SHORT_MA","LONG_MA","RSI","ADX");
+          }  
 
           // Actualiza la propiedad del modelo con las medidas actuales
           oStrategyAnalysisModel.setProperty("/chartMeasuresFeed", aMeasures);
@@ -864,21 +937,54 @@ sap.ui.define(
          * Event handler for showing investment history popover.
          * @param {sap.ui.base.Event} oEvent The event object
          */
-        onHistoryPress: function (oEvent) {
-          if (!this._oHistoryPopover) {
-            this._oHistoryPopover = sap.ui.xmlfragment(
-              "com.inv.sapfiroriwebinversion.view.investments.fragments.InvestmentHistoryPanel",
-              this
-            );
-            this.getView().addDependent(this._oHistoryPopover);
-          }
+onHistoryPress: function (oEvent) {
+  const PORT = 3020;
+  const sUrl = `http://localhost:${PORT}/api/inv/history`;
 
-          if (this._oHistoryPopover.isOpen()) {
-            this._oHistoryPopover.close();
-            return;
-          }
-          this._oHistoryPopover.openBy(oEvent.getSource());
-        },
+  // 1) Si el popover no existe, lo creamos (pero NO lo abrimos todavía)
+  if (!this._oHistoryPopover) {
+    this._oHistoryPopover = sap.ui.xmlfragment(
+      "historyFrag",
+      "com.inv.sapfiroriwebinversion.view.investments.fragments.InvestmentHistoryPanel",
+      this
+    );
+    this.getView().addDependent(this._oHistoryPopover);
+  }
+
+  // 2) Si ya está abierto, lo cerramos
+  if (this._oHistoryPopover.isOpen()) {
+    this._oHistoryPopover.close();
+    return;
+  }
+
+  // 3) Antes de abrirlo, cargamos el modelo
+  fetch(sUrl, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" }
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    })
+    .then(data => {
+      // data.value[0] contiene tu objeto { strategies, filteredCount, ... }
+        const payload = data.value[0];
+        // 1) Guardamos el array original
+        this._allStrategies = payload.strategies;
+
+      // 4) Seteamos el modelo completo en la vista
+      const oHistoryModel = new sap.ui.model.json.JSONModel(payload);
+      this.getView().setModel(oHistoryModel, "historyModel");
+      // 5) Finalmente abrimos el popover, ya con los datos dentro
+      this._oHistoryPopover.openBy(oEvent.getSource());
+      const oInvSlider = sap.ui.core.Fragment.byId("historyFrag", "investmentRangeFilter");
+      const oProfSlider = sap.ui.core.Fragment.byId("historyFrag", "profitRangeFilter");
+    })
+    .catch(err => {
+      MessageToast.show("Error cargando historial: " + err.message);
+      console.error(err);
+    });
+},
 
         /**
          * Toggles the visibility of advanced filters in the history popover.
@@ -886,7 +992,7 @@ sap.ui.define(
         onToggleAdvancedFilters: function () {
           if (!this._oHistoryPopover) return;
 
-          const oPanel = sap.ui.getCore().byId("advancedFiltersPanel"); // Access panel from core if it's not a direct child of the view
+          const oPanel = sap.ui.core.Fragment.byId("historyFrag","advancedFiltersPanel"); // Access panel from core if it's not a direct child of the view
 
           if (oPanel) {
             oPanel.setVisible(!oPanel.getVisible());
@@ -894,6 +1000,248 @@ sap.ui.define(
             console.warn("Advanced filters panel not found.");
           }
         },
+
+        onFilterChange: function () {
+          // 0) Recupera el modelo de historial
+          const oModel = this.getView().getModel("historyModel");
+
+          // 1) Recupera los controles dentro del fragment
+          const oDateRange = sap.ui.core.Fragment.byId("historyFrag", "dateRangeFilter");
+          const oInvSlider = sap.ui.core.Fragment.byId("historyFrag", "investmentRangeFilter");
+          const oProfSlider = sap.ui.core.Fragment.byId("historyFrag", "profitRangeFilter");
+
+          // 2) Lee sus valores
+          const dFrom = oDateRange.getDateValue();
+          const dTo   = oDateRange.getSecondDateValue();
+
+          // RangeSlider.getValue() devuelve un número; para RangeSlider usa getRange()
+          const [fInvMin, fInvMax]   = oInvSlider.getRange();
+          const [fProfMin, fProfMax] = oProfSlider.getRange();
+          const aFiltered = this._allStrategies.filter(item => {
+            const dStart = new Date(item.STARTDATE);
+            const isInsideOfDateRange = (!dFrom || dStart >= dFrom) && (!dTo || dStart <= dTo);
+            const isInsideOfAmountRange =
+              (fInvMin == null || item.AMOUNT >= fInvMin) &&
+              (fInvMax == null || item.AMOUNT <= fInvMax);
+
+            const isInsideOfProfitRange =
+              (fProfMin == null || item.PROFIT >= fProfMin) &&
+              (fProfMax == null || item.PROFIT <= fProfMax);
+
+            console.log("Item ",item.STRATEGYNAME, ", isInsideDATErange: ",isInsideOfDateRange, "&& isInsideOfAmountRange: ", isInsideOfAmountRange, "&& isInsideOfProfitRange: ", isInsideOfProfitRange);
+            return isInsideOfDateRange && isInsideOfAmountRange && isInsideOfProfitRange; // && bInvOk si lo incluyes
+          });
+          console.log("Strategies: ",this._allStrategies);
+          // 4) Actualiza el modelo con la nueva lista y el contador
+          oModel.setProperty("/strategies", aFiltered);
+          oModel.setProperty("/filteredCount", aFiltered.length);
+        },
+
+        onSearch: function (oEvent) {
+        // 0) Recupera el texto de búsqueda
+        const sQuery = oEvent.getParameter("query") || "";
+        const sLowerQuery = sQuery.trim().toLowerCase();
+
+        // 1) Recupera el modelo y la lista original
+        const oModel = this.getView().getModel("historyModel");
+        const aAll = this._allStrategies || [];
+
+        // 2) Si hay texto, filtra; si no, restaura todo
+        const aFiltered = sLowerQuery
+          ? aAll.filter(item => {
+              const sID = (item.SIMULATIONID || "").toLowerCase();
+              const sName = (item.STRATEGYNAME || "").toLowerCase();
+              const sSymbol = (item.SYMBOL || "").toLowerCase();
+              return sName.includes(sLowerQuery) || sSymbol.includes(sLowerQuery) || sID.includes(sLowerQuery);
+            })
+          : aAll.slice(); // copia de la lista completa
+
+        // 3) Actualiza el modelo con resultados y contador
+        oModel.setProperty("/strategies", aFiltered);
+        oModel.setProperty("/filteredCount", aFiltered.length);
+      },
+
+onFieldChange: function(oEvent) {
+  const oInput    = oEvent.getSource();
+  const sNewValue = oEvent.getParameter("value");
+  // 1) Sacamos el contexto de fila y su ID original
+    const oCtx      = oInput.getBindingContext("historyModel");
+  const aPath = oCtx.getPath().split("/");
+  const iRow  = parseInt(aPath[aPath.length - 1], 10);
+
+    console.log("oCTX: ",oCtx);
+    const sOldId = this._originalList[iRow].SIMULATIONID;
+     console.log("sOldId: ",sOldId);
+          console.log("sNewValue: ", sNewValue);
+  if (!sOldId) return;
+
+    // Vemos si ya teníamos pendiente este oldID
+    const idx = this._pendingChanges.findIndex(u => u.SIMULATIONID === sOldId);
+
+    if (sNewValue && sNewValue !== sOldId) {
+      const updateObj = { SIMULATIONID: sOldId, NEWID: sNewValue };
+      console.log("UPDATE OBJ: updateObj");
+      if (idx === -1) {
+        this._pendingChanges.push(updateObj);
+      } else {
+        this._pendingChanges[idx].NEWID = sNewValue;
+      }
+    } else if (idx > -1) {
+      // si volvió a valer el original, lo quitamos de pendientes
+      this._pendingChanges.splice(idx, 1);
+    }
+  console.log("Pending updates: ", this._pendingChanges)
+  // 3) Reflejamos en la UI (para que el input muestre el cambio)...
+  oCtx.getModel().setProperty(oInput.getBindingPath("value"), sNewValue, oCtx);
+  console.log("Pending Changes: ",this._pendingChanges.length);
+  // 4) Activamos/desactivamos botón según haya al menos un pendiente
+  this._toggleLoadButton(this._pendingChanges.length > 0);
+},
+
+      _toggleLoadButton: function(bEnabled) {
+        const oButton = sap.ui.core.Fragment.byId("historyFrag","bruh");
+        if (oButton) {
+          oButton.setEnabled(bEnabled);
+        }
+      },
+
+      onLoadStrategy: function() {
+        const PORT   = 3020;
+        const oModel = this.getView().getModel("historyModel");
+
+        const oRequestBody = {
+          SIMULATION: this._pendingChanges  // asumes [{ SIMULATIONID, NEWID }, ...]
+        };
+
+        fetch(`http://localhost:${PORT}/api/inv/updatesimulation`, {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify(oRequestBody),
+        })
+        .then(response => {
+          if (!response.ok) throw response;
+          return response.json();
+        })
+        .then(updated => {
+          // updated.value es el array completo de simulaciones normalizadas
+          const arr = updated.value;
+
+          // Por cada cambio pendiente
+          this._pendingChanges.forEach(change => {
+            const { SIMULATIONID: oldID, NEWID } = change;
+            
+            // 1) índice de la fila editada
+            const rowIndex = this._originalList.findIndex(row => row.SIMULATIONID === oldID);
+            if (rowIndex < 0) return;  // no lo encontró, saltar
+
+            // 2) buscar la entidad actualizada correspondiente
+            const newEntity = arr.find(e => e.SIMULATIONID === NEWID);
+            if (!newEntity) return;     // tampoco está en la respuesta, saltar
+
+            // 3a) actualizar copia original
+            this._originalList[rowIndex].SIMULATIONID = newEntity.SIMULATIONID;
+
+            // 3b) reflejar en el modelo UI
+            oModel.setProperty(`/${rowIndex}/SIMULATIONID`, newEntity.SIMULATIONID);
+          });
+
+          // Limpieza y feedback
+          this._pendingChanges = [];
+          this._toggleLoadButton(false);
+          MessageToast.show("Simulación actualizada correctamente");
+        })
+        .catch(err => {
+          console.error(err);
+          MessageBox.error("Error al actualizar la simulación");
+        });
+      },
+
+onSelectionChange: function(oEvent) {
+  // 1) ¿fila seleccionada o deseleccionada?
+  const bSelected = oEvent.getParameter("selected");
+  console.log("Bselected: ", bSelected);
+
+  // 2) obtenemos el ListItem que disparó el evento
+  const oItem = oEvent.getParameter("listItem");
+  if (!oItem) {
+    console.warn("No se encontró el parámetro listItem en el evento");
+    return;
+  }
+
+  // 3) de esa fila, su bindingContext
+  const oCtx = oItem.getBindingContext("historyModel");
+  if (!oCtx) {
+    console.warn("No hay bindingContext en la fila");
+    return;
+  }
+  console.log("Octx: ", oCtx);
+
+  // 4) extraemos el SIMULATIONID de esa fila
+  const sID = oCtx.getProperty("SIMULATIONID");
+  console.log("SIMULATIONID:", sID);
+
+  // 5) actualizamos el array de pendingDeletes
+  if (bSelected) {
+    if (!this._pendingDeletes.includes(sID)) {
+      this._pendingDeletes.push(sID);
+    }
+  } else {
+    this._pendingDeletes = this._pendingDeletes.filter(id => id !== sID);
+  }
+  console.log("Pending deletes: ", this._pendingDeletes);
+
+  // 6) habilitamos/deshabilitamos el botón
+  this._toggleDeleteButton(this._pendingDeletes.length > 0);
+},
+
+_toggleDeleteButton: function(bEnabled) {
+  const oBtn = sap.ui.core.Fragment.byId("historyFrag", "deleteBtn");
+  console.log("This pending button: ", oBtn);
+  if (oBtn) {
+    oBtn.setEnabled(bEnabled);
+  }
+},
+
+onDeleteSelected: function() {
+  const PORT = 3020;
+  const oModel = this.getView().getModel("historyModel");
+
+  fetch(`http://localhost:${PORT}/api/inv/deletesimulation`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ SIMULATIONIDS: this._pendingDeletes }),
+  })
+  .then(response => {
+    if (!response.ok) throw response;
+    return response.json();
+  })
+  .then(data => {
+    // data es { "@odata.context": "...", value: [ ... ] }
+    const deletedIDs = Array.isArray(data.value) ? data.value : [];
+
+    // Ya podemos iterar el array
+    deletedIDs.forEach(id => {
+      // 1) eliminar de la copia original
+      const idx = this._originalList.findIndex(row => row.SIMULATIONID === id);
+      if (idx > -1) this._originalList.splice(idx, 1);
+
+      // 2) eliminar del modelo UI
+      const aData = oModel.getProperty("/strategies") || [];
+      const newData = aData.filter(row => row.SIMULATIONID !== id);
+      oModel.setProperty("/strategies", newData);
+    });
+
+    // 3) limpiar y feedback
+    this._pendingDeletes = [];
+    this._toggleDeleteButton(false);
+    MessageToast.show("Simulaciones eliminadas correctamente");
+  })
+  .catch(err => {
+    console.error(err);
+    MessageBox.error("Error al eliminar simulaciones");
+  });
+}
+
       }
     );
   }

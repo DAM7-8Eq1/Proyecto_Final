@@ -49,6 +49,7 @@
                     </IconTabHeader>
                     <ToolbarSpacer />
                     <Button
+                        id="btnHistory"
                         icon="sap-icon://history"
                         tooltip="Historial"
                         press=".onHistoryPress"
@@ -85,7 +86,7 @@
                                     growing="true"
                                     growingThreshold="100"
                                     sticky="ColumnHeaders"
-                                    busy="{= !${strategyResultModel>/chart_data} || ${strategyResultModel>/chart_data}.length === 0 }"
+                                    busy="{strategyResultModel>/busy}"
                                     class="customTable"
                                 >
                                     <columns>
@@ -217,7 +218,7 @@
                                         vizType="timeseries_line"
                                         width="auto"
                                         uiConfig="{applicationSet:'fiori'}"
-                                        busy="{= !${strategyResultModel>/chart_data} || ${strategyResultModel>/chart_data}.length === 0 }"
+                                        busy="{strategyResultModel>/busy}"
                                         selectData=".onDataPointSelect"
                                     >
                                         <viz:dataset>
@@ -259,6 +260,10 @@
                                                     <viz.data:MeasureDefinition
                                                         name="ATR"
                                                         value="{ATR}"
+                                                    />
+                                                    <viz.data:MeasureDefinition
+                                                        name="ADX"
+                                                        value="{ADX}"
                                                     />
                                                     <viz.data:MeasureDefinition
                                                         name="Señal BUY"

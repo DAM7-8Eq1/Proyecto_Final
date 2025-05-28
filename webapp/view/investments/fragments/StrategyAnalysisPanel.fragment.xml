@@ -51,6 +51,8 @@
                             class="sapUiTinyMarginTop"
                         >
                             <VBox width="48%">
+                            <!-- ESTRATEGIA MACrossover -->
+                            <!-- _____________________________________________________________________________ -->
                                 <Label
                                     text="{i18n>longSMALabelText}"
                                     visible="{= ${strategyAnalysisModel>/strategyKey} === 'MACrossover' }"
@@ -77,6 +79,8 @@
                                     width="100%"
                                     visible="{= ${strategyAnalysisModel>/strategyKey} === 'MACrossover' }"
                                 />
+                            <!-- _____________________________________________________________________________ -->
+                            <!-- FIN DE ESTRATEGIA MACrossover -->
                             </VBox>
                         </HBox>
 
@@ -105,6 +109,9 @@
                             />
                         </VBox>
 
+
+                        <!-- ESTRATEGIA REVERSION SIMPLE -->
+                        <!-- _____________________________________________________________________________ -->        
                         <Label
                             class="sapUiTinyMarginTop"
                             text="RSI Simple"
@@ -118,7 +125,71 @@
                             class=""
                             visible="{= ${strategyAnalysisModel>/strategyKey} === 'Reversión Simple' }"
                         />
+                        <!-- _____________________________________________________________________________ -->
+                        <!-- FIN DE ESTRATEGIA REVERSION SIMPLE -->
 
+                        <!-- ESTRATEGIA MOMENTUM -->
+                        <!-- _____________________________________________________________________________ -->    
+                        <Label
+                            class="sapUiTinyMarginTop"
+                            text="LONG MA"
+                            visible="{= ${strategyAnalysisModel>/strategyKey} === 'Momentum' }"
+                        />
+                        <StepInput
+                            value="{strategyAnalysisModel>/long}"
+                            min="1"
+                            step="1"
+                            width="100%"
+                            class=""
+                            visible="{= ${strategyAnalysisModel>/strategyKey} === 'Momentum' }"
+                        />
+
+                        <Label
+                            class="sapUiTinyMarginTop"
+                            text="SHORT MA"
+                            visible="{= ${strategyAnalysisModel>/strategyKey} === 'Momentum' }"
+                        />
+                        <StepInput
+                            value="{strategyAnalysisModel>/short}"
+                            min="1"
+                            step="1"
+                            width="100%"
+                            class=""
+                            visible="{= ${strategyAnalysisModel>/strategyKey} === 'Momentum' }"
+                        />
+
+                        <Label
+                            class="sapUiTinyMarginTop"
+                            text="RSI"
+                            visible="{= ${strategyAnalysisModel>/strategyKey} === 'Momentum' }"
+                        />
+                        <StepInput
+                            value="{strategyAnalysisModel>/rsi}"
+                            min="1"
+                            step="1"
+                            width="100%"
+                            class=""
+                            visible="{= ${strategyAnalysisModel>/strategyKey} === 'Momentum' }"
+                        />
+
+                        <Label
+                            class="sapUiTinyMarginTop"
+                            text="ADX"
+                            visible="{= ${strategyAnalysisModel>/strategyKey} === 'Momentum' }"
+                        />
+                        <StepInput
+                            value="{strategyAnalysisModel>/adx}"
+                            min="1"
+                            step="1"
+                            width="100%"
+                            class=""
+                            visible="{= ${strategyAnalysisModel>/strategyKey} === 'Momentum' }"
+                        />
+                        <!-- _____________________________________________________________________________ -->
+                        <!-- FIN DE ESTRATEGIA MOMENTUM -->
+
+                        <!-- ESTRATEGIA SUPERTREND -->
+                        <!-- _____________________________________________________________________________ -->
                         <Label
                             class="sapUiTinyMarginTop"
                             text="MA Length"
@@ -166,7 +237,7 @@
                             class=""
                             visible="{= ${strategyAnalysisModel>/strategyKey} === 'Supertrend' }"
                         />
-                        
+
                         <Label
                             class="sapUiTinyMarginTop"
                             text="Risk/Reward"
@@ -185,6 +256,8 @@
                             class=""
                             visible="{= ${strategyAnalysisModel>/strategyKey} === 'Supertrend' }"
                         />
+                        <!-- _____________________________________________________________________________ -->
+                        <!-- FIN DE ESTRATEGIA SUPERTREND -->
 
                         <Label
                             class="sapUiTinyMarginTop"
