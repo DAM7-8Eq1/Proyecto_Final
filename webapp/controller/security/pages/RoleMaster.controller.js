@@ -21,16 +21,24 @@ sap.ui.define([
   Fragment
 ) {
   "use strict";
-
+ //extendemos el controlador base para roles
   return BaseController.extend("com.inv.sapfiroriwebinversion.controller.security.pages.RoleMaster", {
 
 
         onInit: function () {
-      //cargar los roles
-      this.loadRoles();
-      this.loadProcess();
-      this.loadPrivilegios();
+            //llamamos a la funcion para cargar todo lo que ocupemos en esta vista
+            this.loadStart();
     },
+
+    loadStart: function (){
+        // Cargar los roles al iniciar
+        this.loadRoles();
+        // Cargar los procesos
+        this.loadProcess();
+        // Cargar los privilegios
+        this.loadPrivilegios();
+    },
+    //funcion para cargar los roles
     loadRoles: function () {
         var oModel = new JSONModel();
         this.getView().setModel(oModel, "roles");
@@ -55,11 +63,31 @@ sap.ui.define([
     
     onRoleSelected: function(oEvent) {
         var oContext = oEvent.getParameter("rowContext");
-        if (!oContext) {
-            // Si no hay contexto, salir
-            return;
-        }
+        if (!oContext) return;
+
         var oData = oContext.getObject();
+        var sRoleId = oData.ROLEID;
+        var that = this;
+
+        // Llama a tu backend para obtener el detalle del rol
+        fetch("http://localhost:3020/api/security/roles?roleid=" + encodeURIComponent(sRoleId), {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("No se pudo obtener el detalle del rol");
+            return response.json();
+        })
+        .then(data => {
+            var oRoleDetail = Array.isArray(data) ? data.values[0] : data;
+            var oDetailModel = new sap.ui.model.json.JSONModel(oRoleDetail);
+            that.getView().setModel(oDetailModel, "RolesDetail");
+        })
+        .catch(error => {
+            MessageToast.show("Error: " + error.message);
+        });
+
+    
         this.getView().getModel("roles").setProperty("/selectedRole", oData);
     },
     

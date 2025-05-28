@@ -1,6 +1,7 @@
 sap.ui.define([
-  "sap/ui/core/mvc/Controller"
-], (BaseController) => {
+  "sap/ui/core/mvc/Controller",
+  "sap/m/MessageToast"
+], (BaseController, MessageToast) => {
   "use strict";
 
   return BaseController.extend("com.inv.sapfiroriwebinversion.controller.security.pages.RolesDetail", {
@@ -17,7 +18,9 @@ sap.ui.define([
         onCatalogsPress: function() {
             var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
             oRouter.navTo("RouteCatalogs");
-        }
+        },
     
+      
+
     });
 });
