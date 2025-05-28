@@ -10,6 +10,9 @@ sap.ui.define([
 ], function (
   BaseController,
   JSONModel,
+  // @ts-ignore
+  // @ts-ignore
+  // @ts-ignore
   Log,
   MessageToast,
   MessageBox,
@@ -105,8 +108,18 @@ sap.ui.define([
 
     // abrir el modal para usuarios
     onOpenDialog:function(){
-
       var oView = this.getView();
+
+      // Crea el modelo SOLO si no existe
+      var oNewRoleModel = new sap.ui.model.json.JSONModel({
+          ROLEID: "",
+          ROLENAME: "",
+          DESCRIPTION: "",
+          NEW_PROCESSID: "",
+          NEW_PRIVILEGES: [],
+          PRIVILEGES: []
+      });
+
       if (!this._oCreateRoleDialog) {
           Fragment.load({
               id: oView.getId(),
@@ -114,12 +127,19 @@ sap.ui.define([
               controller: this
           }).then(oDialog => {
               this._oCreateRoleDialog = oDialog;
-
-
               oView.addDependent(oDialog);
+
+              // ASIGNA el modelo al diálogo y a la vista
+              this._oCreateRoleDialog.setModel(oNewRoleModel, "newRoleModel");
+              oView.setModel(oNewRoleModel, "newRoleModel");
+
               this._oCreateRoleDialog.open();
           });
       } else {
+          // Reasigna el modelo cada vez que abras el diálogo
+          this._oCreateRoleDialog.setModel(oNewRoleModel, "newRoleModel");
+          oView.setModel(oNewRoleModel, "newRoleModel");
+
           this._oCreateRoleDialog.open();
       }
     },
@@ -156,6 +176,9 @@ sap.ui.define([
                         if (!response.ok) throw new Error("No se pudo eliminar el rol");
                         return response.json();
                     })
+                    // @ts-ignore
+                    // @ts-ignore
+                    // @ts-ignore
                     .then(data => {
                         MessageToast.show("Rol eliminado correctamente");
                         that.loadRoles();
@@ -192,6 +215,9 @@ sap.ui.define([
                         if (!response.ok) throw new Error("No se pudo activar el rol");
                         return response.json();
                     })
+                    // @ts-ignore
+                    // @ts-ignore
+                    // @ts-ignore
                     .then(data => {
                         MessageToast.show("Rol activado correctamente");
                         that.loadRoles();
@@ -233,6 +259,163 @@ sap.ui.define([
         } else {
             oBinding.filter([]);
         }
+    },
+
+    onAddPrivilege: function() {
+        var oView = this.getView();
+        var oModel = oView.getModel("newRoleModel");
+
+        // Obtener los valores seleccionados
+        var sProcessId = oModel.getProperty("/NEW_PROCESSID");
+        var aPrivilegeIds = oModel.getProperty("/NEW_PRIVILEGES") || [];
+
+        if (!sProcessId || aPrivilegeIds.length === 0) {
+            // @ts-ignore
+            sap.m.MessageToast.show("Selecciona un proceso y al menos un privilegio.");
+            return;
+        }
+
+        // Obtener el texto del proceso
+        var aProcesses = oView.getModel("processes").getProperty("/value") || [];
+        var oProcess = aProcesses.find(p => p.VALUEID === sProcessId);
+        var sProcessText = oProcess ? (oProcess.VALUE + (oProcess.VALUEPAID ? " - " + oProcess.VALUEPAID : "")) : sProcessId;
+
+        // Obtener los textos de los privilegios
+        var aPrivilegios = oView.getModel("privilegios").getProperty("/value") || [];
+        var aPrivilegeTexts = aPrivilegeIds.map(pid => {
+            var p = aPrivilegios.find(pr => pr.VALUEID === pid);
+            return p ? p.VALUE : pid;
+        });
+
+        // Construir el objeto a agregar
+        var oNewEntry = {
+            PROCESSID: sProcessId,
+            PROCESSNAME: sProcessText, // <-- TEXTO DEL PROCESO
+            PRIVILEGEID: aPrivilegeIds,
+            PRIVILEGENAMES: aPrivilegeTexts // <-- TEXTOS DE PRIVILEGIOS
+        };
+
+        // Agregar a la lista
+        var aPrivileges = oModel.getProperty("/PRIVILEGES") || [];
+        aPrivileges.push(oNewEntry);
+        oModel.setProperty("/PRIVILEGES", aPrivileges.slice()); // .slice() para refrescar el binding
+
+        // Limpiar los combos para la siguiente selección
+        oModel.setProperty("/NEW_PROCESSID", "");
+        oModel.setProperty("/NEW_PRIVILEGES", []);
+    },
+
+    onSaveRole: function(oEvent) {
+        var oButton = oEvent.getSource();
+        var oDialog = oButton.getParent();
+        var oModel = oDialog.getModel("newRoleModel");
+
+        if (!oModel) {
+            // @ts-ignore
+            sap.m.MessageToast.show("No se encontró el modelo newRoleModel.");
+            return;
+        }
+
+        var oRoleData = oModel.getData();
+
+        // Transforma los privilegios para enviar solo los campos requeridos
+        var aPrivileges = (oRoleData.PRIVILEGES || []).map(function(p) {
+            return {
+                PROCESSID: p.PROCESSID,
+                PRIVILEGEID: p.PRIVILEGEID
+            };
+        });
+
+        var oPayload = {
+            ROLEID: oRoleData.ROLEID,
+            ROLENAME: oRoleData.ROLENAME,
+            DESCRIPTION: oRoleData.DESCRIPTION,
+            PRIVILEGES: aPrivileges
+        };
+
+        fetch("http://localhost:3020/api/security/createrole", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ role: oPayload })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("No se pudo crear el rol");
+            return response.json();
+        })
+        // @ts-ignore
+        .then(data => {
+            // @ts-ignore
+            sap.m.MessageToast.show("Rol creado correctamente");
+            oDialog.close();
+            this.loadRoles();
+        })
+        .catch(error => {
+            // @ts-ignore
+            sap.m.MessageToast.show("Error: " + error.message);
+        });
+    },
+
+    onSave: function () {
+        var oView = this.getView();
+        var oModel = oView.getModel("newRoleModel");
+
+        // Obtener los valores del modelo
+        var sUserId = oModel.getProperty("/USERID");
+        var sPassword = oModel.getProperty("/PASSWORD");
+        var sFirstName = oModel.getProperty("/FIRSTNAME");
+        var sLastName = oModel.getProperty("/LASTNAME");
+        var sEmail = oModel.getProperty("/EMAIL");
+        var sCompanyId = oModel.getProperty("/COMPANYID");
+        var sCediId = oModel.getProperty("/CEDIID");
+        var sDepartment = oModel.getProperty("/DEPARTMENT");
+
+        // Construir el objeto de datos del usuario
+        var oUserData = {
+            USERID: sUserId,
+            PASSWORD: sPassword,
+            FIRSTNAME: sFirstName,
+            LASTNAME: sLastName,
+            EMAIL: sEmail,
+            COMPANYID: sCompanyId,
+            CEDIID: sCediId,
+            DEPARTMENT: sDepartment
+        };
+
+        // Validaciones básicas (puedes agregar más)
+        if (!sUserId || !sPassword || !sFirstName || !sLastName || !sEmail || !sCompanyId || !sCediId|| !sDepartment) {
+            MessageToast.show("Por favor, completa todos los campos obligatorios.");
+            return;
+        }
+
+        console.log("Data to be sent:", JSON.stringify({user:oUserData}));
+
+        // Realizar la solicitud a la API para crear el usuario
+        var sUrl = "http://localhost:3020/api/security/createuser";
+        fetch(sUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({user:oUserData})
+        })
+        .then(function (response) {
+            BusyIndicator.hide(); // Ocultar indicador de carga
+            if (!response.ok) {
+                console.log("Data to be sent:", JSON.stringify({user:oUserData}))
+                throw new Error("Error al crear el usuario");
+            }
+            return response.json();
+        })
+        .then(function (data) {
+            // Mostrar mensaje de éxito
+            MessageToast.show("Usuario creado correctamente");
+            // Navegar a la vista de tabla
+            this.getRouter().navTo("RouteSecurityTable");
+        }.bind(this))
+        .catch(function (error) {
+            BusyIndicator.hide(); // Ocultar indicador de carga
+            MessageToast.show("Error: " + error.message);
+        });
     },
   });
 });
