@@ -50,15 +50,15 @@
 
                   <m:Table id="_IDGenTable1" items="{newRoleModel>/PRIVILEGES}" growing="true" growingThreshold="5">
                       <m:columns>
-                        <m:Column id="_IDGenColumn4"><m:Text id="_IDGenText4" text="Proceso" /></m:Column>
-                        <m:Column id="_IDGenColumn5"><m:Text id="_IDGenText5" text="Privilegios" /></m:Column>
-                        <m:Column id="_IDGenColumn6" width="5rem" />
+                        <m:Column id="_IDGenColumn3"><m:Text id="_IDGenText4" text="Proceso" /></m:Column>
+                        <m:Column id="_IDGenColumn4"><m:Text id="_IDGenText5" text="Privilegios" /></m:Column>
+                        <m:Column id="_IDGenColumn5" width="5rem" /> <!-- Columna vacía para el botón -->
                       </m:columns>
                       <m:items>
                         <m:ColumnListItem id="_IDGenColumnListItem1">
                           <m:cells>
-                            <m:Text id="_IDGenText6" text="{newRoleModel>PROCESSNAME}" />
-                            <m:Text id="_IDGenText7" text="{= ${newRoleModel>PRIVILEGENAMES}.join(', ')}" />
+                            <m:Text id="_IDGenText6" text="{newRoleModel>PROCESSID}" />
+                            <m:Text id="_IDGenText7" text="{= ${newRoleModel>PRIVILEGEID}.join(', ')}" />
                             <m:Button id="_IDGenButton6" icon="sap-icon://decline" type="Reject" press=".onRemovePrivilege" tooltip="Eliminar" />
                           </m:cells>
                         </m:ColumnListItem>

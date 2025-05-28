@@ -461,5 +461,61 @@ sap.ui.define([
         });
     },
 
+    onAddPrivilegeEdit: function(oEvent) {
+        // Obtén el botón y el diálogo
+        var oButton = oEvent.getSource();
+        var oDialog = oButton.getParent();
+        var oModel = oDialog.getModel("roleDialogModel");
+        var oProcessesModel = oDialog.getModel("processes");
+        var oPrivilegiosModel = oDialog.getModel("privilegios");
+
+        if (!oModel) {
+            MessageToast.show("No se encontró el modelo roleDialogModel.");
+            return;
+        }
+
+        // Lee los valores seleccionados
+        var sProcessId = oModel.getProperty("/NEW_PROCESSID");
+        var aPrivilegeIds = oModel.getProperty("/NEW_PRIVILEGES") || [];
+
+        // Mostrar en consola lo seleccionado
+        console.log("Proceso seleccionado (edit):", sProcessId);
+        console.log("Privilegios seleccionados (edit):", aPrivilegeIds);
+
+        if (!sProcessId || aPrivilegeIds.length === 0) {
+            MessageToast.show("Selecciona un proceso y al menos un privilegio.");
+            return;
+        }
+
+        // Busca el texto del proceso
+        var aProcesses = oProcessesModel.getProperty("/value") || [];
+        var oProcess = aProcesses.find(p => p.VALUEID === sProcessId);
+        var sProcessText = oProcess ? (oProcess.VALUE + (oProcess.VALUEPAID ? " - " + oProcess.VALUEPAID : "")) : sProcessId;
+
+        // Busca los textos de los privilegios
+        var aPrivilegios = oPrivilegiosModel.getProperty("/value") || [];
+        var aPrivilegeTexts = aPrivilegeIds.map(pid => {
+            var p = aPrivilegios.find(pr => pr.VALUEID === pid);
+            return p ? p.VALUE : pid;
+        });
+
+        // Construye el objeto a agregar
+        var oNewEntry = {
+            PROCESSID: sProcessId,
+            PROCESSNAME: sProcessText,
+            PRIVILEGEID: aPrivilegeIds,
+            PRIVILEGENAMES: aPrivilegeTexts
+        };
+
+        // Agrega a la lista de privilegios del modelo de edición
+        var aPrivileges = oModel.getProperty("/PRIVILEGES") || [];
+        aPrivileges.push(oNewEntry);
+        oModel.setProperty("/PRIVILEGES", aPrivileges.slice());
+
+        // Limpia los combos para la siguiente selección
+        oModel.setProperty("/NEW_PROCESSID", "");
+        oModel.setProperty("/NEW_PRIVILEGES", []);
+    },
+
   });
 });

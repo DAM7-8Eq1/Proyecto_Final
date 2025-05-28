@@ -1,77 +1,159 @@
 <m:Dialog
-  id="dialogEditRole"
-  title="Editar Rol"
-  draggable="true"
-  resizable="true"
-  contentWidth="600px"
-  class="sapUiContentPadding"
-  contentHeight="auto"
-  afterClose=".onDialogClose"
-  xmlns:m="sap.m"
-  xmlns:core="sap.ui.core"
-  xmlns:layout="sap.ui.layout.form">
+    id="dialogEditRole"
+    title="Editar Rol"
+    draggable="true"
+    resizable="true"
+    contentWidth="600px"
+    class="sapUiContentPadding"
+    contentHeight="auto"
+    afterClose=".onDialogClose"
+    xmlns:m="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:layout="sap.ui.layout.form"
+>
+    <layout:SimpleForm
+        id="_IDGenSimpleForm1"
+        editable="true"
+        layout="ResponsiveGridLayout"
+        labelSpanL="4"
+        labelSpanM="4"
+        emptySpanL="1"
+        columnsL="2"
+        columnsM="2"
+    >
+        <m:Label
+            id="_IDGenLabel"
+            text="ID del Rol"
+        />
+        <m:Input
+            id="_IDGenInput"
+            value="{roleDialogModel>/ROLEID}"
+            placeholder="Ej. IdAdmin"
+        />
 
-  <layout:SimpleForm id="_IDGenSimpleForm1"
-    editable="true"
-    layout="ResponsiveGridLayout"
-    labelSpanL="4"
-    labelSpanM="4"
-    emptySpanL="1"
-    columnsL="2"
-    columnsM="2">
+        <m:Label
+            id="_IDGenLabel1"
+            text="Nombre del Rol"
+        />
+        <m:Input
+            id="_IDGenInput1"
+            value="{roleDialogModel>/ROLENAME}"
+            placeholder="Ej. Administrador"
+        />
 
-    <m:Label id="_IDGenLabel" text="ID del Rol" />
-    <m:Input id="_IDGenInput" value="{roleDialogModel>/ROLEID}" placeholder="Ej. IdAdmin" editable="false" />
+        <m:Label
+            id="_IDGenLabel2"
+            text="Descripción"
+        />
+        <m:Input
+            id="_IDGenInput2"
+            value="{roleDialogModel>/DESCRIPTION}"
+            placeholder="Ej. Encargado de seguridad..."
+        />
 
-    <m:Label id="_IDGenLabel1" text="Nombre del Rol" />
-    <m:Input id="_IDGenInput1" value="{roleDialogModel>/ROLENAME}" placeholder="Ej. Administrador" />
+        <core:Title
+            id="_IDGenTitle1"
+            text="Privilegios por Proceso"
+        />
 
-    <m:Label id="_IDGenLabel2" text="Descripción" />
-    <m:Input id="_IDGenInput2" value="{roleDialogModel>/DESCRIPTION}" placeholder="Ej. Encargado de seguridad..." />
+        <m:Label
+            id="_IDGenLabel3"
+            text="Proceso"
+        />
+        <m:ComboBox
+            id="_IDGenComboBoxEditRole"
+            items="{processes>/value}"
+            selectedKey="{roleDialogModel>/NEW_PROCESSID}"
+            placeholder="Selecciona un proceso"
+        >
+            <core:Item id="_IDGenItem1"
+                key="{processes>VALUEID}"
+                text="{processes>VALUE} - {processes>VALUEPAID}"
+            />
+        </m:ComboBox>
 
-    <core:Title id="_IDGenTitle1" text="Privilegios por Proceso" />
+        <m:Label
+            id="_IDGenLabel4"
+            text="Privilegios"
+        />
+        <m:MultiComboBox
+            id="_IDGenMultiComboBoxEditRole"
+            items="{privilegios>/value}"
+            selectedKeys="{roleDialogModel>/NEW_PRIVILEGES}"
+            placeholder="Selecciona privilegios"
+        >
+            <core:Item id="_IDGenItem12"
+                key="{privilegios>VALUEID}"
+                text="{privilegios>VALUE}"
+            />
+        </m:MultiComboBox>
 
-    <m:Label id="_IDGenLabel3" text="Proceso" />
-    <m:ComboBox id="_IDGenComboBox"
-      items="{processCatalogModel>/values}"
-      selectedKey="{roleDialogModel>/NEW_PROCESSID}"
-      placeholder="Selecciona un proceso">
-      <core:Item id="_IDGenItem" key="{processCatalogModel>VALUEID}" text="{processCatalogModel>VALUE} -{processCatalogModel>VALUEPAID}" />
-    </m:ComboBox>
+        <m:Button
+            id="_IDGenButton"
+            text="Agregar Privilegio"
+            icon="sap-icon://add"
+            press=".onAddPrivilegeEdit"
+        />
 
-    <m:Label id="_IDGenLabel4" text="Privilegios" />
-    <m:MultiComboBox id="_IDGenMultiComboBox"
-      items="{privilegeCatalogModel>/values}"
-      selectedKeys="{roleDialogModel>/NEW_PRIVILEGES}"
-      placeholder="Selecciona privilegios">
-      <core:Item id="_IDGenItem1" key="{privilegeCatalogModel>VALUEID}" text="{privilegeCatalogModel>VALUE}" />
-    </m:MultiComboBox>
+        <m:Table
+            id="_IDGenTable"
+            items="{roleDialogModel>/PRIVILEGES}"
+            growing="true"
+            growingThreshold="5"
+        >
+            <m:columns>
+                <m:Column id="_IDGenColumn">
+                    <m:Text
+                        id="_IDGenText"
+                        text="Proceso"
+                    />
+                </m:Column>
+                <m:Column id="_IDGenColumn1">
+                    <m:Text
+                        id="_IDGenText1"
+                        text="Privilegios"
+                    />
+                </m:Column>
+                <m:Column
+                    id="_IDGenColumn2"
+                    width="5rem"
+                />
+            </m:columns>
+            <m:items>
+                <m:ColumnListItem id="_IDGenColumnListItem">
+                    <m:cells>
+                        <m:Text
+                            id="_IDGenText2"
+                            text="{roleDialogModel>PROCESSID}"
+                        />
+                        <m:Text
+                            id="_IDGenText3"
+                            text="{= ${roleDialogModel>PRIVILEGEID}.join(', ')}"
+                        />
+                        <m:Button
+                            id="_IDGenButton1"
+                            icon="sap-icon://decline"
+                            type="Reject"
+                            press=".onRemovePrivilege"
+                            tooltip="Eliminar"
+                        />
+                    </m:cells>
+                </m:ColumnListItem>
+            </m:items>
+        </m:Table>
+    </layout:SimpleForm>
 
-    <m:Button id="_IDGenButton" text="Agregar Privilegio" icon="sap-icon://add" press=".onAddPrivilege" />
-
-    <m:Table id="_IDGenTable" items="{roleDialogModel>/PRIVILEGES}" growing="true" growingThreshold="5">
-      <m:columns>
-        <m:Column id="_IDGenColumn"><m:Text id="_IDGenText" text="Proceso" /></m:Column>
-        <m:Column id="_IDGenColumn1"><m:Text id="_IDGenText1" text="Privilegios" /></m:Column>
-        <m:Column id="_IDGenColumn2" width="5rem" />
-      </m:columns>
-      <m:items>
-        <m:ColumnListItem id="_IDGenColumnListItem">
-          <m:cells>
-            <m:Text id="_IDGenText2" text="{roleDialogModel>PROCESSID}" />
-            <m:Text id="_IDGenText3" text="{= ${roleDialogModel>PRIVILEGEID}.join(', ')}" />
-            <m:Button id="_IDGenButton1" icon="sap-icon://decline" type="Reject" press=".onRemovePrivilege" tooltip="Eliminar" />
-          </m:cells>
-        </m:ColumnListItem>
-      </m:items>
-    </m:Table>
-  </layout:SimpleForm>
-
-  <m:buttons>
-    <m:Button id="_IDGenButton2"
-      text="Guardar"
-      type="Emphasized"
-      press=".onSaveRoleEdit" />
-    <m:Button id="_IDGenButton3" text="Cancelar" press=".onDialogClose" />
-  </m:buttons>
+    <m:buttons>
+        <m:Button
+            id="_IDGenButton2"
+            text="Guardar"
+            type="Emphasized"
+            press=".onSaveRoleEdit"
+        />
+        <m:Button
+            id="_IDGenButton3"
+            text="Cancelar"
+            press=".onDialogClose"
+        />
+    </m:buttons>
 </m:Dialog>
