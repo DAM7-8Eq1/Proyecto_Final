@@ -21,7 +21,7 @@
     columnsM="2">
 
     <m:Label id="_IDGenLabel" text="ID del Rol" />
-    <m:Input id="_IDGenInput" value="{roleDialogModel>/ROLEID}" placeholder="Ej. IdAdmin" />
+    <m:Input id="_IDGenInput" value="{roleDialogModel>/ROLEID}" placeholder="Ej. IdAdmin" editable="false" />
 
     <m:Label id="_IDGenLabel1" text="Nombre del Rol" />
     <m:Input id="_IDGenInput1" value="{roleDialogModel>/ROLENAME}" placeholder="Ej. Administrador" />
@@ -71,7 +71,7 @@
     <m:Button id="_IDGenButton2"
       text="Guardar"
       type="Emphasized"
-      press="{= ${roleDialogModel>/IS_EDIT} ? '.onSaveRoleEdit' : '.onSaveRole'}" />
+      press=".onSaveRoleEdit" />
     <m:Button id="_IDGenButton3" text="Cancelar" press=".onDialogClose" />
   </m:buttons>
 </m:Dialog>

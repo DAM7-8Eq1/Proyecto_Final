@@ -146,12 +146,11 @@ sap.ui.define([
 
     // abrir el modal para editar
     
-    onDialogClose: function () {  
-     if (this._oCreateRoleDialog) { 
-           
-             this._oCreateRoleDialog.close();
-        }
-      },
+    onDialogClose: function(oEvent) {
+    var oButton = oEvent.getSource();
+    var oDialog = oButton.getParent();
+    oDialog.close();
+},
       
     onDeleteRole: function() {
         var oModel = this.getView().getModel("roles");
@@ -269,9 +268,12 @@ sap.ui.define([
         var sProcessId = oModel.getProperty("/NEW_PROCESSID");
         var aPrivilegeIds = oModel.getProperty("/NEW_PRIVILEGES") || [];
 
+        // Mostrar en consola lo seleccionado
+        console.log("Proceso seleccionado:", sProcessId);
+        console.log("Privilegios seleccionados:", aPrivilegeIds);
+
         if (!sProcessId || aPrivilegeIds.length === 0) {
-            // @ts-ignore
-            sap.m.MessageToast.show("Selecciona un proceso y al menos un privilegio.");
+            MessageToast.show("Selecciona un proceso y al menos un privilegio.");
             return;
         }
 
@@ -355,67 +357,109 @@ sap.ui.define([
         });
     },
 
-    onSave: function () {
+    onEditUser: function() {
         var oView = this.getView();
-        var oModel = oView.getModel("newRoleModel");
+        var oTable = this.byId("rolesTable");
+        var oContext = oTable.getContextByIndex(oTable.getSelectedIndex());
 
-        // Obtener los valores del modelo
-        var sUserId = oModel.getProperty("/USERID");
-        var sPassword = oModel.getProperty("/PASSWORD");
-        var sFirstName = oModel.getProperty("/FIRSTNAME");
-        var sLastName = oModel.getProperty("/LASTNAME");
-        var sEmail = oModel.getProperty("/EMAIL");
-        var sCompanyId = oModel.getProperty("/COMPANYID");
-        var sCediId = oModel.getProperty("/CEDIID");
-        var sDepartment = oModel.getProperty("/DEPARTMENT");
-
-        // Construir el objeto de datos del usuario
-        var oUserData = {
-            USERID: sUserId,
-            PASSWORD: sPassword,
-            FIRSTNAME: sFirstName,
-            LASTNAME: sLastName,
-            EMAIL: sEmail,
-            COMPANYID: sCompanyId,
-            CEDIID: sCediId,
-            DEPARTMENT: sDepartment
-        };
-
-        // Validaciones básicas (puedes agregar más)
-        if (!sUserId || !sPassword || !sFirstName || !sLastName || !sEmail || !sCompanyId || !sCediId|| !sDepartment) {
-            MessageToast.show("Por favor, completa todos los campos obligatorios.");
+        if (!oContext) {
+            MessageToast.show("Selecciona un rol para editar.");
             return;
         }
 
-        console.log("Data to be sent:", JSON.stringify({user:oUserData}));
+        // Obtén los datos del rol seleccionado
+        var oRoleData = oContext.getObject();
 
-        // Realizar la solicitud a la API para crear el usuario
-        var sUrl = "http://localhost:3020/api/security/createuser";
-        fetch(sUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({user:oUserData})
-        })
-        .then(function (response) {
-            BusyIndicator.hide(); // Ocultar indicador de carga
-            if (!response.ok) {
-                console.log("Data to be sent:", JSON.stringify({user:oUserData}))
-                throw new Error("Error al crear el usuario");
+        // Crea el modelo para el diálogo de edición
+        var oRoleDialogModel = new sap.ui.model.json.JSONModel(Object.assign({}, oRoleData, {
+            NEW_PROCESSID: "",
+            NEW_PRIVILEGES: [],
+            PRIVILEGES: oRoleData.PRIVILEGES || [],
+            IS_EDIT: true // Para saber que es edición
+        }));
+
+        // Carga el fragmento si no existe
+        if (!this._oEditRoleDialog) {
+            sap.ui.core.Fragment.load({
+                id: oView.getId(),
+                name: "com.inv.sapfiroriwebinversion.view.security.components.EditRoleDialog",
+                controller: this
+            }).then(function(oDialog) {
+                this._oEditRoleDialog = oDialog;
+                oView.addDependent(oDialog);
+                oDialog.setModel(oRoleDialogModel, "roleDialogModel");
+                oDialog.open();
+            }.bind(this));
+        } else {
+            this._oEditRoleDialog.setModel(oRoleDialogModel, "roleDialogModel");
+            this._oEditRoleDialog.open();
+        }
+    },
+
+    onRemovePrivilege: function(oEvent) {
+        var oItem = oEvent.getSource().getParent();
+        var oContext = oItem.getBindingContext("roleDialogModel");
+        var iIndex = oContext.getPath().split("/").pop();
+        var oModel = oContext.getModel();
+        var aPrivileges = oModel.getProperty("/PRIVILEGES");
+
+        MessageBox.confirm("¿Deseas eliminar este privilegio?", {
+            actions: [sap.m.MessageBox.Action.YES, sap.m.MessageBox.Action.NO],
+            onClose: function(oAction) {
+                if (oAction === sap.m.MessageBox.Action.YES) {
+                    aPrivileges.splice(iIndex, 1);
+                    oModel.setProperty("/PRIVILEGES", aPrivileges.slice());
+                    MessageToast.show("Privilegio eliminado.");
+                }
             }
+        });
+    },
+
+    onSaveRoleEdit: function(oEvent) {
+        var oButton = oEvent.getSource();
+        var oDialog = oButton.getParent();
+        var oModel = oDialog.getModel("roleDialogModel");
+
+        if (!oModel) {
+            MessageToast.show("No se encontró el modelo roleDialogModel.");
+            return;
+        }
+
+        var oRoleData = oModel.getData();
+
+        // Prepara el payload solo con los campos requeridos por el backend
+        var aPrivileges = (oRoleData.PRIVILEGES || []).map(function(p) {
+            return {
+                PROCESSID: p.PROCESSID,
+                PRIVILEGEID: p.PRIVILEGEID
+            };
+        });
+
+        var oPayload = {
+            ROLEID: oRoleData.ROLEID,
+            ROLENAME: oRoleData.ROLENAME,
+            DESCRIPTION: oRoleData.DESCRIPTION,
+            PRIVILEGES: aPrivileges
+        };
+
+        fetch("http://localhost:3020/api/security/updaterole?roleid=" + encodeURIComponent(oPayload.ROLEID), {
+            method: "POST", // Tu servicio espera POST
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ role: oPayload })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("No se pudo actualizar el rol");
             return response.json();
         })
-        .then(function (data) {
-            // Mostrar mensaje de éxito
-            MessageToast.show("Usuario creado correctamente");
-            // Navegar a la vista de tabla
-            this.getRouter().navTo("RouteSecurityTable");
-        }.bind(this))
-        .catch(function (error) {
-            BusyIndicator.hide(); // Ocultar indicador de carga
+        .then(data => {
+            MessageToast.show("Rol actualizado correctamente");
+            oDialog.close();
+            this.loadRoles(); // Recarga la tabla de roles
+        })
+        .catch(error => {
             MessageToast.show("Error: " + error.message);
         });
     },
+
   });
 });
