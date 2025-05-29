@@ -1170,7 +1170,63 @@ onFieldChange: function(oEvent) {
       },
 
 onSelectionChange: function(oEvent) {
-  // 1) ¿fila seleccionada o deseleccionada?
+  const oTable = oEvent.getSource();                // el Table que disparó el evento
+  const sMode  = oTable.getMode();                  // puede ser "SingleSelect", "MultiSelect", etc.
+  if (sMode !== "MultiSelect") {
+  const oItem = oEvent.getParameter("listItem");
+  if (!oItem) return;
+  const oCtx = oItem.getBindingContext("historyModel");
+  if (!oCtx) return;
+  const sID = oCtx.getProperty("SIMULATIONID");
+
+  // Aquí llamamos a nuestro GET por ID
+  this._fetchSimulationById(sID)
+    .then(data => {
+      // Transformar CHART_DATA y SIGNALS igual que en runAnalysis
+      const aChartData = this._prepareTableData(
+        data.CHART_DATA || [],
+        data.SIGNALS    || []
+      );
+      const aSignals   = data.SIGNALS || [];
+      const oSummary   = data.SUMMARY || {};
+      console.log( "Chart Data fetch: ", data.CHART_DATA);
+      // Rellenar el modelo de resultados
+      const oResultModel = this.getView().getModel("strategyResultModel");
+      oResultModel.setData({
+        busy: false,
+        hasResults: true,
+        chart_data: aChartData,
+        signals: aSignals,
+        result: oSummary.REAL_PROFIT || 0,
+        simulationName: oSummary.SIMULATION_NAME || sID,
+        symbol: data.SYMBOL,
+        startDate: data.STARTDATE,
+        endDate: data.ENDDATE,
+        TOTAL_BOUGHT_UNITS: oSummary.TOTAL_BOUGHT_UNITS || 0,
+        TOTAL_SOLD_UNITS:   oSummary.TOTAL_SOLD_UNITS   || 0,
+        REMAINING_UNITS:    oSummary.REMAINING_UNITS    || 0,
+        FINAL_CASH:         oSummary.FINAL_CASH         || 0,
+        FINAL_VALUE:        oSummary.FINAL_VALUE        || 0,
+        FINAL_BALANCE:      oSummary.FINAL_BALANCE      || 0,
+        REAL_PROFIT:        oSummary.REAL_PROFIT        || 0,
+        PERCENTAGE_RETURN:  oSummary.PERCENTAGE_RETURN  || 0
+      });
+
+      // Expandir panel de resultados y forzar re-render del gráfico
+      const oResultPanel = this.byId("strategyResultPanel");
+      if (oResultPanel) {
+        oResultPanel.setExpanded(true);
+      }
+      const oVizFrame = this.byId("idVizFrame");
+      if (oVizFrame) {
+        oVizFrame.invalidate();
+      }
+    })
+    .catch(err => {
+      console.error("Error al obtener simulación por ID:", err);
+      MessageBox.error("No se pudo cargar la simulación seleccionada");
+    });
+  }
   const bSelected = oEvent.getParameter("selected");
   console.log("Bselected: ", bSelected);
 
@@ -1253,7 +1309,35 @@ onDeleteSelected: function() {
     console.error(err);
     MessageBox.error("Error al eliminar simulaciones");
   });
-}
+},
+
+_fetchSimulationById: function(sSimulationId) {
+  const PORT = 3020;
+  const body = JSON.stringify({SIMULATIONID: sSimulationId});
+  console.log("Body:",body);
+  return fetch(`http://localhost:${PORT}/api/inv/simulationbyid`, {
+    method: "POST",                         // <-- cambio a POST
+    headers: { "Content-Type": "application/json" },
+    body: body
+  })
+  .then(resp => resp.ok 
+    ? resp.json() 
+    : Promise.reject(resp))
+.then(o => {
+    // Desenvuelvo payload (ajusta según venga tu o.value)
+    const sim = o.value?.[0] || o;
+    console.log("SIM; ",sim);
+    // **Convierte strings "YYYY-MM-DD" a objetos Date**
+    if (sim.STARTDATE) {
+      sim.STARTDATE = new Date(sim.STARTDATE);
+    }
+    if (sim.ENDDATE) {
+      sim.ENDDATE = new Date(sim.ENDDATE);
+    }
+
+    return sim;
+  });
+},
 
       }
     );
