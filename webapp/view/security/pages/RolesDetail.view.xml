@@ -45,7 +45,7 @@
 
         <tl:Table
           id="processesTable"
-          rows="{selectedRole>/PROCESSES}"
+          rows="{roles>/selectedRole/PRIVILEGES}"
           selectionMode="None"
           alternateRowColors="true"
           enableColumnReordering="true"
@@ -60,34 +60,28 @@
             <tl:Column id="_IDGenColumn40">
               <m:Label id="_IDGenLabel56" text="Proceso" />
               <tl:template>
-                <m:Text id="_IDGenText77" text="{selectedRole>PROCESSNAME}" />
+                <m:Text id="_IDGenText77" text="{roles>PROCESSID}" />
               </tl:template>
             </tl:Column>
 
             <tl:Column id="_IDGenColumn41">
               <m:Label id="_IDGenLabel57" text="Aplicación" />
               <tl:template>
-                <m:Text id="_IDGenText78" text="{selectedRole>APPLICATIONNAME}" />
+                <m:Text id="_IDGenText78" text="{roles>APPLICATIONNAME}" />
               </tl:template>
             </tl:Column>
 
             <tl:Column id="_IDGenColumn42">
               <m:Label id="_IDGenLabel58" text="Vista" />
               <tl:template>
-                <m:Text id="_IDGenText79" text="{selectedRole>VIEWNAME}" />
+                <m:Text id="_IDGenText79" text="{roles>VIEWNAME}" />
               </tl:template>
             </tl:Column>
 
             <tl:Column id="_IDGenColumn43">
               <m:Label id="_IDGenLabel59" text="Privilegios" />
-              <tl:template>
-                <m:HBox id="_IDGenHBox5" wrap="Wrap">
-                  <m:FlexBox id="_IDGenFlexBox2" wrap="Wrap" items="{selectedRole>PRIVILEGES}">
-                    <m:items>
-                      <m:ObjectStatus id="_IDGenObjectStatus1" text="{selectedRole>PRIVILEGENAME}" class="sapUiTinyMarginEnd sapUiTinyMarginTop" />
-                    </m:items>
-                  </m:FlexBox>
-                </m:HBox>
+               <tl:template>
+                <m:Text id="_IDGenText10" text="{= ${roles>PRIVILEGEID}.join(', ') }" />
               </tl:template>
             </tl:Column>
           </tl:columns>
@@ -115,49 +109,75 @@
             </m:Toolbar>
         </m:headerToolbar>
 
-        <tl:Table
-          id="usersTable"
-          rows="{selectedRole>/USERS}"
-          selectionMode="None"
-          alternateRowColors="true"
-          enableColumnReordering="true"
-          width="100%"
-          noData="Este rol no tiene usuarios asignados.">
+<tl:Table
+                    id="usersTable"
+                    rows="{roles>/selectedRole/USERS}"
+                    selectionMode="None"
+                    alternateRowColors="true"
+                    enableColumnReordering="true"
+                    width="100%"
+                >
+                    <tl:rowMode>
+                        <rowmodes:Fixed
+                            id="_IDGenFixed2"
+                            rowCount="5"
+                        />
+                    </tl:rowMode>
 
-          <tl:rowMode>
-            <rowmodes:Fixed id="_IDGenFixed2" rowCount="5" />
-          </tl:rowMode>
+                    <tl:columns>
+                        <tl:Column id="_IDGenColumn44">
+                            <m:Label
+                                id="_IDGenLabel60"
+                                text="Usuario"
+                            />
+                            <tl:template>
+                                <m:Text
+                                    id="_IDGenText80"
+                                    text="{roles>USERID}"
+                                />
+                            </tl:template>
+                        </tl:Column>
 
-          <tl:columns>
-            <tl:Column id="_IDGenColumn44">
-              <m:Label id="_IDGenLabel60" text="Usuario" />
-              <tl:template>
-                <m:Text id="_IDGenText80" text="{selectedRole>USERID}" />
-              </tl:template>
-            </tl:Column>
+                        <tl:Column id="_IDGenColumn45">
+                            <m:Label
+                                id="_IDGenLabel61"
+                                text="Nombre completo"
+                            />
+                            <tl:template>
+                                <m:Text
+                                    id="_IDGenText81"
+                                    text="{roles>USERNAME}"
+                                />
+                            </tl:template>
+                        </tl:Column>
 
-            <tl:Column id="_IDGenColumn45">
-              <m:Label id="_IDGenLabel61" text="Nombre completo" />
-              <tl:template>
-                <m:Text id="_IDGenText81" text="{selectedRole>USERNAME}" />
-              </tl:template>
-            </tl:Column>
+                        <tl:Column id="_IDGenColumn46">
+                            <m:Label
+                                id="_IDGenLabel62"
+                                text="Empresa"
+                            />
+                            <tl:template>
+                                <m:Text
+                                    id="_IDGenText82"
+                                    text="{roles>COMPANYNAME}"
+                                />
+                            </tl:template>
+                        </tl:Column>
 
-            <tl:Column id="_IDGenColumn46">
-              <m:Label id="_IDGenLabel62" text="Empresa" />
-              <tl:template>
-                <m:Text id="_IDGenText82" text="{selectedRole>COMPANYNAME}" />
-              </tl:template>
-            </tl:Column>
-
-            <tl:Column id="_IDGenColumn47">
-              <m:Label id="_IDGenLabel63" text="Departamento" />
-              <tl:template>
-                <m:Text id="_IDGenText83" text="{selectedRole>DEPARTMENT}" />
-              </tl:template>
-            </tl:Column>
-          </tl:columns>
-        </tl:Table>
+                        <tl:Column id="_IDGenColumn47">
+                            <m:Label
+                                id="_IDGenLabel63"
+                                text="Departamento"
+                            />
+                            <tl:template>
+                                <m:Text
+                                    id="_IDGenText83"
+                                    text="{roles>DEPARTMENT}"
+                                />
+                            </tl:template>
+                        </tl:Column>
+                    </tl:columns>
+                </tl:Table>
       </m:Panel>
 
     </m:content>

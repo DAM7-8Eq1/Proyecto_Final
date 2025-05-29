@@ -53,14 +53,30 @@ sap.ui.define([
         });
     },
     
-    onRoleSelected: function(oEvent) {
+onRoleSelected: function(oEvent) {
         var oContext = oEvent.getParameter("rowContext");
-        if (!oContext) {
-            // Si no hay contexto, salir
-            return;
-        }
+        if (!oContext) return;
+
         var oData = oContext.getObject();
-        this.getView().getModel("roles").setProperty("/selectedRole", oData);
+        var sRoleId = oData.ROLEID;
+        var that = this;
+
+        // Llama a tu backend para obtener el detalle del rol
+        fetch("http://localhost:3020/api/security/roles?roleid=" + encodeURIComponent(sRoleId), {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("No se pudo obtener el detalle del rol");
+            return response.json();
+        })
+        .then(data => {
+            var oRoleDetail = data.value[0];
+            this.getView().getModel("roles").setProperty("/selectedRole", oRoleDetail);
+        })
+        .catch(error => {
+            MessageToast.show("Error: " + error.message);
+        });       
     },
     
 
