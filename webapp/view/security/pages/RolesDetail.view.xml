@@ -1,47 +1,63 @@
 <mvc:View
-  controllerName="com.inv.sapfiroriwebinversion.controller.security.pages.RolesDetail"
-  xmlns:mvc="sap.ui.core.mvc"
-  xmlns:m="sap.m"
-  xmlns:core="sap.ui.core"
-  xmlns:layout="sap.ui.layout.form"
-  xmlns:tl="sap.ui.table"
-  xmlns:rowmodes="sap.ui.table.rowmodes"
-  xmlns:cc="com.invertions.sapfiorimodinv.controller">
-
-  <m:Page id="_IDGenPage">
-
-    <!-- 🔹 Acciones del Rol -->
-    <m:headerContent>
-        <m:Title id="rolesDetailTitle" text="Detalles del rol: {roles>/selectedRole/ROLENAME}" />
-    </m:headerContent>
-
-    <m:content>
-
-      <!-- 🔹 Información del rol -->
-      <m:VBox id="roleInfoBox" class="sapUiSmallMargin">
-        <m:Text id="roleIdText" text="ID: {roles>/selectedRole/ROLEID}" />
-        <m:Text id="roleDescriptionText" text="{roles>/selectedRole/DESCRIPTION}" class="sapUiSmallMarginBottom" />
-      </m:VBox>
-
-      <!-- 🔹 Procesos del rol -->
-      <m:Panel
-        id="processesPanel"
-        expandable="false"
-        class="sapUiMediumMarginTop">
-        <m:headerToolbar>
-          <m:Toolbar id="_IDGenToolbar1">
-            <m:Title id="_IDGenTitle3" text="Procesos y Privilegios" />
-            <m:ToolbarSpacer id="_IDGenToolbarSpacer2"/>
-            <m:Button
-                id="_IDGenButton9"
-            text="Catálogos"
-            icon="sap-icon://folder"
-            type="Emphasized"
-            class="myBlackButton"
-            press=".onCatalogsPress"
+    controllerName="com.inv.sapfiroriwebinversion.controller.security.pages.RolesDetail"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:m="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:layout="sap.ui.layout.form"
+    xmlns:tl="sap.ui.table"
+    xmlns:rowmodes="sap.ui.table.rowmodes"
+    xmlns:cc="com.invertions.sapfiorimodinv.controller"
+>
+    <m:Page id="_IDGenPage">
+        <!-- 🔹 Acciones del Rol -->
+        <m:headerContent>
+            <m:Title
+                id="rolesDetailTitle"
+                text="Detalles del rol: {roles>/selectedRole/ROLENAME}"
             />
-          </m:Toolbar>
-        </m:headerToolbar>
+        </m:headerContent>
+
+        <m:content>
+            <!-- 🔹 Información del rol -->
+            <m:VBox
+                id="roleInfoBox"
+                class="sapUiSmallMargin"
+            >
+                <m:Text
+                    id="roleIdText"
+                    text="ID: {roles>/selectedRole/ROLEID}"
+                />
+                <m:Text
+                    id="roleDescriptionText"
+                    text="{roles>/selectedRole/DESCRIPTION}"
+                    class="sapUiSmallMarginBottom"
+                />
+            </m:VBox>
+
+            <!-- 🔹 Procesos del rol -->
+            <m:Panel
+                id="processesPanel"
+                expandable="false"
+                class="sapUiMediumMarginTop"
+            >
+                <m:headerToolbar>
+                    <m:Toolbar id="_IDGenToolbar1">
+                        <m:Title
+                            id="_IDGenTitle3"
+                            text="Procesos y Privilegios"
+                        />
+                        <m:ToolbarSpacer id="_IDGenToolbarSpacer2" />
+                        <m:Button
+                            id="_IDGenButton9"
+                            text="Catálogos"
+                            icon="sap-icon://folder"
+                            type="Emphasized"
+                            class="myBlackButton"
+                            press=".onCatalogsPress"
+                        />
+                    </m:Toolbar>
+                </m:headerToolbar>
+
 
         <tl:Table
           id="processesTable"
@@ -52,11 +68,12 @@
           width="100%"
           >
 
+
           <tl:rowMode>
             <rowmodes:Fixed id="_IDGenFixed1" rowCount="5" />
           </tl:rowMode>
 
-          <tl:columns>
+           <tl:columns>
             <tl:Column id="_IDGenColumn40">
               <m:Label id="_IDGenLabel56" text="Proceso" />
               <tl:template>
@@ -88,28 +105,32 @@
         </tl:Table>
       </m:Panel>
 
-      <!-- 🔹 Usuarios del rol -->
-      <m:Panel
-        id="_IDGenPanel2"
-        class="sapUiMediumMarginTop"
-        expandable="false">
-        <m:headerToolbar>
-            <m:Toolbar id="_IDGenToolbar4">
-                <m:Title id="_IDGenTitle6" text="Usuarios con este Rol" />
-                <m:ToolbarSpacer id="_IDGenToolbarSpacer6"/>
-                <m:Button
-                    id="_IDGenButton28"
-                    text="Usuarios"
-                    press=".onUsersPress"
-                    icon="sap-icon://employee-approvals"
-                    type="Emphasized"
-                    class="myBlackButton"
-                    enabled="{viewModel>/buttonsEnabled}"
-                />
-            </m:Toolbar>
-        </m:headerToolbar>
+            <!-- 🔹 Usuarios del rol -->
+            <m:Panel
+                id="_IDGenPanel2"
+                class="sapUiMediumMarginTop"
+                expandable="false"
+            >
+                <m:headerToolbar>
+                    <m:Toolbar id="_IDGenToolbar4">
+                        <m:Title
+                            id="_IDGenTitle6"
+                            text="Usuarios con este Rol"
+                        />
+                        <m:ToolbarSpacer id="_IDGenToolbarSpacer6" />
+                        <m:Button
+                            id="_IDGenButton28"
+                            text="Usuarios"
+                            press=".onUsersPress"
+                            icon="sap-icon://employee-approvals"
+                            type="Emphasized"
+                            class="myBlackButton"
+                            enabled="{viewModel>/buttonsEnabled}"
+                        />
+                    </m:Toolbar>
+                </m:headerToolbar>
 
-<tl:Table
+                <tl:Table
                     id="usersTable"
                     rows="{roles>/selectedRole/USERS}"
                     selectionMode="None"
