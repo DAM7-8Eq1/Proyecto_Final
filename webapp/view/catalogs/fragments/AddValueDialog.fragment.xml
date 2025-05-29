@@ -62,12 +62,12 @@
                     rows="3"
                 />
                 <Label id="_IDGenLabel19" text="Estado Inicial" />
-                <Switch id="_IDGenSwitch1"
+                <!-- <Switch id="_IDGenSwitch1"
                     state="{newValueModel>/DETAIL_ROW/ACTIVED}"
                     customTextOn="ACTIVO"
                     customTextOff="INACTIVO"
                     change=".onSwitchChange"
-                />
+                /> -->
             </form:SimpleForm>
         </content>
 

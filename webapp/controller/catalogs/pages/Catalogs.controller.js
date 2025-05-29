@@ -1,224 +1,249 @@
+// Definición del módulo SAP UI5 con todas las dependencias necesarias
 sap.ui.define(
   [
-    "sap/ui/core/mvc/Controller",
-    "sap/ui/model/json/JSONModel",
-    "sap/m/MessageBox",
-    "sap/ui/core/Fragment",
-    "sap/m/MessageToast",
-    "jquery",
+    "sap/ui/core/mvc/Controller",    // Controlador base de SAP UI5
+    "sap/ui/model/json/JSONModel",   // Modelo JSON para manejo de datos
+    "sap/m/MessageBox",              // Cajas de mensaje para alertas y confirmaciones
+    "sap/ui/core/Fragment",          // Para cargar fragmentos XML (diálogos)
+    "sap/m/MessageToast",            // Mensajes toast (notificaciones temporales)
+    "jquery",                        // Librería jQuery para manipulación DOM
   ],
   function (Controller, JSONModel, MessageBox, Fragment, MessageToast, $) {
     "use strict";
 
+    // Extensión del controlador base para crear el controlador de catálogos
     return Controller.extend("com.inv.sapfiroriwebinversion.controller.catalogs.pages.Catalogs",
       {
-/*
-        Al iniciar se ejecuta la sikgueinte funcion que coloca los datos de catalogos
-*/
+        /**
+         * FUNCIÓN DE INICIALIZACIÓN
+         * Se ejecuta automáticamente cuando se carga la vista
+         * Es el punto de entrada principal del controlador
+         */
         onInit: function () {
-
-
-            // Carga los catalogos
+            // Cargar los catálogos al inicializar la aplicación
             this.loadCatalogs();
-
-
-        
-      },
-      /*
-      Funcion para cargar los del catalogo en la tabla 
-      */
-      loadCatalogs: function (){
-        //Creacion de un modelo de Json dond se guardaran los datos
-          var oModel = new JSONModel();
-          var that = this;
-
-        //Realizacion del FETCH con un GET para traer los catalogos
-          fetch("http://localhost:3020/api/security/allCatalogs", {
-              method: "GET",
-              headers: { "Content-Type": "application/json" }
-          })
-          .then(response => {
-            //En caso de erros
-              if (!response.ok) throw new Error("Error al obtener catálogos");
-              return response.json();
-          })
-          .then(data => {
-            //Colocar la data obtenida en el modelo de la tabla
-            oModel.setData({ value: data.value });
-            that.getView().setModel(oModel);
-            // Mandar todos los LABELID al modelo "values" (si la vista lateral está cargada)
-            var aLabelIds = (data.value || []).map(function(item) {
-                return { LABELIDC: item.LABELID, LABEL: item.LABEL };
-            });
-            var oValuesView = that.byId("XMLViewValues");
-            if (oValuesView) {
-                oValuesView.loaded().then(function () {
-                    var oValuesModel = oValuesView.getModel("values");
-                    if (oValuesModel) {
-                        oValuesModel.setProperty("/AllLabels", aLabelIds);
-                    }
-                });
-            } 
-          })
-          .catch(error => {
-            console.log(error.message)
-              MessageToast.show("Error: " + error.message);
-          });
         },
 
-        /*
-        Funcion al presionar la tabla de ctalogos despliegue la vista lateral para obeseravar los valres que este tiene
+        /**
+         * FUNCIÓN PARA CARGAR CATÁLOGOS
+         * Realiza una petición HTTP GET al servidor para obtener todos los catálogos
+         * y los coloca en el modelo de datos de la tabla
+         */
+        loadCatalogs: function (){
+            // Crear un nuevo modelo JSON vacío para almacenar los datos
+            var oModel = new JSONModel();
+            var that = this; // Guardar referencia del contexto para usar en callbacks
 
-        */
-        onItemPress: function (oEvent){
-          var oItem = oEvent.getParameter("listItem");
-          var oContext = oItem.getBindingContext();
-          var oSelectedData = oContext.getObject(); // Obtiene los datos del ítem seleccionado
-
-          var sLabelID = oSelectedData.LABELID;
-
-          // Fetch para obtener los valores del catálogo seleccionado
-          fetch("http://localhost:3020/api/security/catalogs?labelid=" + encodeURIComponent(sLabelID), {
-              method: "GET",
-              headers: { "Content-Type": "application/json" }
-          })
-          .then(response => {
-              if (!response.ok) throw new Error("Error al obtener valores");
-              return response.json();
-          })
-          .then(data => {
-
-                    // Cambiar LABELID a LABELIDM en cada objeto de VALUES
-            if (data.value && data.value[0] && Array.isArray(data.value[0].VALUES)) {
-                data.value[0].VALUES = data.value[0].VALUES.map(function(item) {
-                    item.LABELIDM = item.LABELID; // Copia el valor
-                    delete item.LABELID;           // Opcional: elimina el original
-                    return item;
+            // Realizar petición HTTP GET al endpoint de catálogos
+            fetch("http://localhost:3020/api/security/allCatalogs", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => {
+                // Verificar si la respuesta fue exitosa
+                if (!response.ok) throw new Error("Error al obtener catálogos");
+                return response.json(); // Convertir respuesta a JSON
+            })
+            .then(data => {
+                // Establecer los datos obtenidos en el modelo de la tabla principal
+                oModel.setData({ value: data.value });
+                that.getView().setModel(oModel);
+                
+                // Preparar datos para la vista lateral (panel de valores)
+                // Extraer solo LABELID y LABEL de cada catálogo
+                var aLabelIds = (data.value || []).map(function(item) {
+                    return { LABELIDC: item.LABELID, LABEL: item.LABEL };
                 });
+                
+                // Buscar la vista lateral (XMLViewValues) y cargar los labels
+                var oValuesView = that.byId("XMLViewValues");
+                if (oValuesView) {
+                    // Esperar a que la vista se cargue completamente
+                    oValuesView.loaded().then(function () {
+                        var oValuesModel = oValuesView.getModel("values");
+                        if (oValuesModel) {
+                            // Establecer todos los labels disponibles en el modelo
+                            oValuesModel.setProperty("/AllLabels", aLabelIds);
+                        }
+                    });
+                } 
+            })
+            .catch(error => {
+                // Manejo de errores: mostrar en consola y al usuario
+                console.log(error.message)
+                MessageToast.show("Error: " + error.message);
+            });
+        },
+
+        /**
+         * FUNCIÓN PARA MANEJAR CLIC EN TABLA DE CATÁLOGOS
+         * Se ejecuta cuando el usuario hace clic en un elemento de la tabla
+         * Abre el panel lateral con los valores del catálogo seleccionado
+         */
+        onItemPress: function (oEvent){
+            // Obtener el elemento seleccionado de la tabla
+            var oItem = oEvent.getParameter("listItem");
+            var oContext = oItem.getBindingContext();
+            var oSelectedData = oContext.getObject(); // Datos completos del ítem
+
+            var sLabelID = oSelectedData.LABELID; // ID del catálogo seleccionado
+
+            // Petición HTTP para obtener los valores específicos del catálogo
+            fetch("http://localhost:3020/api/security/catalogs?labelid=" + encodeURIComponent(sLabelID), {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Error al obtener valores");
+                return response.json();
+            })
+            .then(data => {
+                // Transformar datos: cambiar LABELID a LABELIDM en los valores
+                // (Posiblemente para evitar conflictos de nombres en la vista)
+                if (data.value && data.value[0] && Array.isArray(data.value[0].VALUES)) {
+                    data.value[0].VALUES = data.value[0].VALUES.map(function(item) {
+                        item.LABELIDM = item.LABELID; // Crear nueva propiedad
+                        delete item.LABELID;           // Eliminar la original
+                        return item;
+                    });
+                }
+
+                // Cargar los valores en la vista lateral
+                var oValuesView = this.byId("XMLViewValues");
+                if (oValuesView) {
+                    oValuesView.loaded().then(function () {
+                        var oController = oValuesView.getController();
+                        
+                        if (oController && oController.loadValues) {
+                            // Llamar función loadValues del controlador de la vista lateral
+                            oController.loadValues(data.value[0].VALUES);
+                            
+                            // Actualizar el modelo con el catálogo seleccionado
+                            oValuesView
+                                .getModel("values")
+                                .setProperty("/selectedValue", oSelectedData);
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                MessageToast.show("Error: " + error.message);
+            });
+            
+            // CONFIGURACIÓN DEL LAYOUT: Expandir panel derecho
+            var oSplitter = this.byId("mainSplitter");
+            var oDetailPanel = this.byId("detailPanel");
+            var oLayoutData = oDetailPanel.getLayoutData();
+            if (oLayoutData) {
+                oLayoutData.setSize("50%"); // Panel derecho ocupa 50% del ancho
             }
 
-
-            //Inicializar la ventan lateral 
-            var oValuesView = this.byId("XMLViewValues");
-            //Verificaion de que se encuentra
-            if (oValuesView) {
-              //Mandar a llmar la funcion de a values 
-                oValuesView.loaded().then(function () {
-                  var oController = oValuesView.getController();
-                  
-                  if (oController && oController.loadValues) {
-                    // Pasa los valores y también el ítem seleccionado
-                    oController.loadValues( data.value[0].VALUES );
-
-                    // Actualiza el selectedValue en el modelo values
-                    oValuesView
-                      .getModel("values")
-                      .setProperty("/selectedValue", oSelectedData);
-                  }
-                });
-              }
-            
-          })
-          .catch(error => {
-              MessageToast.show("Error: " + error.message);
-          });
-          
-          // Expandir el panel derecho
-          var oSplitter = this.byId("mainSplitter");
-          var oDetailPanel = this.byId("detailPanel");
-          var oLayoutData = oDetailPanel.getLayoutData();
-          if (oLayoutData) {
-            oLayoutData.setSize("50%"); // O el porcentaje/píxeles que prefieras
-          }
-
-          // Opcional: reducir el panel izquierdo
-          var oLeftPanel = oSplitter.getContentAreas()[0];
-          var oLeftLayoutData = oLeftPanel.getLayoutData();
-          if (oLeftLayoutData) {
-            oLeftLayoutData.setSize("50%");
-          }
+            // Reducir panel izquierdo al 50%
+            var oLeftPanel = oSplitter.getContentAreas()[0];
+            var oLeftLayoutData = oLeftPanel.getLayoutData();
+            if (oLeftLayoutData) {
+                oLeftLayoutData.setSize("50%");
+            }
         },
+
+        /**
+         * FUNCIÓN PARA MANEJAR CAMBIOS DE SELECCIÓN EN LA TABLA
+         * Habilita/deshabilita botones según el estado del catálogo seleccionado
+         */
         onSelectionChange: function (oEvent) {
-            // Obtener el item seleccionado
             var oTable = this.byId("catalogTable");
             var oSelectedItem = oTable.getSelectedItem();
 
+            // Si no hay selección, deshabilitar todas las acciones
             if (!oSelectedItem) {
-              this._disableAllActions();
-              return;
+                this._disableAllActions();
+                return;
             }
 
-            // Habilitar todos los botones de acción
+            // Habilitar botones básicos de edición y eliminación
             this.byId("editButton").setEnabled(true);
             this.byId("deleteButton").setEnabled(true);
 
-            // Determinar estado para activar/desactivar
+            // Obtener datos del elemento seleccionado
             var oContext = oSelectedItem.getBindingContext();
             var oData = oContext.getObject();
 
-            // Actualizar visibilidad de botones según estado
+            // Configurar visibilidad de botones según el estado ACTIVO/INACTIVO
             this.byId("activateButton").setVisible(!oData.DETAIL_ROW.ACTIVED);
             this.byId("activateButton").setEnabled(!oData.DETAIL_ROW.ACTIVED);
             this.byId("deactivateButton").setVisible(oData.DETAIL_ROW.ACTIVED);
             this.byId("deactivateButton").setEnabled(oData.DETAIL_ROW.ACTIVED);
 
-            // Guardar referencia al item seleccionado
+            // Guardar referencia del elemento seleccionado para otras funciones
             this._oSelectedItem = oSelectedItem;
-          },
+        },
 
-          _disableAllActions: function () {
+        /**
+         * FUNCIÓN AUXILIAR PARA DESHABILITAR TODAS LAS ACCIONES
+         * Se usa cuando no hay ningún elemento seleccionado
+         */
+        _disableAllActions: function () {
             this.byId("editButton").setEnabled(false);
             this.byId("activateButton").setEnabled(false);
             this.byId("deactivateButton").setEnabled(false);
             this.byId("deleteButton").setEnabled(false);
-          },
-                  onCloseDetailPanel: function () {
-          var oSplitter = this.byId("mainSplitter");
-          var oDetailPanel = this.byId("detailPanel");
-          var oLayoutData = oDetailPanel.getLayoutData();
-          if (oLayoutData) {
-            oLayoutData.setSize("0px");
-          }
-          var oLeftPanel = oSplitter.getContentAreas()[0];
-          var oLeftLayoutData = oLeftPanel.getLayoutData();
-          if (oLeftLayoutData) {
-            oLeftLayoutData.setSize("100%");
-          }
+        },
+
+        /**
+         * FUNCIONES DE CONTROL DEL PANEL LATERAL
+         * Permiten cerrar, centrar o expandir completamente el panel de detalles
+         */
+        onCloseDetailPanel: function () {
+            var oSplitter = this.byId("mainSplitter");
+            var oDetailPanel = this.byId("detailPanel");
+            var oLayoutData = oDetailPanel.getLayoutData();
+            if (oLayoutData) {
+                oLayoutData.setSize("0px"); // Ocultar panel derecho
+            }
+            var oLeftPanel = oSplitter.getContentAreas()[0];
+            var oLeftLayoutData = oLeftPanel.getLayoutData();
+            if (oLeftLayoutData) {
+                oLeftLayoutData.setSize("100%"); // Panel izquierdo ocupa todo
+            }
         },
 
         onCenterDetailPanel: function () {
-          var oSplitter = this.byId("mainSplitter");
-          var oDetailPanel = this.byId("detailPanel");
-          var oLayoutData = oDetailPanel.getLayoutData();
-          if (oLayoutData) {
-            oLayoutData.setSize("50%");
-          }
-          var oLeftPanel = oSplitter.getContentAreas()[0];
-          var oLeftLayoutData = oLeftPanel.getLayoutData();
-          if (oLeftLayoutData) {
-            oLeftLayoutData.setSize("50%");
-          }
+            var oSplitter = this.byId("mainSplitter");
+            var oDetailPanel = this.byId("detailPanel");
+            var oLayoutData = oDetailPanel.getLayoutData();
+            if (oLayoutData) {
+                oLayoutData.setSize("50%"); // 50% para cada panel
+            }
+            var oLeftPanel = oSplitter.getContentAreas()[0];
+            var oLeftLayoutData = oLeftPanel.getLayoutData();
+            if (oLeftLayoutData) {
+                oLeftLayoutData.setSize("50%");
+            }
         },
 
         onExpandDetailPanel: function () {
-          var oSplitter = this.byId("mainSplitter");
-          var oDetailPanel = this.byId("detailPanel");
-          var oLayoutData = oDetailPanel.getLayoutData();
-          if (oLayoutData) {
-            oLayoutData.setSize("100%");
-          }
-          var oLeftPanel = oSplitter.getContentAreas()[0];
-          var oLeftLayoutData = oLeftPanel.getLayoutData();
-          if (oLeftLayoutData) {
-            oLeftLayoutData.setSize("0px");
-          }
+            var oSplitter = this.byId("mainSplitter");
+            var oDetailPanel = this.byId("detailPanel");
+            var oLayoutData = oDetailPanel.getLayoutData();
+            if (oLayoutData) {
+                oLayoutData.setSize("100%"); // Panel derecho ocupa todo
+            }
+            var oLeftPanel = oSplitter.getContentAreas()[0];
+            var oLeftLayoutData = oLeftPanel.getLayoutData();
+            if (oLeftLayoutData) {
+                oLeftLayoutData.setSize("0px"); // Ocultar panel izquierdo
+            }
         },  
 
+        /**
+         * FUNCIÓN PARA ABRIR DIÁLOGO DE AGREGAR CATÁLOGO
+         * Crea y configura el modelo de datos para un nuevo catálogo
+         */
         onAddCatalog: function () {
-           var oView = this.getView();
+            var oView = this.getView();
             var oDialog = oView.byId("addCatalogDialog");
 
-            // Crear y asignar el modelo si no existe
+            // Crear modelo para el formulario de nuevo catálogo si no existe
             if (!oView.getModel("addCatalogModel")) {
                 var oAddCatalogModel = new sap.ui.model.json.JSONModel({
                     LABELID: "",
@@ -229,406 +254,452 @@ sap.ui.define(
                     SEQUENCE: "",
                     IMAGE: "",
                     DESCRIPTION: "",
-                    DETAIL_ROW: { ACTIVED: true }
+                    DETAIL_ROW: { ACTIVED: true } // Por defecto, nuevo catálogo activo
                 });
                 oView.setModel(oAddCatalogModel, "addCatalogModel");
             }
-          if (!oDialog) {
-            oDialog = Fragment.load({
-              id: oView.getId(),
-              name: "com.inv.sapfiroriwebinversion.view.catalogs.fragments.addCatalogDialog",
-              controller: this
-            }).then(function (oDialog) {
-              oView.addDependent(oDialog);
-              oDialog.open();
-            });
-          } else {
-            oDialog.open();
-          }
+
+            // Cargar y abrir el diálogo si no existe
+            if (!oDialog) {
+                oDialog = Fragment.load({
+                    id: oView.getId(),
+                    name: "com.inv.sapfiroriwebinversion.view.catalogs.fragments.addCatalogDialog",
+                    controller: this
+                }).then(function (oDialog) {
+                    oView.addDependent(oDialog);
+                    oDialog.open();
+                });
+            } else {
+                oDialog.open();
+            }
         }, 
 
+        /**
+         * FUNCIÓN PARA CANCELAR AGREGAR CATÁLOGO
+         * Cierra el diálogo y limpia los campos del formulario
+         */
         onCancelAddCatalog: function () {
-          var oView = this.getView();
-          var oDialog = oView.byId("addCatalogDialog");
-          if (oDialog) {
-            // Vacía los campos del modelo
-          oView.getModel("addCatalogModel").setData({
-            LABELID: "",
-            LABEL: "",
-            INDEX: "",
-            COLLECTION: "",
-            SECTION: "",
-            SEQUENCE: "",
-            IMAGE: "",
-            DESCRIPTION: "",
-            DETAIL_ROW: { ACTIVED: true }
-          });
-
-            oDialog.close();
-          } else {
-            MessageBox.error("No se encontró el diálogo de agregar catálogo.");
-          }   
+            var oView = this.getView();
+            var oDialog = oView.byId("addCatalogDialog");
+            if (oDialog) {
+                // Limpiar todos los campos del modelo
+                oView.getModel("addCatalogModel").setData({
+                    LABELID: "",
+                    LABEL: "",
+                    INDEX: "",
+                    COLLECTION: "",
+                    SECTION: "",
+                    SEQUENCE: "",
+                    IMAGE: "",
+                    DESCRIPTION: "",
+                    DETAIL_ROW: { ACTIVED: true }
+                });
+                oDialog.close();
+            } else {
+                MessageBox.error("No se encontró el diálogo de agregar catálogo.");
+            }   
         },
 
+        /**
+         * FUNCIÓN PARA GUARDAR NUEVO CATÁLOGO
+         * Valida los datos, verifica que no exista el LABELID y envía al servidor
+         */
         onSaveCatalog: function () {
-          var oView = this.getView();
-          var oDialog = oView.byId("addCatalogDialog");
-          var oCatalogData = oView.getModel("addCatalogModel").getData();
-          if (!oCatalogData.LABELID || !oCatalogData.DESCRIPTION) {
-            MessageBox.error("Por favor, complete todos los campos.");
-            return;
-          }
-              var oPayload = {
-            CEDIID:"1",
-            COMPANYID:"0",
-            LABELID: oCatalogData.LABELID,
-            LABEL: oCatalogData.LABEL,
-            INDEX: oCatalogData.INDEX,
-            COLLECTION: oCatalogData.COLLECTION,
-            SECTION: oCatalogData.SECTION,
-            SEQUENCE: oCatalogData.SEQUENCE,
-            IMAGE: oCatalogData.IMAGE,
-            DESCRIPTION: oCatalogData.DESCRIPTION,
-           
-        };
-          
-        //Verificar que el LABELID no exista
-        var oModel = oView.getModel();  
-        var aData = oModel.getData().value || [];
-        var bExists = aData.some(function (item) {
-            return item.LABELID === oPayload.LABELID;
-        }
-        );
-        if (bExists) {
-          MessageBox.error("El LABELID ya existe. Por favor, elija otro.");
-          return;
-        }
-
-          // Realizar el POST para agregar el catálogo
-          fetch("http://localhost:3020/api/security/CreateCatalog", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({catalogs:oPayload})
-          })
-          .then(response => {
-            if (!response.ok) throw new Error("Error al agregar catálogo");
-            return response.json();
-          })
-          .then(data => {
-            MessageToast.show("Catálogo agregado exitosamente.");
-            //Insertar el nuevo catalogo en el modelo de la tabla
-            var oModel = oView.getModel();
-            var aData = oModel.getData().value || [];
-            aData.push(data[0]); // Asumiendo que el nuevo catálogo se devuelve en data.value
-            oModel.setData({ value: aData });
-            oModel.refresh(true); // Refrescar el modelo para actualizar la vista
-            // Actualizar el modelo de la tabla
-            oView.getModel().setProperty("/value", aData);
+            var oView = this.getView();
+            var oDialog = oView.byId("addCatalogDialog");
+            var oCatalogData = oView.getModel("addCatalogModel").getData();
             
-            // Limpiar el modelo después de agregar
-            oView.getModel("addCatalogModel").setData({
-              LABELID: "",
-              LABEL: "",
-              INDEX: "",
-              COLLECTION: "",
-              SECTION: "",
-              SEQUENCE: "",
-              IMAGE: "",
-              DESCRIPTION: "",
-              DETAIL_ROW: { ACTIVED: true }
-            });
-
-            oDialog.close();
-
-           
-          })
-          .catch(error => {
-            MessageBox.error("Error: " + error.message);
-          });
-          
-           
-        },
-        onDeactivatePressed: function () {
-          var oSelectedItem = this._oSelectedItem;
-          if (!oSelectedItem) {
-            MessageBox.error("Por favor, seleccione un catálogo para desactivar.");
-            return;
-          }
-
-          var oContext = oSelectedItem.getBindingContext();
-          var oData = oContext.getObject();
-          var labelid = oData.LABELID;
-
-          // Verificar si el catálogo ya está desactivado
-          if (!oData.DETAIL_ROW.ACTIVED) {
-            MessageBox.error("El catálogo ya está desactivado.");
-            return;
-          }
-
-          // Realizar el PUT para desactivar el catálogo
-          fetch("http://localhost:3020/api/security/deletecatalogs?labelid="+labelid, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify()
-          })
-          .then(response => {
-            if (!response.ok) throw new Error("Error al desactivar catálogo");
-            return response.json();
-          })
-          .then(data => {
-            MessageToast.show("Catálogo desactivado exitosamente.");
-            // Actualizar el modelo de la tabla
-            var oModel = this.getView().getModel();
-            var aData = oModel.getProperty("/value") || [];
-            var idx = aData.findIndex(item => item.LABELID === labelid);
-            if (idx !== -1) {
-                aData[idx].DETAIL_ROW.ACTIVED = false;
-                oModel.setProperty("/value", aData);
-                oModel.refresh(true);
+            // Validación básica de campos requeridos
+            if (!oCatalogData.LABELID || !oCatalogData.DESCRIPTION) {
+                MessageBox.error("Por favor, complete todos los campos.");
+                return;
             }
-          })
-          .catch(error => {
-            MessageBox.error("Error: " + error.message);
-          });
+
+            // Preparar payload para enviar al servidor
+            var oPayload = {
+                CEDIID:"1",           // ID de centro de distribución (hardcoded)
+                COMPANYID:"0",        // ID de compañía (hardcoded)
+                LABELID: oCatalogData.LABELID,
+                LABEL: oCatalogData.LABEL,
+                INDEX: oCatalogData.INDEX,
+                COLLECTION: oCatalogData.COLLECTION,
+                SECTION: oCatalogData.SECTION,
+                SEQUENCE: oCatalogData.SEQUENCE,
+                IMAGE: oCatalogData.IMAGE,
+                DESCRIPTION: oCatalogData.DESCRIPTION,
+            };
+            
+            // Verificar que el LABELID no exista ya en la tabla
+            var oModel = oView.getModel();  
+            var aData = oModel.getData().value || [];
+            var bExists = aData.some(function (item) {
+                return item.LABELID === oPayload.LABELID;
+            });
+            if (bExists) {
+                MessageBox.error("El LABELID ya existe. Por favor, elija otro.");
+                return;
+            }
+
+            // Enviar petición POST para crear el catálogo
+            fetch("http://localhost:3020/api/security/CreateCatalog", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({catalogs:oPayload})
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Error al agregar catálogo");
+                return response.json();
+            })
+            .then(data => {
+                MessageToast.show("Catálogo agregado exitosamente.");
+                
+                // Actualizar el modelo local agregando el nuevo catálogo
+                var oModel = oView.getModel();
+                var aData = oModel.getData().value || [];
+                aData.push(data[0]); // Agregar nuevo catálogo a la lista
+                oModel.setData({ value: aData });
+                oModel.refresh(true); // Refrescar vista
+                
+                // Limpiar formulario después de agregar
+                oView.getModel("addCatalogModel").setData({
+                    LABELID: "",
+                    LABEL: "",
+                    INDEX: "",
+                    COLLECTION: "",
+                    SECTION: "",
+                    SEQUENCE: "",
+                    IMAGE: "",
+                    DESCRIPTION: "",
+                    DETAIL_ROW: { ACTIVED: true }
+                });
+
+                oDialog.close();
+            })
+            .catch(error => {
+                MessageBox.error("Error: " + error.message);
+            });
         },
 
+        /**
+         * FUNCIÓN PARA DESACTIVAR CATÁLOGO
+         * Cambia el estado del catálogo seleccionado a inactivo
+         */
+        onDeactivatePressed: function () {
+            var oSelectedItem = this._oSelectedItem;
+            if (!oSelectedItem) {
+                MessageBox.error("Por favor, seleccione un catálogo para desactivar.");
+                return;
+            }
+
+            var oContext = oSelectedItem.getBindingContext();
+            var oData = oContext.getObject();
+            var labelid = oData.LABELID;
+
+            // Verificar si ya está desactivado
+            if (!oData.DETAIL_ROW.ACTIVED) {
+                MessageBox.error("El catálogo ya está desactivado.");
+                return;
+            }
+
+            // Enviar petición para desactivar
+            fetch("http://localhost:3020/api/security/deletecatalogs?labelid="+labelid, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify()
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Error al desactivar catálogo");
+                return response.json();
+            })
+            .then(data => {
+                MessageToast.show("Catálogo desactivado exitosamente.");
+                
+                // Actualizar estado local en el modelo
+                var oModel = this.getView().getModel();
+                var aData = oModel.getProperty("/value") || [];
+                var idx = aData.findIndex(item => item.LABELID === labelid);
+                if (idx !== -1) {
+                    aData[idx].DETAIL_ROW.ACTIVED = false;
+                    oModel.setProperty("/value", aData);
+                    oModel.refresh(true);
+                }
+            })
+            .catch(error => {
+                MessageBox.error("Error: " + error.message);
+            });
+        },
+
+        /**
+         * FUNCIÓN PARA ACTIVAR CATÁLOGO
+         * Cambia el estado del catálogo seleccionado a activo
+         */
         onActivatePressed: function () {
             var oSelectedItem = this._oSelectedItem;
-          if (!oSelectedItem) {
-            MessageBox.error("Por favor, seleccione un catálogo para activar.");
-            return;
-          }
+            if (!oSelectedItem) {
+                MessageBox.error("Por favor, seleccione un catálogo para activar.");
+                return;
+            }
 
-          var oContext = oSelectedItem.getBindingContext();
-          var oData = oContext.getObject();
-          var labelid = oData.LABELID;
+            var oContext = oSelectedItem.getBindingContext();
+            var oData = oContext.getObject();
+            var labelid = oData.LABELID;
 
-          // Verificar si el catálogo ya está desactivado
-          if (oData.DETAIL_ROW.ACTIVED) {
-            MessageBox.error("El catálogo ya está activado.");
-            return;
-          }
+            // Verificar si ya está activado
+            if (oData.DETAIL_ROW.ACTIVED) {
+                MessageBox.error("El catálogo ya está activado.");
+                return;
+            }
 
-          // Realizar el PUT para desactivar el catálogo
-          fetch("http://localhost:3020/api/security/activatecatalogs?labelid="+labelid, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify()
-          })
-          .then(response => {
-            if (!response.ok) throw new Error("Error al activar catálogo");
-            return response.json();
-          })
-          .then(data => {
-            MessageToast.show("Catálogo activado exitosamente.");
-            //cambiar el estado en la tabla
-            var oModel = this.getView().getModel();
-            var aData = oModel.getProperty("/value") || [];
-            var idx = aData.findIndex(item => item.LABELID === labelid);
-            if (idx !== -1) {
-                aData[idx].DETAIL_ROW.ACTIVED = true;
-                oModel.setProperty("/value", aData);
-                oModel.refresh(true);
+            // Enviar petición para activar
+            fetch("http://localhost:3020/api/security/activatecatalogs?labelid="+labelid, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify()
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Error al activar catálogo");
+                return response.json();
+            })
+            .then(data => {
+                MessageToast.show("Catálogo activado exitosamente.");
+                
+                // Actualizar estado local en el modelo
+                var oModel = this.getView().getModel();
+                var aData = oModel.getProperty("/value") || [];
+                var idx = aData.findIndex(item => item.LABELID === labelid);
+                if (idx !== -1) {
+                    aData[idx].DETAIL_ROW.ACTIVED = true;
+                    oModel.setProperty("/value", aData);
+                    oModel.refresh(true);
+                }
+            })
+            .catch(error => {
+                MessageBox.error("Error: " + error.message);
+            });
+        },
+
+        /**
+         * FUNCIÓN PARA ELIMINAR CATÁLOGO
+         * Solicita confirmación y elimina permanentemente el catálogo
+         */
+        onDeletePressed: function () {
+            var oSelectedItem = this._oSelectedItem;
+            if (!oSelectedItem) {
+                MessageBox.error("Por favor, seleccione un catálogo para eliminar.");
+                return;
+            }
+
+            var oContext = oSelectedItem.getBindingContext();
+            var oData = oContext.getObject();
+            var labelid = oData.LABELID;
+
+            // Diálogo de confirmación antes de eliminar
+            MessageBox.confirm("¿Está seguro de que desea eliminar el catálogo "+labelid+"?", {
+                title: "Confirmar eliminación",
+                icon: MessageBox.Icon.WARNING,
+                onClose: function (sAction) {
+                    if (sAction === "OK") {
+                        // Enviar petición de eliminación
+                        fetch("http://localhost:3020/api/security/removecatalog?labelid="+labelid, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" }
+                        })
+                        .then(response => {
+                            if (!response.ok) throw new Error("Error al eliminar catálogo");
+                            return response.json();
+                        })
+                        .then(data => {
+                            MessageToast.show("Catálogo eliminado exitosamente.");
+                            
+                            // Remover del modelo local
+                            var oModel = this.getView().getModel();
+                            var aData = oModel.getProperty("/value") || [];
+                            aData = aData.filter(item => item.LABELID !== labelid);
+                            oModel.setProperty("/value", aData);
+                            oModel.refresh(true);
+                        })
+                        .catch(error => {
+                            MessageBox.error("Error: " + error.message);
+                        });
+                    }
+                }.bind(this)
+            });
+        },
+
+        /**
+         * FUNCIÓN PARA ABRIR DIÁLOGO DE EDICIÓN
+         * Carga los datos del catálogo seleccionado en un formulario de edición
+         */
+        onEditPressed: function () {
+            var oSelectedItem = this._oSelectedItem;
+            if (!oSelectedItem) {
+                MessageBox.error("Por favor, seleccione un catálogo para editar.");
+                return;
+            }
+
+            var oContext = oSelectedItem.getBindingContext();
+            var oData = oContext.getObject();
+            this.glabelid = oData.LABELID; // Guardar LABELID original
+            
+            // Crear modelo temporal para edición
+            var oEditModel = new JSONModel(oData);
+            this.getView().setModel(oEditModel, "editModel");
+
+            // Cargar y abrir diálogo de edición
+            var oDialog = this.byId("editDialog");
+            if (!oDialog) {
+                oDialog = Fragment.load({
+                    id: this.getView().getId(),
+                    name: "com.inv.sapfiroriwebinversion.view.catalogs.fragments.editCatalogDialog",
+                    controller: this
+                }).then(function (oDialog) {
+                    this.getView().addDependent(oDialog);
+                    
+                    // Cargar datos del catálogo en el formulario
+                    var oCatalogData = this.getView().getModel("editModel").getData();  
+                    oCatalogData.LABELID = oData.LABELID;
+                    oCatalogData.LABEL = oData.LABEL;
+                    oCatalogData.INDEX = oData.INDEX;
+                    oCatalogData.COLLECTION = oData.COLLECTION;
+                    oCatalogData.SECTION = oData.SECTION;
+                    oCatalogData.SEQUENCE = oData.SEQUENCE;
+                    oCatalogData.IMAGE = oData.IMAGE; 
+                    oCatalogData.DESCRIPTION = oData.DESCRIPTION;
+                    oCatalogData.DETAIL_ROW = { ACTIVED: oData.DETAIL_ROW.ACTIVED };
+                    
+                    oEditModel.setData(oCatalogData);
+                    oDialog.setModel(oEditModel, "editCatalogModel");
+                    oDialog.open();
+                }.bind(this));
+            } else {
+                oDialog.open();
+            }
+        },
+
+        /**
+         * FUNCIÓN PARA GUARDAR CAMBIOS EN EDICIÓN
+         * Valida y envía los datos modificados al servidor
+         */
+        onSaveEditCatalog: function () {
+            var oView = this.getView();
+            var oDialog = oView.byId("editDialog");
+            var oEditData = oView.getModel("editModel").getData();
+            
+            // Validación de campos requeridos
+            if (!oEditData.LABELID || !oEditData.DESCRIPTION) {
+                MessageBox.error("Por favor, complete todos los campos.");
+                return;
             }
             
-          })
-          .catch(error => {
-            MessageBox.error("Error: " + error.message);
-          });
-        },
-        onDeletePressed: function () {
-          var oSelectedItem = this._oSelectedItem;
-          if (!oSelectedItem) {
-            MessageBox.error("Por favor, seleccione un catálogo para eliminar.");
-            return;
-          }
-
-          var oContext = oSelectedItem.getBindingContext();
-          var oData = oContext.getObject();
-          var labelid = oData.LABELID;
-
-          // Confirmación antes de eliminar
-          MessageBox.confirm("¿Está seguro de que desea eliminar el catálogo "+labelid+"?", {
-            title: "Confirmar eliminación",
-            icon: MessageBox.Icon.WARNING,
-            onClose: function (sAction) {
-              if (sAction === "OK") {
-                // Realizar el DELETE para eliminar el catálogo
-                fetch("http://localhost:3020/api/security/removecatalog?labelid="+labelid, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" }
-                })
-                .then(response => {
-                  if (!response.ok) throw new Error("Error al eliminar catálogo");
-                  return response.json();
-                })
-                .then(data => {
-                  MessageToast.show("Catálogo eliminado exitosamente.");
-                  // Actualizar el modelo de la tabla
-                  var oModel = this.getView().getModel();
-                  var aData = oModel.getProperty("/value") || [];
-                  aData = aData.filter(item => item.LABELID !== labelid);
-                  oModel.setProperty("/value", aData);
-                  oModel.refresh(true);
-                })
-                .catch(error => {
-                  MessageBox.error("Error: " + error.message);
-                });
-              }
-            }.bind(this)
-          });
-          
+            // Preparar payload para actualización
+            var oPayload = {
+                CEDIID: "1",
+                COMPANYID: "0",
+                LABELID: oEditData.LABELID,
+                LABEL: oEditData.LABEL,
+                INDEX: oEditData.INDEX,
+                COLLECTION: oEditData.COLLECTION,
+                SECTION: oEditData.SECTION,
+                SEQUENCE: oEditData.SEQUENCE,
+                IMAGE: oEditData.IMAGE,
+                DESCRIPTION: oEditData.DESCRIPTION,
+            };
+            
+            // Enviar petición de actualización
+            fetch("http://localhost:3020/api/security/updatecatalogs?labelid="+this.glabelid, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({catalogs:oPayload})
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Error al actualizar catálogo");
+                return response.json();
+            })
+            .then(data => {
+                MessageToast.show("Catálogo actualizado exitosamente.");
+                
+                // Actualizar modelo local
+                var oModel = oView.getModel();
+                var aData = oModel.getProperty("/value") || [];
+                var idx = aData.findIndex(item => item.LABELID === oPayload.LABELID);
+                if (idx !== -1) {
+                    aData[idx] = oPayload;
+                    oModel.setProperty("/value", aData);
+                    oModel.refresh(true);
+                }
+                oDialog.close();
+            })
+            .catch(error => {
+                MessageBox.error("Error: " + error.message);
+            });
         },
 
-        onEditPressed: function () {
-          var oSelectedItem = this._oSelectedItem;
-          if (!oSelectedItem) {
-            MessageBox.error("Por favor, seleccione un catálogo para editar.");
-            return;
-          }
-
-          var oContext = oSelectedItem.getBindingContext();
-          var oData = oContext.getObject();
-          this.glabelid = oData.LABELID;
-          // Crear un modelo temporal para el diálogo de edición
-          var oEditModel = new JSONModel(oData);
-          this.getView().setModel(oEditModel, "editModel");
-
-          // Abrir el diálogo de edición
-          var oDialog = this.byId("editDialog");
-          if (!oDialog) {
-            oDialog = Fragment.load({
-              id: this.getView().getId(),
-              name: "com.inv.sapfiroriwebinversion.view.catalogs.fragments.editCatalogDialog",
-              controller: this
-            }).then(function (oDialog) {
-              this.getView().addDependent(oDialog);
-              //Cargar los datos del catálogo seleccionado
-              var oCatalogData = this.getView().getModel("editModel").getData();  
-              oCatalogData.LABELID = oData.LABELID;
-              oCatalogData.LABEL = oData.LABEL;
-              oCatalogData.INDEX = oData.INDEX;
-              oCatalogData.COLLECTION = oData.COLLECTION;
-              oCatalogData.SECTION = oData.SECTION;
-              oCatalogData.SEQUENCE = oData.SEQUENCE;
-              oCatalogData.IMAGE = oData.IMAGE; 
-              oCatalogData.DESCRIPTION = oData.DESCRIPTION;
-              oCatalogData.DETAIL_ROW = { ACTIVED: oData.DETAIL_ROW.ACTIVED };
-              // Actualizar el modelo de edición con los datos del catálogo seleccionado
-          
-              oEditModel.setData(oCatalogData);
-              // Asignar el modelo de edición al diálogo
-              oDialog.setModel(oEditModel, "editCatalogModel");
-
-
-              // Abrir el diálogo
-              oDialog.open();
-            }.bind(this));
-          } else {
-            oDialog.open();
-          }
-        },
-        onSaveEditCatalog: function () {
-          var oView = this.getView();
-          var oDialog = oView.byId("editDialog");
-          var oEditData = oView.getModel("editModel").getData();
-          if (!oEditData.LABELID || !oEditData.DESCRIPTION) {
-            MessageBox.error("Por favor, complete todos los campos.");
-            return;
-          }
-          var oPayload = {
-            CEDIID: "1",
-            COMPANYID: "0",
-            LABELID: oEditData.LABELID,
-            LABEL: oEditData.LABEL,
-            INDEX: oEditData.INDEX,
-            COLLECTION: oEditData.COLLECTION,
-            SECTION: oEditData.SECTION,
-            SEQUENCE: oEditData.SEQUENCE,
-            IMAGE: oEditData.IMAGE,
-            DESCRIPTION: oEditData.DESCRIPTION,
-          };
-          // Realizar el PUT para actualizar el catálogo
-          fetch("http://localhost:3020/api/security/updatecatalogs?labelid="+this.glabelid, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({catalogs:oPayload})
-          })
-          .then(response => {
-            if (!response.ok) throw new Error("Error al actualizar catálogo");
-            return response.json();
-          })
-          .then(data => {
-            MessageToast.show("Catálogo actualizado exitosamente.");
-            // Actualizar el modelo de la tabla
-            var oModel = oView.getModel();
-            var aData = oModel.getProperty("/value") || [];
-            var idx = aData.findIndex(item => item.LABELID === oPayload.LABELID);
-            if (idx !== -1) {
-              aData[idx] = oPayload; // Actualizar el catálogo modificado
-              oModel.setProperty("/value", aData);
-              oModel.refresh(true);
-            }
-            // Cerrar el diálogo
-            oDialog.close();
-          })
-          .catch(error => {
-            MessageBox.error("Error: " + error.message);
-          });
-        },
-
+        /**
+         * FUNCIÓN PARA CANCELAR EDICIÓN
+         * Cierra el diálogo de edición sin guardar cambios
+         */
         onCancelEditCatalog: function () {
-          var oView = this.getView();
-          var oDialog = oView.byId("editDialog");
-          if (oDialog) {
-            oDialog.close();
-          } else {
-            MessageBox.error("No se encontró el diálogo de editar catálogo.");
-          }
+            var oView = this.getView();
+            var oDialog = oView.byId("editDialog");
+            if (oDialog) {
+                oDialog.close();
+            } else {
+                MessageBox.error("No se encontró el diálogo de editar catálogo.");
+            }
         },
 
-       onFilterChange: function(oEvent) {
-          var sQuery = oEvent.getParameter("value") || "";
-          var oTable = this.byId("catalogTable"); // Asegúrate que tu tabla tenga este ID
-          var oBinding = oTable.getBinding("items"); // O "rows" si usas sap.ui.table.Table
+        /**
+         * FUNCIÓN DE FILTRADO POR CAMPO DE BÚSQUEDA
+         * Filtra la tabla en tiempo real mientras el usuario escribe
+         */
+        onFilterChange: function(oEvent) {
+            var sQuery = oEvent.getParameter("value") || "";
+            var oTable = this.byId("catalogTable");
+            var oBinding = oTable.getBinding("items");
 
-          if (!oBinding) return;
+            if (!oBinding) return;
 
-          var aFilters = [];
-          if (sQuery) {
-              aFilters.push(
-                  new sap.ui.model.Filter({
-                      filters: [
-                          new sap.ui.model.Filter("LABELID", sap.ui.model.FilterOperator.Contains, sQuery),
-                          new sap.ui.model.Filter("LABEL", sap.ui.model.FilterOperator.Contains, sQuery),
-                          new sap.ui.model.Filter("DESCRIPTION", sap.ui.model.FilterOperator.Contains, sQuery)
-                      ],
-                      and: false
-                  })
-              );
-          }
-          oBinding.filter(aFilters);
+            var aFilters = [];
+            if (sQuery) {
+                // Crear filtros para buscar en múltiples campos
+                aFilters.push(
+                    new sap.ui.model.Filter({
+                        filters: [
+                            new sap.ui.model.Filter("LABELID", sap.ui.model.FilterOperator.Contains, sQuery),
+                            new sap.ui.model.Filter("LABEL", sap.ui.model.FilterOperator.Contains, sQuery),
+                            new sap.ui.model.Filter("DESCRIPTION", sap.ui.model.FilterOperator.Contains, sQuery)
+                        ],
+                        and: false // OR lógico entre los campos
+                    })
+                );
+            }
+            oBinding.filter(aFilters);
         },
 
+        /**
+         * FUNCIÓN DE BÚSQUEDA ALTERNATIVA
+         * Implementación manual de búsqueda que filtra por cualquier campo
+         * Nota: Esta función parece duplicar funcionalidad con onFilterChange
+         */
         onSearchUser: function () {
             var oTable = this.byId("catalogTable");
             var oModel = oTable.getModel();
             var acatalgos = oModel.getProperty("/value") || [];
-            var oSearchField = this.byId("searchField"); // Asegúrate de tener un SearchField con este ID en tu vista
+            var oSearchField = this.byId("searchField");
             var sQuery = oSearchField ? oSearchField.getValue().toLowerCase() : "";
 
             if (!sQuery) {
-                // Si no hay búsqueda, muestra todos los usuarios
+                // Sin búsqueda, mostrar todos los catálogos
                 oModel.setProperty("/filtered", acatalgos);
                 oTable.bindRows("/filtered");
                 return;
             }
 
-            // Filtra usuarios por cualquier campo (string)
+            // Filtrar catálogos por cualquier campo string
             var aFiltered = acatalgos.filter(function(user) {
                 return Object.values(user).some(function(value) {
                     if (typeof value === "object" && value !== null) {
-                        // Si el valor es un objeto, busca en sus propiedades también
+                        // Buscar también en objetos anidados
                         return Object.values(value).some(function(subValue) {
                             return String(subValue).toLowerCase().includes(sQuery);
                         });
@@ -637,6 +708,7 @@ sap.ui.define(
                 });
             });
 
+            // Actualizar tabla con resultados filtrados
             oModel.setProperty("/filtered", aFiltered);
             var oBindingInfo = oTable.getBindingInfo("items");
             oTable.bindItems({
@@ -645,6 +717,5 @@ sap.ui.define(
                 templateShareable: true
             });
         },
-        });
-    
+    });
 });
