@@ -35,8 +35,8 @@
         <Label id="_IDGenLabel50" text="DESCRIPTION"/>
         <TextArea id="_IDGenTextArea3" value="{addCatalogModel>/DESCRIPTION}" rows="3"/>
         
-        <Label id="_IDGenLabel51" text="Estado Inicial"/>
-        <Switch id="_IDGenSwitch" state="{addCatalogModel>/DETAIL_ROW/ACTIVED}" customTextOn="ACTIVO" customTextOff="INACTIVO"/>
+        <!-- <Label id="_IDGenLabel51" text="Estado Inicial"/>
+        <Switch id="_IDGenSwitch" state="{addCatalogModel>/DETAIL_ROW/ACTIVED}" customTextOn="ACTIVO" customTextOff="INACTIVO"/> -->
       </form:SimpleForm>
     </content>
     

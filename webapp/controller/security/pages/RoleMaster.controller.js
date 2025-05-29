@@ -21,16 +21,24 @@ sap.ui.define([
   Fragment
 ) {
   "use strict";
-
+ //extendemos el controlador base para roles
   return BaseController.extend("com.inv.sapfiroriwebinversion.controller.security.pages.RoleMaster", {
 
 
         onInit: function () {
-      //cargar los roles
-      this.loadRoles();
-      this.loadProcess();
-      this.loadPrivilegios();
+            //llamamos a la funcion para cargar todo lo que ocupemos en esta vista
+            this.loadStart();
     },
+
+    loadStart: function (){
+        // Cargar los roles al iniciar
+        this.loadRoles();
+        // Cargar los procesos
+        this.loadProcess();
+        // Cargar los privilegios
+        this.loadPrivilegios();
+    },
+    //funcion para cargar los roles
     loadRoles: function () {
         var oModel = new JSONModel();
         this.getView().setModel(oModel, "roles");
@@ -54,8 +62,7 @@ sap.ui.define([
     },
     
 onRoleSelected: function(oEvent) {
-        var oContext = oEvent.getParameter("rowContext");
-        if (!oContext) return;
+              var oContext = oEvent.getParameter("rowContext");
 
         var oData = oContext.getObject();
         var sRoleId = oData.ROLEID;
@@ -77,7 +84,7 @@ onRoleSelected: function(oEvent) {
         .catch(error => {
             MessageToast.show("Error: " + error.message);
         });       
-    },
+    },   
     
 
     loadProcess: function() {
@@ -92,7 +99,7 @@ onRoleSelected: function(oEvent) {
             if (!response.ok) throw new Error("Error al obtener procesos");
             return response.json();
         })
-        .then(data => {
+         .then(data => {
             this.Procesos = data.value[0].VALUES;
             oProcessModel.setData({ value: data.value[0].VALUES });
         })

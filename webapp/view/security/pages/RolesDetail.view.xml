@@ -50,7 +50,7 @@
           alternateRowColors="true"
           enableColumnReordering="true"
           width="100%"
-          noData="Este rol no tiene procesos asignados.">
+          >
 
           <tl:rowMode>
             <rowmodes:Fixed id="_IDGenFixed1" rowCount="5" />
@@ -72,7 +72,7 @@
             </tl:Column>
 
             <tl:Column id="_IDGenColumn42">
-              <m:Label id="_IDGenLabel58" text="Vista" />
+              <m:Label id="_IDGenLabel58" text="Proceso" />
               <tl:template>
                 <m:Text id="_IDGenText79" text="{roles>VIEWNAME}" />
               </tl:template>
@@ -80,8 +80,8 @@
 
             <tl:Column id="_IDGenColumn43">
               <m:Label id="_IDGenLabel59" text="Privilegios" />
-               <tl:template>
-                <m:Text id="_IDGenText10" text="{= ${roles>PRIVILEGEID}.join(', ') }" />
+              <tl:template>
+                  <m:Text id="_IDGenText10" text="{= ${roles>PRIVILEGEID}.join(', ') }" />
               </tl:template>
             </tl:Column>
           </tl:columns>

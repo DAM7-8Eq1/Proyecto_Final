@@ -65,13 +65,13 @@
                     value="{newValueModel>/DESCRIPTION}"
                     rows="3"
                 />
-                <Label id="_IDGenLabel36" text="Estado Inicial" />
+                <!-- <Label id="_IDGenLabel36" text="Estado Inicial" />
                 <Switch id="_IDGenSwitch2"
                     state="{newValueModel>/DETAIL_ROW/ACTIVED}"
                     customTextOn="ACTIVO"
                     customTextOff="INACTIVO"
                     change=".onSwitchChange"
-                />
+                /> -->
 
                 <!-- Agrega más campos según necesites -->
             </form:SimpleForm>
