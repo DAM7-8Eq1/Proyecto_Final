@@ -35,7 +35,7 @@ sap.ui.define(
         onInit: function () {
           // 1. Initialize Symbol Model (static data for now)
           this._initSymbolModel();
-
+          
           this._pendingChanges = []; // aquí iremos almacenando los cambios
           this._pendingDeletes = [];
           // Deshabilitar el botón al inicio
@@ -605,12 +605,7 @@ sap.ui.define(
             });
         },
 
-        /**
-         * Helper function to format a Date object to "YYYY-MM-DD" string.
-         * Made public for use in XML view bindings.
-         * @param {Date} oDate The date object to format.
-         * @returns {string|null} The formatted date string or null if input is not a Date.
-         */
+        //
         formatDate: function (oDate) {
           return oDate
             ? DateFormat.getDateInstance({ pattern: "yyyy-MM-dd" }).format(
@@ -619,12 +614,7 @@ sap.ui.define(
             : null;
         },
 
-        /**
-         * Helper function to format the count of signals by type.
-         * @param {Array} aSignals The array of signal objects.
-         * @param {string} sType The type of signal to count ('buy', 'sell', 'stop_loss').
-         * @returns {number} The count of signals of the specified type.
-         */
+        //Formatear para si el numero de signals es null
         formatSignalCount: function (aSignals, sType) {
           if (!Array.isArray(aSignals)) {
             return 0;
@@ -632,11 +622,7 @@ sap.ui.define(
           return aSignals.filter((signal) => signal.TYPE === sType).length;
         },
 
-        /**
-         * Helper function to format the count of stop loss signals.
-         * @param {Array} aSignals The array of signal objects.
-         * @returns {number} The count of stop loss signals.
-         */
+        //Formatear para si el numero de stop loss es null
         formatStopLossCount: function (aSignals) {
           if (!Array.isArray(aSignals)) {
             return 0;
@@ -645,11 +631,7 @@ sap.ui.define(
             .length;
         },
 
-        /**
-         * Helper function to determine the ObjectStatus state based on signal type.
-         * @param {string} sType The type of signal ('buy', 'sell', 'stop_loss').
-         * @returns {string} The ObjectStatus state ('Success', 'Error', 'Warning', 'None').
-         */
+        //Formatear el tipo de señal para mostrar en la tabla
         formatSignalState: function (sType) {
           if (sType === "buy") {
             return "Success";
@@ -661,29 +643,18 @@ sap.ui.define(
           return "None";
         },
 
-        /**
-         * Helper function to format a signal price.
-         * @param {number} fPrice The price of the signal.
-         * @returns {string} The formatted price string.
-         */
+        //Función auxiliar para agregar USD a los precios
         formatSignalPrice: function (fPrice) {
           return fPrice ? fPrice.toFixed(2) + " USD" : "N/A";
         },
-
-        /**
-         * Helper function to prepare raw API data for both table and VizFrame.
-         * Ensures dates are Date objects for the chart and numeric values are parsed.
-         * @param {Array} aData Raw data from API (e.g., CHART_DATA).
-         * @param {Array} aSignals Signal data from API.
-         * @returns {Array} Transformed data suitable for binding.
-         * @private
-         */
-
+        
+        //Función auxiliar para formatear valores en formato de moneda
         formatCurrency: function(value) {
             if (!value) return "$0.00";
             return `$${parseFloat(value).toFixed(2)}`;
         },
 
+      //Función auxiliar para formatear las fechas para la gráfica y tabla
        formatDateRange: function(sStartDate, sEndDate) {
             if (!sStartDate || !sEndDate) return "";
             
@@ -698,7 +669,7 @@ sap.ui.define(
         },
 
 
-
+        //Adaptar la informacion almacenada para mostrarla en la tabla
         _prepareTableData: function (aData, aSignals) {
           if (!Array.isArray(aData)) return [];
 
@@ -819,11 +790,7 @@ sap.ui.define(
           });
         },
 
-        /**
-         * Dynamically updates the list of measures displayed on the VizFrame's value axis.
-         * This function is called onInit and when the strategy changes.
-         * @private
-         */
+        //Consume o alimenta a la gráfica con los indicadores segun su estrategia
         _updateChartMeasuresFeed: function () {
           const oStrategyAnalysisModel = this.getView().getModel(
             "strategyAnalysisModel"
@@ -892,10 +859,7 @@ sap.ui.define(
           }
         },
 
-        /**
-         * Event handler for refreshing chart data.
-         * Triggers a new analysis run with the current symbol.
-         */
+        //Refresca la gráfica cuando se da click en el botón
         onRefreshChart: function () {
           const oSymbolModel = this.getView().getModel("symbolModel");
           const sCurrentSymbol = this.byId("symbolSelector").getSelectedKey(); // Get selected symbol
@@ -914,11 +878,7 @@ sap.ui.define(
           }
         },
 
-        /**
-         * Event handler for data point selection on the VizFrame.
-         * Updates the ViewModel with selected point's data.
-         * @param {sap.ui.base.Event} oEvent The event object
-         */
+        //Traer y almacenar los datos del punto seleccionado en la gráfica.
         onDataPointSelect: function (oEvent) {
           const oData = oEvent.getParameter("data");
           console.log("Datos seleccionados:", oData);
@@ -946,62 +906,57 @@ sap.ui.define(
           }
         },
 
-        /**
-         * Event handler for showing investment history popover.
-         * @param {sap.ui.base.Event} oEvent The event object
-         */
-onHistoryPress: function (oEvent) {
-  const PORT = 3020;
-  const sUrl = `http://localhost:${PORT}/api/inv/history`;
+        //Abre el historial de simulaciones con un fetch
+        onHistoryPress: function (oEvent) {
+          const PORT = 3020;
+          const sUrl = `http://localhost:${PORT}/api/inv/history`;
 
-  // 1) Si el popover no existe, lo creamos (pero NO lo abrimos todavía)
-  if (!this._oHistoryPopover) {
-    this._oHistoryPopover = sap.ui.xmlfragment(
-      "historyFrag",
-      "com.inv.sapfiroriwebinversion.view.investments.fragments.InvestmentHistoryPanel",
-      this
-    );
-    this.getView().addDependent(this._oHistoryPopover);
-  }
+          // 1) Si el popover no existe, lo creamos (pero NO lo abrimos todavía)
+          if (!this._oHistoryPopover) {
+            this._oHistoryPopover = sap.ui.xmlfragment(
+              "historyFrag",
+              "com.inv.sapfiroriwebinversion.view.investments.fragments.InvestmentHistoryPanel",
+              this
+            );
+            this.getView().addDependent(this._oHistoryPopover);
+          }
 
-  // 2) Si ya está abierto, lo cerramos
-  if (this._oHistoryPopover.isOpen()) {
-    this._oHistoryPopover.close();
-    return;
-  }
+          // 2) Si ya está abierto, lo cerramos
+          if (this._oHistoryPopover.isOpen()) {
+            this._oHistoryPopover.close();
+            return;
+          }
 
-  // 3) Antes de abrirlo, cargamos el modelo
-  fetch(sUrl, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" }
-  })
-    .then(res => {
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      return res.json();
-    })
-    .then(data => {
-      // data.value[0] contiene tu objeto { strategies, filteredCount, ... }
-        const payload = data.value[0];
-        // 1) Guardamos el array original
-        this._allStrategies = payload.strategies;
+          // 3) Antes de abrirlo, cargamos el modelo
+          fetch(sUrl, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+          })
+            .then(res => {
+              if (!res.ok) throw new Error("HTTP " + res.status);
+              return res.json();
+            })
+            .then(data => {
+              // data.value[0] contiene tu objeto { strategies, filteredCount, ... }
+                const payload = data.value[0];
+                // 1) Guardamos el array original
+                this._allStrategies = payload.strategies;
 
-      // 4) Seteamos el modelo completo en la vista
-      const oHistoryModel = new sap.ui.model.json.JSONModel(payload);
-      this.getView().setModel(oHistoryModel, "historyModel");
-      // 5) Finalmente abrimos el popover, ya con los datos dentro
-      this._oHistoryPopover.openBy(oEvent.getSource());
-      const oInvSlider = sap.ui.core.Fragment.byId("historyFrag", "investmentRangeFilter");
-      const oProfSlider = sap.ui.core.Fragment.byId("historyFrag", "profitRangeFilter");
-    })
-    .catch(err => {
-      MessageToast.show("Error cargando historial: " + err.message);
-      console.error(err);
-    });
-},
+              // 4) Seteamos el modelo completo en la vista
+              const oHistoryModel = new sap.ui.model.json.JSONModel(payload);
+              this.getView().setModel(oHistoryModel, "historyModel");
+              // 5) Finalmente abrimos el popover, ya con los datos dentro
+              this._oHistoryPopover.openBy(oEvent.getSource());
+              const oInvSlider = sap.ui.core.Fragment.byId("historyFrag", "investmentRangeFilter");
+              const oProfSlider = sap.ui.core.Fragment.byId("historyFrag", "profitRangeFilter");
+            })
+            .catch(err => {
+              MessageToast.show("Error cargando historial: " + err.message);
+              console.error(err);
+            });
+        },
 
-        /**
-         * Toggles the visibility of advanced filters in the history popover.
-         */
+        //Para abrir el menu de filtros avanzados
         onToggleAdvancedFilters: function () {
           if (!this._oHistoryPopover) return;
 
@@ -1014,6 +969,7 @@ onHistoryPress: function (oEvent) {
           }
         },
 
+        //Cuando detecta un cambio en el filtrado, aplicarlo en la tabla 
         onFilterChange: function () {
           // 0) Recupera el modelo de historial
           const oModel = this.getView().getModel("historyModel");
@@ -1050,6 +1006,7 @@ onHistoryPress: function (oEvent) {
           oModel.setProperty("/filteredCount", aFiltered.length);
         },
 
+        //Cuando detecta un cambio en la barra de búsqueda
         onSearch: function (oEvent) {
         // 0) Recupera el texto de búsqueda
         const sQuery = oEvent.getParameter("query") || "";
@@ -1074,43 +1031,45 @@ onHistoryPress: function (oEvent) {
         oModel.setProperty("/filteredCount", aFiltered.length);
       },
 
-onFieldChange: function(oEvent) {
-  const oInput    = oEvent.getSource();
-  const sNewValue = oEvent.getParameter("value");
-  // 1) Sacamos el contexto de fila y su ID original
-    const oCtx      = oInput.getBindingContext("historyModel");
-  const aPath = oCtx.getPath().split("/");
-  const iRow  = parseInt(aPath[aPath.length - 1], 10);
+      //Cuando detecta un cambio en los inputs, meter los datos en _preparedChanges
+      onFieldChange: function(oEvent) {
+        const oInput    = oEvent.getSource();
+        const sNewValue = oEvent.getParameter("value");
+        // 1) Sacamos el contexto de fila y su ID original
+          const oCtx      = oInput.getBindingContext("historyModel");
+        const aPath = oCtx.getPath().split("/");
+        const iRow  = parseInt(aPath[aPath.length - 1], 10);
 
-    console.log("oCTX: ",oCtx);
-    const sOldId = this._originalList[iRow].SIMULATIONID;
-     console.log("sOldId: ",sOldId);
-          console.log("sNewValue: ", sNewValue);
-  if (!sOldId) return;
+          console.log("oCTX: ",oCtx);
+          const sOldId = this._originalList[iRow].SIMULATIONID;
+          console.log("sOldId: ",sOldId);
+                console.log("sNewValue: ", sNewValue);
+        if (!sOldId) return;
 
-    // Vemos si ya teníamos pendiente este oldID
-    const idx = this._pendingChanges.findIndex(u => u.SIMULATIONID === sOldId);
+          // Vemos si ya teníamos pendiente este oldID
+          const idx = this._pendingChanges.findIndex(u => u.SIMULATIONID === sOldId);
 
-    if (sNewValue && sNewValue !== sOldId) {
-      const updateObj = { SIMULATIONID: sOldId, NEWID: sNewValue };
-      console.log("UPDATE OBJ: updateObj");
-      if (idx === -1) {
-        this._pendingChanges.push(updateObj);
-      } else {
-        this._pendingChanges[idx].NEWID = sNewValue;
-      }
-    } else if (idx > -1) {
-      // si volvió a valer el original, lo quitamos de pendientes
-      this._pendingChanges.splice(idx, 1);
-    }
-  console.log("Pending updates: ", this._pendingChanges)
-  // 3) Reflejamos en la UI (para que el input muestre el cambio)...
-  oCtx.getModel().setProperty(oInput.getBindingPath("value"), sNewValue, oCtx);
-  console.log("Pending Changes: ",this._pendingChanges.length);
-  // 4) Activamos/desactivamos botón según haya al menos un pendiente
-  this._toggleLoadButton(this._pendingChanges.length > 0);
-},
+          if (sNewValue && sNewValue !== sOldId) {
+            const updateObj = { SIMULATIONID: sOldId, NEWID: sNewValue };
+            console.log("UPDATE OBJ: updateObj");
+            if (idx === -1) {
+              this._pendingChanges.push(updateObj);
+            } else {
+              this._pendingChanges[idx].NEWID = sNewValue;
+            }
+          } else if (idx > -1) {
+            // si volvió a valer el original, lo quitamos de pendientes
+            this._pendingChanges.splice(idx, 1);
+          }
+        console.log("Pending updates: ", this._pendingChanges)
+        // 3) Reflejamos en la UI (para que el input muestre el cambio)...
+        oCtx.getModel().setProperty(oInput.getBindingPath("value"), sNewValue, oCtx);
+        console.log("Pending Changes: ",this._pendingChanges.length);
+        // 4) Activamos/desactivamos botón según haya al menos un pendiente
+        this._toggleLoadButton(this._pendingChanges.length > 0);
+      },
 
+      //Activar el botón de actualizar
       _toggleLoadButton: function(bEnabled) {
         const oButton = sap.ui.core.Fragment.byId("historyFrag","bruh");
         if (oButton) {
@@ -1118,6 +1077,7 @@ onFieldChange: function(oEvent) {
         }
       },
 
+      //Botón para actualizar los cambios almacenados en _preparedChanges
       onLoadStrategy: function() {
         const PORT   = 3020;
         const oModel = this.getView().getModel("historyModel");
@@ -1169,175 +1129,181 @@ onFieldChange: function(oEvent) {
         });
       },
 
-onSelectionChange: function(oEvent) {
-  const oTable = oEvent.getSource();                // el Table que disparó el evento
-  const sMode  = oTable.getMode();                  // puede ser "SingleSelect", "MultiSelect", etc.
-  if (sMode !== "MultiSelect") {
-  const oItem = oEvent.getParameter("listItem");
-  if (!oItem) return;
-  const oCtx = oItem.getBindingContext("historyModel");
-  if (!oCtx) return;
-  const sID = oCtx.getProperty("SIMULATIONID");
+      //Dependiendo de si es multiselect o single select traer los datos, o 
+      //crear arreglo de simulaciones a eliminar
+      onSelectionChange: function(oEvent) {
+        const oTable = oEvent.getSource();                // el Table que disparó el evento
+        const sMode  = oTable.getMode();                  // puede ser "SingleSelect", "MultiSelect", etc.
+        if (sMode !== "MultiSelect") {
+        const oItem = oEvent.getParameter("listItem");
+        if (!oItem) return;
+        const oCtx = oItem.getBindingContext("historyModel");
+        if (!oCtx) return;
+        const sID = oCtx.getProperty("SIMULATIONID");
 
-  // Aquí llamamos a nuestro GET por ID
-  this._fetchSimulationById(sID)
-    .then(data => {
-      // Transformar CHART_DATA y SIGNALS igual que en runAnalysis
-      const aChartData = this._prepareTableData(
-        data.CHART_DATA || [],
-        data.SIGNALS    || []
-      );
-      const aSignals   = data.SIGNALS || [];
-      const oSummary   = data.SUMMARY || {};
-      console.log( "Chart Data fetch: ", data.CHART_DATA);
-      // Rellenar el modelo de resultados
-      const oResultModel = this.getView().getModel("strategyResultModel");
-      oResultModel.setData({
-        busy: false,
-        hasResults: true,
-        chart_data: aChartData,
-        signals: aSignals,
-        result: oSummary.REAL_PROFIT || 0,
-        simulationName: oSummary.SIMULATION_NAME || sID,
-        symbol: data.SYMBOL,
-        startDate: data.STARTDATE,
-        endDate: data.ENDDATE,
-        TOTAL_BOUGHT_UNITS: oSummary.TOTAL_BOUGHT_UNITS || 0,
-        TOTAL_SOLD_UNITS:   oSummary.TOTAL_SOLD_UNITS   || 0,
-        REMAINING_UNITS:    oSummary.REMAINING_UNITS    || 0,
-        FINAL_CASH:         oSummary.FINAL_CASH         || 0,
-        FINAL_VALUE:        oSummary.FINAL_VALUE        || 0,
-        FINAL_BALANCE:      oSummary.FINAL_BALANCE      || 0,
-        REAL_PROFIT:        oSummary.REAL_PROFIT        || 0,
-        PERCENTAGE_RETURN:  oSummary.PERCENTAGE_RETURN  || 0
-      });
+        // Aquí llamamos a nuestro GET por ID
+        this._fetchSimulationById(sID)
+          .then(data => {
+            // Transformar CHART_DATA y SIGNALS igual que en runAnalysis
+            const aChartData = this._prepareTableData(
+              data.CHART_DATA || [],
+              data.SIGNALS    || []
+            );
+            const aSignals   = data.SIGNALS || [];
+            const oSummary   = data.SUMMARY || {};
+            console.log( "Chart Data fetch: ", data.CHART_DATA);
+            // Rellenar el modelo de resultados
+            const oResultModel = this.getView().getModel("strategyResultModel");
+            oResultModel.setData({
+              busy: false,
+              hasResults: true,
+              chart_data: aChartData,
+              signals: aSignals,
+              result: oSummary.REAL_PROFIT || 0,
+              simulationName: oSummary.SIMULATION_NAME || sID,
+              symbol: data.SYMBOL,
+              startDate: data.STARTDATE,
+              endDate: data.ENDDATE,
+              TOTAL_BOUGHT_UNITS: oSummary.TOTAL_BOUGHT_UNITS || 0,
+              TOTAL_SOLD_UNITS:   oSummary.TOTAL_SOLD_UNITS   || 0,
+              REMAINING_UNITS:    oSummary.REMAINING_UNITS    || 0,
+              FINAL_CASH:         oSummary.FINAL_CASH         || 0,
+              FINAL_VALUE:        oSummary.FINAL_VALUE        || 0,
+              FINAL_BALANCE:      oSummary.FINAL_BALANCE      || 0,
+              REAL_PROFIT:        oSummary.REAL_PROFIT        || 0,
+              PERCENTAGE_RETURN:  oSummary.PERCENTAGE_RETURN  || 0
+            });
 
-      // Expandir panel de resultados y forzar re-render del gráfico
-      const oResultPanel = this.byId("strategyResultPanel");
-      if (oResultPanel) {
-        oResultPanel.setExpanded(true);
-      }
-      const oVizFrame = this.byId("idVizFrame");
-      if (oVizFrame) {
-        oVizFrame.invalidate();
-      }
-    })
-    .catch(err => {
-      console.error("Error al obtener simulación por ID:", err);
-      MessageBox.error("No se pudo cargar la simulación seleccionada");
-    });
-  }
-  const bSelected = oEvent.getParameter("selected");
-  console.log("Bselected: ", bSelected);
+            // Expandir panel de resultados y forzar re-render del gráfico
+            const oResultPanel = this.byId("strategyResultPanel");
+            if (oResultPanel) {
+              oResultPanel.setExpanded(true);
+            }
+            const oVizFrame = this.byId("idVizFrame");
+            if (oVizFrame) {
+              oVizFrame.invalidate();
+            }
+          })
+          .catch(err => {
+            console.error("Error al obtener simulación por ID:", err);
+            MessageBox.error("No se pudo cargar la simulación seleccionada");
+          });
+        }
+        const bSelected = oEvent.getParameter("selected");
+        console.log("Bselected: ", bSelected);
 
-  // 2) obtenemos el ListItem que disparó el evento
-  const oItem = oEvent.getParameter("listItem");
-  if (!oItem) {
-    console.warn("No se encontró el parámetro listItem en el evento");
-    return;
-  }
+        // 2) obtenemos el ListItem que disparó el evento
+        const oItem = oEvent.getParameter("listItem");
+        if (!oItem) {
+          console.warn("No se encontró el parámetro listItem en el evento");
+          return;
+        }
 
-  // 3) de esa fila, su bindingContext
-  const oCtx = oItem.getBindingContext("historyModel");
-  if (!oCtx) {
-    console.warn("No hay bindingContext en la fila");
-    return;
-  }
-  console.log("Octx: ", oCtx);
+        // 3) de esa fila, su bindingContext
+        const oCtx = oItem.getBindingContext("historyModel");
+        if (!oCtx) {
+          console.warn("No hay bindingContext en la fila");
+          return;
+        }
+        console.log("Octx: ", oCtx);
 
-  // 4) extraemos el SIMULATIONID de esa fila
-  const sID = oCtx.getProperty("SIMULATIONID");
-  console.log("SIMULATIONID:", sID);
+        // 4) extraemos el SIMULATIONID de esa fila
+        const sID = oCtx.getProperty("SIMULATIONID");
+        console.log("SIMULATIONID:", sID);
 
-  // 5) actualizamos el array de pendingDeletes
-  if (bSelected) {
-    if (!this._pendingDeletes.includes(sID)) {
-      this._pendingDeletes.push(sID);
-    }
-  } else {
-    this._pendingDeletes = this._pendingDeletes.filter(id => id !== sID);
-  }
-  console.log("Pending deletes: ", this._pendingDeletes);
+        // 5) actualizamos el array de pendingDeletes
+        if (bSelected) {
+          if (!this._pendingDeletes.includes(sID)) {
+            this._pendingDeletes.push(sID);
+          }
+        } else {
+          this._pendingDeletes = this._pendingDeletes.filter(id => id !== sID);
+        }
+        console.log("Pending deletes: ", this._pendingDeletes);
 
-  // 6) habilitamos/deshabilitamos el botón
-  this._toggleDeleteButton(this._pendingDeletes.length > 0);
-},
+        // 6) habilitamos/deshabilitamos el botón
+        this._toggleDeleteButton(this._pendingDeletes.length > 0);
+      },
 
-_toggleDeleteButton: function(bEnabled) {
-  const oBtn = sap.ui.core.Fragment.byId("historyFrag", "deleteBtn");
-  console.log("This pending button: ", oBtn);
-  if (oBtn) {
-    oBtn.setEnabled(bEnabled);
-  }
-},
+      //Activar el botón de borrar
+      _toggleDeleteButton: function(bEnabled) {
+        const oBtn = sap.ui.core.Fragment.byId("historyFrag", "deleteBtn");
+        console.log("This pending button: ", oBtn);
+        if (oBtn) {
+          oBtn.setEnabled(bEnabled);
+        }
+      },
 
-onDeleteSelected: function() {
-  const PORT = 3020;
-  const oModel = this.getView().getModel("historyModel");
+      //Llamar a la api y borrar las simulaciones en _prepareDeleted
+      onDeleteSelected: function() {
+        const PORT = 3020;
+        const oModel = this.getView().getModel("historyModel");
 
-  fetch(`http://localhost:${PORT}/api/inv/deletesimulation`, {
-    method:  "POST",
-    headers: { "Content-Type": "application/json" },
-    body:    JSON.stringify({ SIMULATIONIDS: this._pendingDeletes }),
-  })
-  .then(response => {
-    if (!response.ok) throw response;
-    return response.json();
-  })
-  .then(data => {
-    // data es { "@odata.context": "...", value: [ ... ] }
-    const deletedIDs = Array.isArray(data.value) ? data.value : [];
+        fetch(`http://localhost:${PORT}/api/inv/deletesimulation`, {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ SIMULATIONIDS: this._pendingDeletes }),
+        })
+        .then(response => {
+          if (!response.ok) throw response;
+          return response.json();
+        })
+        .then(data => {
+          // data es { "@odata.context": "...", value: [ ... ] }
+          const deletedIDs = Array.isArray(data.value) ? data.value : [];
 
-    // Ya podemos iterar el array
-    deletedIDs.forEach(id => {
-      // 1) eliminar de la copia original
-      const idx = this._originalList.findIndex(row => row.SIMULATIONID === id);
-      if (idx > -1) this._originalList.splice(idx, 1);
+          // Ya podemos iterar el array
+          deletedIDs.forEach(id => {
+            // 1) eliminar de la copia original
+            const idx = this._originalList.findIndex(row => row.SIMULATIONID === id);
+            if (idx > -1) this._originalList.splice(idx, 1);
 
-      // 2) eliminar del modelo UI
-      const aData = oModel.getProperty("/strategies") || [];
-      const newData = aData.filter(row => row.SIMULATIONID !== id);
-      oModel.setProperty("/strategies", newData);
-    });
+            // 2) eliminar del modelo UI
+            const aData = oModel.getProperty("/strategies") || [];
+            const newData = aData.filter(row => row.SIMULATIONID !== id);
+            oModel.setProperty("/strategies", newData);
+          });
 
-    // 3) limpiar y feedback
-    this._pendingDeletes = [];
-    this._toggleDeleteButton(false);
-    MessageToast.show("Simulaciones eliminadas correctamente");
-  })
-  .catch(err => {
-    console.error(err);
-    MessageBox.error("Error al eliminar simulaciones");
-  });
-},
+          // 3) limpiar y feedback
+          this._pendingDeletes = [];
+          this._toggleDeleteButton(false);
+          MessageToast.show("Simulaciones eliminadas correctamente");
+        })
+        .catch(err => {
+          console.error(err);
+          MessageBox.error("Error al eliminar simulaciones");
+        });
+      },
 
-_fetchSimulationById: function(sSimulationId) {
-  const PORT = 3020;
-  const body = JSON.stringify({SIMULATIONID: sSimulationId});
-  console.log("Body:",body);
-  return fetch(`http://localhost:${PORT}/api/inv/simulationbyid`, {
-    method: "POST",                         // <-- cambio a POST
-    headers: { "Content-Type": "application/json" },
-    body: body
-  })
-  .then(resp => resp.ok 
-    ? resp.json() 
-    : Promise.reject(resp))
-.then(o => {
-    // Desenvuelvo payload (ajusta según venga tu o.value)
-    const sim = o.value?.[0] || o;
-    console.log("SIM; ",sim);
-    // **Convierte strings "YYYY-MM-DD" a objetos Date**
-    if (sim.STARTDATE) {
-      sim.STARTDATE = new Date(sim.STARTDATE);
-    }
-    if (sim.ENDDATE) {
-      sim.ENDDATE = new Date(sim.ENDDATE);
-    }
+      //Llamada a la api para traer todos los datos de una simulación almacenada
+      //cuando se da click
+      _fetchSimulationById: function(sSimulationId) {
+        const PORT = 3020;
+        const body = JSON.stringify({SIMULATIONID: sSimulationId});
+        console.log("Body:",body);
+        return fetch(`http://localhost:${PORT}/api/inv/simulationbyid`, {
+          method: "POST",                         // <-- cambio a POST
+          headers: { "Content-Type": "application/json" },
+          body: body
+        })
+        .then(resp => resp.ok 
+          ? resp.json() 
+          : Promise.reject(resp))
+      .then(o => {
+          // Desenvuelvo payload (ajusta según venga tu o.value)
+          const sim = o.value?.[0] || o;
+          console.log("SIM; ",sim);
+          // **Convierte strings "YYYY-MM-DD" a objetos Date**
+          if (sim.STARTDATE) {
+            sim.STARTDATE = new Date(sim.STARTDATE);
+          }
+          if (sim.ENDDATE) {
+            sim.ENDDATE = new Date(sim.ENDDATE);
+          }
 
-    return sim;
-  });
-},
+          return sim;
+        });
+      },
 
       }
     );

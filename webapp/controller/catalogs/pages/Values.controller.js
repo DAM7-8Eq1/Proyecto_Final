@@ -28,14 +28,14 @@ sap.ui.define(
         // ========================================
         // VARIABLES GLOBALES DEL CONTROLADOR
         // ========================================
-        
+
         // Variable para almacenar el ID del label actual seleccionado
         currentLabelId: null,
 
         // ========================================
         // INICIALIZACIÓN DEL CONTROLADOR
         // ========================================
-        
+
         /**
          * Método que se ejecuta al inicializar la vista
          * Configura los modelos de datos necesarios
@@ -53,11 +53,11 @@ sap.ui.define(
           // Modelo "newValueModel" - contiene los datos del formulario para crear/editar valores
           this.getView().setModel(
             new JSONModel({
-              VALUEID: "",     // ID único del valor
-              VALUE: "",       // Nombre del valor
-              VALUEPAID: "",   // ID compuesto del valor
-              ALIAS: "",       // Alias o nombre corto
-              IMAGE: "",       // URL de imagen asociada
+              VALUEID: "", // ID único del valor
+              VALUE: "", // Nombre del valor
+              VALUEPAID: "", // ID compuesto del valor
+              ALIAS: "", // Alias o nombre corto
+              IMAGE: "", // URL de imagen asociada
               DESCRIPTION: "", // Descripción del valor
             }),
             "newValueModel"
@@ -86,7 +86,7 @@ sap.ui.define(
         loadCombboLabelId: function () {
           var oValuesModel = this.getView().getModel("values");
           var aLabels = oValuesModel.getProperty("/AllLabels") || [];
-          
+
           // Mapea los labels para asegurar compatibilidad con diferentes estructuras de datos
           var aComboItems = aLabels.map(function (label) {
             return {
@@ -94,7 +94,7 @@ sap.ui.define(
               LABEL: label.LABEL,
             };
           });
-          
+
           // Guarda los items formateados en el modelo para usar en el ComboBox
           oValuesModel.setProperty("/ComboLabels", aComboItems);
         },
@@ -118,7 +118,7 @@ sap.ui.define(
           var aLabelIds = aLabels.map(function (label) {
             return label.LABELID;
           });
-          
+
           // Almacena los IDs en el modelo
           this.getView().getModel("values").setProperty("/labelIds", aLabelIds);
         },
@@ -130,12 +130,12 @@ sap.ui.define(
         loadValuesId: function () {
           var oModel = this.getView().getModel("values");
           var labelIdEscogido = oModel.getProperty("/labelIdEscogido");
-          
+
           // Filtra los valores para mostrar solo los del label seleccionado
           var aValues = oModel.getProperty("/values").filter(function (value) {
             return value.LABELID === labelIdEscogido;
           });
-          
+
           this.getView().getModel("values").setProperty("/values", aValues);
         },
 
@@ -152,7 +152,7 @@ sap.ui.define(
           // Obtiene el item seleccionado de la tabla
           var oItem = oEvent.getParameter("listItem");
           var oSelectedData = oItem.getBindingContext("values").getObject();
-          
+
           // Carga los datos del item seleccionado en el modelo del formulario
           this.getView().getModel("newValueModel").setProperty("/", {
             VALUEID: oSelectedData.VALUEID,
@@ -203,12 +203,12 @@ sap.ui.define(
           // Obtiene el texto del label seleccionado (elemento UI con ID específico)
           var oText = this.byId("_IDGenText8");
           var sText = oText ? oText.getText() : "";
-          
+
           // Obtiene los datos del formulario
           var oNewValueData = this.getView()
             .getModel("newValueModel")
             .getProperty("/");
-            
+
           // Construye el VALUEPAID combinando LABELIDC y VALUEIDC
           var sValuePaid =
             (oNewValueData.LABELIDC || "") +
@@ -226,7 +226,7 @@ sap.ui.define(
           // Prepara el objeto de datos para enviar al API
           var oData = {
             COMPANYID: "1", // ID de compañía fijo
-            CEDIID: "1",    // ID de centro fijo
+            CEDIID: "1", // ID de centro fijo
             VALUEID: oNewValueData.VALUEID,
             VALUE: oNewValueData.VALUE,
             VALUEPAID: sValuePaid,
@@ -257,7 +257,7 @@ sap.ui.define(
 
               var oValuesModel = this.getView().getModel("values");
               var aValues = oValuesModel.getProperty("/values") || [];
-              
+
               // Agrega el nuevo valor al array local
               aValues.push({
                 VALUEID: oNewValueData.VALUEID,
@@ -268,10 +268,10 @@ sap.ui.define(
                 DESCRIPTION: oNewValueData.DESCRIPTION,
                 LABELID: oNewValueData.LABELID,
               });
-              
+
               console.log("Nuevo valor agregado:", aValues);
               oValuesModel.setProperty("/values", aValues);
-              
+
               // Limpia el formulario
               this.getView().getModel("newValueModel").setProperty("/", {
                 VALUEID: "",
@@ -281,7 +281,7 @@ sap.ui.define(
                 IMAGE: "",
                 DESCRIPTION: "",
               });
-              
+
               // Cierra el diálogo y muestra mensaje de éxito
               this._oAddDialog.close();
               MessageToast.show("Valor agregado exitosamente.");
@@ -300,7 +300,7 @@ sap.ui.define(
         onCancelValues: function () {
           // Cierra el diálogo
           this._oAddDialog.close();
-          
+
           // Limpia el modelo del formulario
           this.getView().getModel("newValueModel").setProperty("/", {
             VALUEID: "",
@@ -310,7 +310,7 @@ sap.ui.define(
             IMAGE: "",
             DESCRIPTION: "",
           });
-          
+
           // Deshabilita los botones de edición
           this.getView()
             .getModel("values")
@@ -326,17 +326,85 @@ sap.ui.define(
          * Similar a onAddValues pero para el diálogo de edición
          */
         onEditValues: function () {
+          var that = this;
+          var oNewValueData = this.getView()
+            .getModel("newValueModel")
+            .getProperty("/");
+          var sLabelId = "";
+
+          // Obtiene el LABELID de VALUEPAID si existe
+          if (oNewValueData.VALUEPAID) {
+            var aParts = oNewValueData.VALUEPAID.split("-");
+            sLabelId = aParts[0] || "";
+          }
+
+          // Carga los valores filtrados por LABELID antes de abrir el diálogo
+          if (sLabelId) {
+            this.loadValuesByLabelId(sLabelId);
+          }
+
           if (!this._oEditDialog) {
             Fragment.load({
               id: this.getView().getId(),
               name: "com.inv.sapfiroriwebinversion.view.catalogs.fragments.EditValueDialog",
               controller: this,
-            }).then((oDialog) => {
-              this._oEditDialog = oDialog;
-              this.getView().addDependent(oDialog);
+            }).then(function (oDialog) {
+              that._oEditDialog = oDialog;
+              that.getView().addDependent(oDialog);
+
+              // Preselecciona los ComboBox según VALUEPAID
+              var oNewValueData = that
+                .getView()
+                .getModel("newValueModel")
+                .getProperty("/");
+              if (oNewValueData.VALUEPAID) {
+                var aParts = oNewValueData.VALUEPAID.split("-");
+                that
+                  .getView()
+                  .getModel("newValueModel")
+                  .setProperty("/ValuePaid1", aParts[0] || "");
+                that
+                  .getView()
+                  .getModel("newValueModel")
+                  .setProperty("/ValuePaid2", aParts[1] || "");
+                that
+                  .getView()
+                  .getModel("newValueModel")
+                  .setProperty("/VALUEIDC", aParts[1] || "");
+              }
+              // Asegura que LABELID esté sincronizado con ValuePaid1
+              that
+                .getView()
+                .getModel("newValueModel")
+                .setProperty(
+                  "/LABELID",
+                  oNewValueData.ValuePaid1 || aParts?.[0] || ""
+                );
               oDialog.open();
             });
           } else {
+            // Si el diálogo ya existe, solo preselecciona los ComboBox y abre el diálogo
+            var oNewValueData = this.getView()
+              .getModel("newValueModel")
+              .getProperty("/");
+            if (oNewValueData.VALUEPAID) {
+              var aParts = oNewValueData.VALUEPAID.split("-");
+              this.getView()
+                .getModel("newValueModel")
+                .setProperty("/ValuePaid1", aParts[0] || "");
+              this.getView()
+                .getModel("newValueModel")
+                .setProperty("/ValuePaid2", aParts[1] || "");
+              this.getView()
+                .getModel("newValueModel")
+                .setProperty("/VALUEIDC", aParts[1] || "");
+              this.getView()
+                .getModel("newValueModel")
+                .setProperty(
+                  "/LABELID",
+                  oNewValueData.ValuePaid1 || aParts[0] || ""
+                );
+            }
             this._oEditDialog.open();
           }
         },
@@ -349,11 +417,20 @@ sap.ui.define(
           // Obtiene el texto del label (diferente ID que en crear)
           var oText = this.byId("_IDGenText9");
           var sText = oText ? oText.getText() : "";
-          
+
           var oNewValueData = this.getView()
             .getModel("newValueModel")
             .getProperty("/");
-            
+
+          // --- SINCRONIZA LOS CAMPOS DEL MODELO ---
+          // Si tienes ValuePaid1 y ValuePaid2, úsalos para LABELIDC y VALUEIDC
+          if (oNewValueData.ValuePaid1) {
+            oNewValueData.LABELIDC = oNewValueData.ValuePaid1;
+          }
+          if (oNewValueData.ValuePaid2) {
+            oNewValueData.VALUEIDC = oNewValueData.ValuePaid2;
+          }
+
           var sValuePaid =
             (oNewValueData.LABELIDC || "") +
             "-" +
@@ -366,8 +443,6 @@ sap.ui.define(
             );
             return;
           }
-
-          console.log("sText: ", sText, "oNewValueData: ", oNewValueData.LABELID);
 
           // Prepara los datos para actualización
           var oData = {
@@ -404,18 +479,18 @@ sap.ui.define(
               // ÉXITO: Actualiza el modelo local
               var oValuesModel = this.getView().getModel("values");
               var aValues = oValuesModel.getProperty("/values") || [];
-              
+
               // Busca el índice del valor a actualizar
               var iIndex = aValues.findIndex(function (item) {
                 return item.VALUEID === oNewValueData.VALUEID;
               });
-              
+
               // Si lo encuentra, actualiza los datos localmente
               if (iIndex !== -1) {
                 aValues[iIndex] = Object.assign({}, aValues[iIndex], oData);
                 oValuesModel.setProperty("/values", aValues);
               }
-              
+
               // Limpia el formulario y cierra el diálogo
               this.getView().getModel("newValueModel").setProperty("/", {
                 VALUEID: "",
@@ -425,11 +500,11 @@ sap.ui.define(
                 IMAGE: "",
                 DESCRIPTION: "",
               });
-              
+
               if (this._oEditDialog) {
                 this._oEditDialog.close();
               }
-              
+
               MessageToast.show("Valor actualizado exitosamente.");
             })
             .catch((error) => {
@@ -446,7 +521,7 @@ sap.ui.define(
          */
         onEditCancelValues: function () {
           this._oEditDialog.close();
-          
+
           this.getView().getModel("newValueModel").setProperty("/", {
             VALUEID: "",
             VALUE: "",
@@ -455,7 +530,7 @@ sap.ui.define(
             IMAGE: "",
             DESCRIPTION: "",
           });
-          
+
           this.getView()
             .getModel("values")
             .setProperty("/selectedValueIn", false);
@@ -497,7 +572,7 @@ sap.ui.define(
          */
         loadValuesByLabelId: function (sLabelId) {
           var oModel = this.getView().getModel("values");
-          
+
           // Petición GET al API para obtener valores por LABELID
           fetch(
             `http://localhost:3020/api/security/catalogs?labelid=${sLabelId}`,
@@ -519,7 +594,7 @@ sap.ui.define(
                   // Se pueden agregar más propiedades según necesidad
                 };
               });
-              
+
               // Guarda los valores filtrados en una propiedad separada
               oModel.setProperty("/filteredValues", aValues);
             })
@@ -539,7 +614,7 @@ sap.ui.define(
          */
         deleteValueById: function () {
           var that = this;
-          
+
           // Obtiene el VALUEID del valor seleccionado
           var oNewValueData = this.getView()
             .getModel("newValueModel")
@@ -551,7 +626,7 @@ sap.ui.define(
             MessageBox.error("No hay valor seleccionado para eliminar.");
             return;
           }
-          
+
           // Muestra diálogo de confirmación
           MessageBox.confirm("¿Seguro que deseas eliminar este valor?", {
             onClose: function (oAction) {
@@ -573,12 +648,12 @@ sap.ui.define(
                     // ÉXITO: Elimina el valor del modelo local
                     var oValuesModel = that.getView().getModel("values");
                     var aValues = oValuesModel.getProperty("/values") || [];
-                    
+
                     // Filtra el array para remover el valor eliminado
                     var aFiltered = aValues.filter(function (item) {
                       return item.VALUEID !== sValueId;
                     });
-                    
+
                     oValuesModel.setProperty("/values", aFiltered);
                     MessageToast.show("Valor eliminado exitosamente.");
                   })
@@ -631,11 +706,11 @@ sap.ui.define(
                     // ÉXITO: Actualiza el estado local a inactivo
                     var oValuesModel = that.getView().getModel("values");
                     var aValues = oValuesModel.getProperty("/values") || [];
-                    
+
                     var iIndex = aValues.findIndex(function (item) {
                       return item.VALUEID === sValueId;
                     });
-                    
+
                     if (iIndex !== -1) {
                       // Actualiza la propiedad ACTIVED a false
                       aValues[iIndex].DETAIL_ROW =
@@ -644,7 +719,7 @@ sap.ui.define(
                       oValuesModel.setProperty("/values", aValues);
                       oValuesModel.refresh(true);
                     }
-                    
+
                     MessageToast.show("Valor desactivado exitosamente.");
                   })
                   .catch((error) => {
@@ -696,11 +771,11 @@ sap.ui.define(
                     // ÉXITO: Actualiza el estado local a activo
                     var oValuesModel = that.getView().getModel("values");
                     var aValues = oValuesModel.getProperty("/values") || [];
-                    
+
                     var iIndex = aValues.findIndex(function (item) {
                       return item.VALUEID === sValueId;
                     });
-                    
+
                     if (iIndex !== -1) {
                       // Actualiza la propiedad ACTIVED a true
                       aValues[iIndex].DETAIL_ROW =
@@ -709,7 +784,7 @@ sap.ui.define(
                       oValuesModel.setProperty("/values", aValues);
                       oValuesModel.refresh(true);
                     }
-                    
+
                     MessageToast.show("Valor activado exitosamente.");
                   })
                   .catch((error) => {
@@ -736,11 +811,11 @@ sap.ui.define(
           // Obtiene el texto de búsqueda (soporta diferentes tipos de eventos)
           var sQuery =
             oEvent.getParameter("query") || oEvent.getParameter("newValue");
-          
+
           // Obtiene referencia a la tabla
           var oTable = this.byId("valuesTable");
           var oBinding = oTable.getBinding("items");
-          
+
           // Verificación de seguridad
           if (!oBinding) {
             return;
@@ -762,7 +837,7 @@ sap.ui.define(
             "DESCRIPTION",
             "LABELID",
           ];
-          
+
           // Crea un filtro para cada campo usando el operador "Contains"
           var aFilters = aFields.map(function (sField) {
             return new sap.ui.model.Filter(
