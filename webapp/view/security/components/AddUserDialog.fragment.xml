@@ -25,9 +25,9 @@
 
             <Input id="inputUserExtension" placeholder="Extension "/>
             
-            <Input id="inputUserPhoneNumber" placeholder="Número telefónico"/>
+            <Input id="inputUserPhoneNumber" placeholder="Número telefónico" liveChange="onPhoneLiveChange"/>
 
-            <Input id="inputUserEmail" placeholder="Correo Electrónico"/>
+            <Input id="inputUserEmail" placeholder="Correo Electrónico" liveChange="onEmailLiveChange"/>
 
             <DatePicker id="inputUserBirthdayDate" placeholder="Fecha de nacimiento"/>
 
@@ -36,9 +36,13 @@
             <ComboBox id="comboBoxCompanies" items="{companiesModel>/companies}" selectionChange="onCompanySelected" placeholder="Compañía">
                 <core:Item id="CompanyItem" key="{companiesModel>VALUEID}" text="{companiesModel>VALUE}" />
             </ComboBox>
+            
+            <ComboBox id="comboBoxCedis" items="{newCediisModel>/cediis}" change="onCediiSelected" placeholder="CEDII">
+                <core:Item id="CediItem" key="{newCediisModel>VALUEID}" text="{newCediisModel>VALUE}" />
+            </ComboBox>
 
-            <ComboBox id="comboBoxCedis" items="{departmentModel>/value}" selectionChange="onCediSelected" placeholder="Departamento">
-                <core:Item id="CediItem" key="{departmentModel>VALUEID}" text="{departmentModel>VALUE}" />
+            <ComboBox id="comboBoxDepartments" items="{newDepartmentModel>/departments}" change ="onDepartmentSelected" placeholder="Departamento">
+                <core:Item id="DepartmentsItem" key="{newDepartmentModel>VALUEID}" text="{newDepartmentModel>VALUE}" />
             </ComboBox>
 
             <ComboBox id="comboBoxRoles"

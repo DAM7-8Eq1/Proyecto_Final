@@ -23,9 +23,9 @@
 
             <Input id="inputEditExtension" placeholder="Extension "/>
             
-            <Input id="inputEditPhoneNumber" placeholder="Número telefónico"/>
+            <Input id="inputEditPhoneNumber" placeholder="Número telefónico" liveChange="onPhoneLiveChange"/>
 
-            <Input id="inputEditEmail" placeholder="Correo Electrónico"/>
+            <Input id="inputEditEmail" placeholder="Correo Electrónico" liveChange="onEmailLiveChange"/>
 
             <DatePicker id="inputEditBirthdayDate" placeholder="Fecha de nacimiento"/>
 
@@ -35,8 +35,13 @@
                 <core:Item id="CompanyItemEdit" key="{companiesModel>VALUEID}" text="{companiesModel>VALUE}" />
             </ComboBox>
             
-            <ComboBox id="comboBoxCedisEdit" items="{departmentModel>/value}" selectionChange="onCediSelected" placeholder="Departamento">
-                <core:Item id="CediItemEdit" key="{departmentModel>VALUEID}" text="{departmentModel>VALUE}" />
+               
+            <ComboBox id="comboBoxCedisEdit" items="{newCediisModel>/cediis}" selectionChange="onCediiSelected" placeholder="CEDII">
+                <core:Item id="CediItemEdit" key="{newCediisModel>VALUEID}" text="{newCediisModel>VALUE}" />
+            </ComboBox>
+
+            <ComboBox id="comboBoxDepartmentsEdit" items="{newDepartmentModel>/departments}" selectionChange="onDepartmentSelected" placeholder="Departamento">
+                <core:Item id="DepartmentsItemEdit" key="{newDepartmentModel>VALUEID}" text="{newDepartmentModel>VALUE}" />
             </ComboBox>
 
             <ComboBox id="comboBoxRolesEdit"
