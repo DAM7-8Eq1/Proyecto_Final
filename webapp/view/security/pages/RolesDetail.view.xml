@@ -81,17 +81,10 @@
               </tl:template>
             </tl:Column>
 
-            <tl:Column id="_IDGenColumn41">
-              <m:Label id="_IDGenLabel57" text="Aplicación" />
-              <tl:template>
-                <m:Text id="_IDGenText78" text="{roles>APPLICATIONNAME}" />
-              </tl:template>
-            </tl:Column>
-
             <tl:Column id="_IDGenColumn42">
-              <m:Label id="_IDGenLabel58" text="Proceso" />
+              <m:Label id="_IDGenLabel58" text="Aplicación" />
               <tl:template>
-                <m:Text id="_IDGenText79" text="{roles>VIEWNAME}" />
+                <m:Text id="_IDGenText79" text="{roles>/selectedRole/APP}" />
               </tl:template>
             </tl:Column>
 
