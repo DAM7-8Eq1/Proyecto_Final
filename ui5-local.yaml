@@ -17,3 +17,4 @@ framework:
     - name: sap.ui.export
     - name: sap.tnt
     - name: sap.ndc
+    - name: sap.viz 

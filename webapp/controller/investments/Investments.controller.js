@@ -8,6 +8,7 @@ sap.ui.define(
     "sap/viz/ui5/controls/VizFrame",
     "sap/viz/ui5/data/FlattenedDataset",
     "sap/viz/ui5/controls/common/feeds/FeedItem",
+    "sap/viz/ui5/controls/Popover"
   ],
   function (
     Controller,
@@ -35,12 +36,14 @@ sap.ui.define(
         onInit: function () {
           // 1. Initialize Symbol Model (static data for now)
           this._initSymbolModel();
-          
+          this._sStrategyKey = "";
           this._pendingChanges = []; // aquí iremos almacenando los cambios
           this._pendingDeletes = [];
           // Deshabilitar el botón al inicio
           this._toggleLoadButton(false);
           this._toggleDeleteButton(false);
+          this._usuarioActual = this.getOwnerComponent().getModel("appView").getProperty("/currentUser");
+          
           // 2. Initialize Price Data Model (empty for now)
           this.getView().setModel(
             new JSONModel({
@@ -62,7 +65,7 @@ sap.ui.define(
 
           // 5. Initialize Strategy Analysis Model
           var oStrategyAnalysisModelData = {
-            balance: 1000,
+            balance: this._usuarioActual.STOCK,
             stock: 1,
             longSMA: 200,
             shortSMA: 50,
@@ -291,6 +294,9 @@ sap.ui.define(
          */
         _configureChart: function () {
           const oVizFrame = this.byId("idVizFrame");
+            this._oVizPopover = new sap.viz.ui5.controls.Popover();
+            this._oVizPopover.connect(oVizFrame.getVizUid());
+
           if (!oVizFrame) {
             console.warn(
               "Función _configureChart: VizFrame con ID 'idVizFrame' no encontrado en este punto del ciclo de vida."
@@ -305,9 +311,31 @@ sap.ui.define(
                 start: null,
                 end: null,
               },
+              colorPalette: [
+              // 0. PrecioCierre 
+              "#3366CC",
+              // 1. true Señal Buy      
+              "#39FF14",
+              // 2. LONG_MA      
+              "#FF4444",
+              // 3. true MA          
+              "#FF0080",
+              // 4. SMA        
+              "#FFBB33",
+              // 5. MA            
+              "#FF0080",
+              // 6. ATR          
+              "#CC0000",
+              // 7. ADX           
+              "#888888",
+              // 8. Señal BUY   
+              "#39FF14",
+              // 9. Señal SELL    
+              "#FF0000"
+            ],
             },
             valueAxis: {
-              title: { text: "Precio (USD)" }, // Generalize title as it will show various measures
+              title: { text: "Precio (USD)" }, 
             },
             timeAxis: {
               title: { text: "Fecha" },
@@ -340,10 +368,7 @@ sap.ui.define(
           );
         },
 
-        /**
-         * Sets default start and end dates for the analysis.
-         * @private
-         */
+        //Fechas de inicio y fin por default
         _setDefaultDates: function () {
           var oStrategyAnalysisModel = this.getView().getModel(
             "strategyAnalysisModel"
@@ -358,11 +383,8 @@ sap.ui.define(
           );
         },
 
-        /**
-         * Event handler for strategy selection change.
-         * Updates visible controls and chart measures.
-         * @param {sap.ui.base.Event} oEvent The event object
-         */
+
+        //Función para cambiar el panel lateral cuando cambias de estrategia
         onStrategyChange: function (oEvent) {
           var oStrategyAnalysisModel = this.getView().getModel(
             "strategyAnalysisModel"
@@ -388,11 +410,7 @@ sap.ui.define(
           }
         },
 
-        /**
-         * Event handler for running the analysis.
-         * Makes an API call to get simulation data and updates models.
-         * It also triggers the update of chart measures feed after data is loaded.
-         */
+        //Función para cuando presionas el botón de correr estrategia
         onRunAnalysisPress: function () {
           var oView = this.getView();
           var oStrategyModel = oView.getModel("strategyAnalysisModel");
@@ -522,8 +540,9 @@ sap.ui.define(
                 oStrategyModel.getProperty("/startDate")
               ),
               ENDDATE: this.formatDate(oStrategyModel.getProperty("/endDate")), // Usar el formateador público
-              AMOUNT: oStrategyModel.getProperty("/stock"),
-              USERID: "ARAMIS", // Assuming a fixed user ID for now
+              AMOUNT: this._usuarioActual.STOCK,
+              USERID: this._usuarioActual.USERID,
+              SHARES: this._usuarioActual.SHARES,
               SPECS: SPECS,
             },
           };  
@@ -549,6 +568,9 @@ sap.ui.define(
                 data.value?.[0]?.CHART_DATA || [],
                 data.value?.[0]?.SIGNALS || []
               );
+
+              this._allChartData = aChartData.slice(); // .slice() crea una copia “plana”
+
               const aSignals = data.value?.[0]?.SIGNALS || [];
               const oSummary = data.value?.[0]?.SUMMARY || {}; // Obtener el objeto SUMMARY
 
@@ -567,29 +589,38 @@ sap.ui.define(
                 symbol: sSymbol,
                 startDate: oStrategyModel.getProperty("/startDate"),
                 endDate: oStrategyModel.getProperty("/endDate"),
+                // — PARAMETROS INICIALES —
+                SALDO_INICIAL_SIMULACION: oSummary.SALDO_INICIAL_SIMULACION || 0,
+                NUM_ACCIONES_INICIALES_SIMULACION: oSummary.NUM_ACCIONES_INICIALES_SIMULACION || 0,
+                PRECIO_UNITARIO_INICIAL: oSummary.PRECIO_UNITARIO_INICIAL || 0,
+                SALDO_ACCIONES_INICIAL_SIMULACION: oSummary.SALDO_ACCIONES_INICIAL_SIMULACION || 0,
+                SALDO_TOTAL_INICIAL_SIMULACION: oSummary.SALDO_TOTAL_INICIAL_SIMULACION || 0,
+
+                // — METRICAS DURANTE LA SIMULACIÓN —
                 TOTAL_BOUGHT_UNITS: oSummary.TOTAL_BOUGHT_UNITS || 0,
                 TOTAL_SOLD_UNITS: oSummary.TOTAL_SOLD_UNITS || 0,
                 REMAINING_UNITS: oSummary.REMAINING_UNITS || 0,
                 FINAL_CASH: oSummary.FINAL_CASH || 0,
-                FINAL_VALUE: oSummary.FINAL_VALUE || 0,
-                FINAL_BALANCE: oSummary.FINAL_BALANCE || 0,
-                REAL_PROFIT: oSummary.REAL_PROFIT || 0,
-                PERCENTAGE_RETURN: oSummary.PERCENTAGE_RETURN || 0,
+                FINAL_SHARE_VALUE: oSummary.FINAL_SHARE_VALUE || 0,
+                FINAL_BALANCE_SIMULACION: oSummary.FINAL_BALANCE_SIMULACION || 0,
+                RENDIMIENTO_SIMULACION: oSummary.RENDIMIENTO_SIMULACION || 0,
+                PERCENTAGE_RETURN_SIMULACION: oSummary.PERCENTAGE_RETURN_SIMULACION || 0,
+
+                // — METRICAS “GENERALES” —
+                SALDO_INICIAL_GENERAL: oSummary.SALDO_INICIAL_GENERAL || 0,
+                SALDO_TOTAL_GENERAL_FINAL: oSummary.SALDO_TOTAL_GENERAL_FINAL || 0,
+                RENDIMIENTO_GENERAL: oSummary.RENDIMIENTO_GENERAL || 0,
+                PERCENTAGE_RETURN_GENERAL: oSummary.PERCENTAGE_RETURN_GENERAL || 0
               });
 
-              // After new data is loaded, ensure chart feeds are updated based on current strategy
-              // Esto es crucial para que el gráfico se actualice correctamente con las medidas de la nueva estrategia
-
-              // Invalidate the VizFrame to force a re-render
               const oVizFrame = this.byId("idVizFrame");
               if (oVizFrame) {
-                oVizFrame.invalidate(); // Invalidate the control to force re-rendering
-                // oVizFrame.rerender(); // Explicitly rerender (though invalidate often triggers this) - NO ES NECESARIO
+                oVizFrame.invalidate();
               }
 
               // Update balance
               var currentBalance = oStrategyModel.getProperty("/balance") || 0;
-              var totalGain = oSummary.REAL_PROFIT || 0; // Usar la ganancia real del SUMMARY
+              var totalGain = oSummary.RENDIMIENTO_GENERAL || 0; // Usar la ganancia real del SUMMARY
               oStrategyModel.setProperty(
                 "/balance",
                 currentBalance + totalGain
@@ -597,6 +628,56 @@ sap.ui.define(
               MessageToast.show(
                 "Se añadieron $" + totalGain.toFixed(2) + " a tu balance."
               );
+              // 2.3. ---> Paso extra: LLAMAR AL ENDPOINT updateuser para persistir STOCK y SHARES del usuario
+              const sUserId = this._usuarioActual.USERID;
+              const sUserMod = this._usuarioActual.USERID; 
+              // (o podrías pasar otro campo “usuario que modifica” si lo tuvieras; pero aquí usamos el mismo USERID)
+
+              // El nuevo STOCK será el balance actualizado. 
+              // Suponiendo que “balance” en oStrategyModel coincide con “STOCK” en tu usuario:
+              const newStockValue = oStrategyModel.getProperty("/balance");
+
+              // El nuevo SHARES serán las “acciones restantes” que devolvió la simulación:
+              const newSharesValue = oSummary.REMAINING_UNITS || 0;
+              fetch(
+              `http://localhost:${PORT}/api/security/updateuser?userid=${encodeURIComponent(sUserId)}&usermod=${encodeURIComponent(sUserMod)}`,
+              {
+                method: "POST", // o “PUT” según tu configuración de ruteo. 
+                headers: {
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                  user: {
+                    STOCK: newStockValue,
+                    SHARES: newSharesValue
+                  }
+                })
+              }
+            )
+              .then((res) => {
+                if (!res.ok) {
+                  return Promise.reject(res);
+                }
+                return res.json();
+              })
+              .then((updatedUser) => {
+                // Si quieres, actualizas el modelo local this._usuarioActual o el model "appView"
+                this._usuarioActual.STOCK = updatedUser.STOCK;
+                this._usuarioActual.SHARES = updatedUser.SHARES;
+                // Si tu appView model está diseñado para reflejar al usuario:
+                this.getOwnerComponent()
+                  .getModel("appView")
+                  .setProperty("/currentUser/STOCK", updatedUser.STOCK);
+                this.getOwnerComponent()
+                  .getModel("appView")
+                  .setProperty("/currentUser/SHARES", updatedUser.SHARES);
+                // // Opcional: MessageToast de confirmación
+                // MessageToast.show("Usuario actualizado: STOCK y SHARES guardados.");
+              })
+              .catch((err) => {
+                console.error("Error al actualizar usuario:", err);
+                MessageToast.show("No se pudo actualizar datos de usuario.");
+              });
             })
             .catch((error) => {
               console.error("Error:", error);
@@ -795,8 +876,7 @@ sap.ui.define(
           const oStrategyAnalysisModel = this.getView().getModel(
             "strategyAnalysisModel"
           );
-          const sStrategyKey =
-            oStrategyAnalysisModel.getProperty("/strategyKey");
+          const sStrategyKey = this._sStrategyKey = oStrategyAnalysisModel.getProperty("/strategyKey");
 
           // Define las medidas base que siempre deben estar presentes
           // ¡IMPORTANTE! Usar los NOMBRES de las MeasureDefinition del XML, no los nombres de las propiedades de los datos.
@@ -889,7 +969,9 @@ sap.ui.define(
 
             const sFecha = oSelectedData.data.DATE_GRAPH; // This should be a Date object
             const fPrecioCierre = oSelectedData.data.CLOSE;
-
+            const fSignal = oSelectedData.data.BUY_SIGNAL;
+            console.log("señal: ",fSignal);
+            console.log("Adios");
             if (sFecha && fPrecioCierre !== undefined) {
               const oViewModel = this.getView().getModel("viewModel");
               oViewModel.setProperty("/selectedPoint", {
@@ -1006,6 +1088,110 @@ sap.ui.define(
           oModel.setProperty("/filteredCount", aFiltered.length);
         },
 
+        onTableFilterChange: function () {
+          const oView = this.getView();
+          const oDateRange    = oView.byId("dateRangeTableFilter");
+          console.log("Tablre range:", oDateRange);
+          const oSignalSelect = oView.byId("signalFilter");
+          const oTable        = oView.byId("idInvesmentTable");
+          const oModel        = oView.getModel("strategyResultModel");
+
+          if (!oDateRange || !oSignalSelect || !oTable || !oModel) {
+            return;
+          }
+
+          // 1) Lee valores de los controles
+          const dFrom = oDateRange.getDateValue();       // Date o null
+          const dTo   = oDateRange.getSecondDateValue(); // Date o null
+          const sSignalKey = oSignalSelect.getSelectedKey(); // "ALL","BUY","SELL","NONE"
+
+          // 2) Trabaja sobre la copia completa de datos:
+          //    Asegúrate de que this._allChartData ya fue asignado en onRunAnalysisPress
+          const aAllData = this._allChartData || [];
+
+          // 3) Aplica filter() en JavaScript
+          const aFiltered = aAllData.filter((item) => {
+            // ---- 3.1. Filtrar por fecha ----
+            // item.DATE_GRAPH es un objeto Date (porque en _prepareTableData asignaste dateObject).
+            let bFechaOk = true;
+            if (dFrom && dTo) {
+              bFechaOk = item.DATE_GRAPH >= dFrom && item.DATE_GRAPH <= dTo;
+            } else if (dFrom) {
+              bFechaOk = item.DATE_GRAPH >= dFrom;
+            } else if (dTo) {
+              bFechaOk = item.DATE_GRAPH <= dTo;
+            }
+            if (!bFechaOk) {
+              return false; // si no cumple el rango de fechas, la descartamos
+            }
+
+            // ---- 3.2. Filtrar por señal ----
+            // item.SIGNALS vale "ACCIÓN BUY", "ACCIÓN SELL" o "SIN ACCIÓN"
+            if (sSignalKey === "BUY" && item.SIGNALS !== "ACCIÓN BUY") {
+              return false;
+            }
+            if (sSignalKey === "SELL" && item.SIGNALS !== "ACCIÓN SELL") {
+              return false;
+            }
+            if (sSignalKey === "ALL" && item.SIGNALS !== "ACCIÓN BUY" && item.SIGNALS !== "ACCIÓN SELL") {
+              return false;
+            }
+            // Si sSignalKey === "ALL", no filtramos por SIGNALS.  
+
+            // ---- Si pasa ambas condiciones, la incluimos ----
+            return true;
+          });
+
+          // 4) Actualiza el modelo con la lista filtrada
+          oModel.setProperty("/chart_data", aFiltered);
+          console.log("Filtered: ",aFiltered);
+          // Si quieres, puedes mostrar un mensaje con el conteo:
+          // sap.m.MessageToast.show(`${aFiltered.length} filas encontradas.`);
+        },
+        onSearchTable: function (oEvent) {
+        // 1) Recuperar la query (texto) del SearchField. Si está vacío (""), significa que
+        //    no queremos filtrar nada.
+        const sQuery = (oEvent.getParameter("query") || "").trim().toLowerCase();
+
+        // 2) Obtener referencia al modelo que contiene 'chart_data'
+        const oModel = this.getView().getModel("strategyResultModel");
+        if (!oModel) {
+          return;
+        }
+
+        // 3) Recuperar la “copia maestra” de los datos (asegúrate de que this._allChartData
+        //    ya esté inicializado en onRunAnalysisPress, justo después de obtener la simulación).
+        const aAllData = this._allChartData || [];
+
+        // 4) Si la query está vacía o solo espacios, restauramos toda la tabla:
+        if (!sQuery) {
+          oModel.setProperty("/chart_data", aAllData.slice());
+          return;
+        }
+
+        // 5) Filtrar con JavaScript: buscamos subcadenas en DATE (formato "yyyy-MM-dd")
+        //    o en SIGNALS ("ACCIÓN BUY", "ACCIÓN SELL", "SIN ACCIÓN"). Haremos todo en lowercase
+        //    para que la búsqueda no sea sensible a mayúsculas/minúsculas.
+        const aFiltered = aAllData.filter((item) => {
+          // 5.1) Revisar fecha. item.DATE es string "yyyy-MM-dd".
+          const sDateString = (item.DATE || "").toLowerCase();
+          if (sDateString.includes(sQuery)) {
+            return true;
+          }
+
+          // 5.2) Revisar señal. item.SIGNALS es "ACCIÓN BUY", "ACCIÓN SELL" o "SIN ACCIÓN".
+          const sSignalString = (item.SIGNALS || "").toLowerCase();
+          if (sSignalString.includes(sQuery)) {
+            return true;
+          }
+
+          // 5.3) Si no coincide ni fecha ni señal, descartar este registro.
+          return false;
+        });
+
+        // 6) Escribir el array filtrado en el modelo
+        oModel.setProperty("/chart_data", aFiltered);
+      },
         //Cuando detecta un cambio en la barra de búsqueda
         onSearch: function (oEvent) {
         // 0) Recupera el texto de búsqueda
@@ -1140,7 +1326,7 @@ sap.ui.define(
         const oCtx = oItem.getBindingContext("historyModel");
         if (!oCtx) return;
         const sID = oCtx.getProperty("SIMULATIONID");
-
+        const StrategyID = oCtx.getProperty("STRATEGYID");
         // Aquí llamamos a nuestro GET por ID
         this._fetchSimulationById(sID)
           .then(data => {
@@ -1174,15 +1360,21 @@ sap.ui.define(
               PERCENTAGE_RETURN:  oSummary.PERCENTAGE_RETURN  || 0
             });
 
+            this._sStrategyKey = StrategyID;
+
+            // 2) *** AHORA TAMBIÉN LO PONES EN EL modelo "strategyAnalysisModel" ***
+            const oStrategyAnalysisModel = this.getView().getModel("strategyAnalysisModel");
+            oStrategyAnalysisModel.setProperty("/strategyKey", StrategyID);
+            this._updateChartMeasuresFeed();
             // Expandir panel de resultados y forzar re-render del gráfico
             const oResultPanel = this.byId("strategyResultPanel");
             if (oResultPanel) {
               oResultPanel.setExpanded(true);
             }
-            const oVizFrame = this.byId("idVizFrame");
-            if (oVizFrame) {
-              oVizFrame.invalidate();
-            }
+            // const oVizFrame = this.byId("idVizFrame");
+            // if (oVizFrame) {
+            //   oVizFrame.invalidate();
+            // }
           })
           .catch(err => {
             console.error("Error al obtener simulación por ID:", err);

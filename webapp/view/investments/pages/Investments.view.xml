@@ -45,9 +45,32 @@
                                 text="Chart"
                                 key="chart"
                             />
+                    
                         </items>
+
                     </IconTabHeader>
                     <ToolbarSpacer />
+                      <SearchField
+                        id="searchTableField"
+                        placeholder="Buscar por fecha o señal"
+                        search=".onSearchTable"
+                        width="300px"
+                        showSearchButton="true" />
+                    <DateRangeSelection
+                        id="dateRangeTableFilter"
+                        change=".onTableFilterChange"
+                        width="250px" />
+                    <Select
+                        id="signalFilter"
+                        change=".onTableFilterChange"
+                        width="150px">
+                        <items>
+                            <core:Item key="NONE" text="Todas las señales" />
+                            <core:Item key="ALL"  text="Compras y Ventas" />
+                            <core:Item key="BUY"  text="Solo Compras" />
+                            <core:Item key="SELL" text="Solo Ventas" />
+                        </items>
+                    </Select>
                     <Button
                         id="btnHistory"
                         icon="sap-icon://history"
@@ -81,6 +104,7 @@
                                 width="100%"
                             >
                                 <Table
+                                    id="idInvesmentTable"
                                     items="{strategyResultModel>/chart_data}"
                                     width="100%"
                                     growing="true"
