@@ -178,6 +178,18 @@ sap.ui.define(
          * Carga el fragmento XML del diálogo si no existe
          */
         onAddValues: function () {
+          // Limpia el modelo del formulario antes de abrir el diálogo
+          this.getView().getModel("newValueModel").setProperty("/", {
+            VALUEID: "",
+            VALUE: "",
+            VALUEPAID: "",
+            ALIAS: "",
+            IMAGE: "",
+            DESCRIPTION: "",
+            LABELIDC: "",
+            VALUEIDC: "",
+          });
+
           if (!this._oAddDialog) {
             // Carga el fragmento XML del diálogo de manera asíncrona
             Fragment.load({
@@ -252,21 +264,19 @@ sap.ui.define(
             })
             .then((data) => {
               // ÉXITO: Actualiza el modelo local con el nuevo valor
-              var oNewValueModel = this.getView().getModel("newValueModel");
-              var oNewValueData = oNewValueModel.getProperty("/");
-
               var oValuesModel = this.getView().getModel("values");
               var aValues = oValuesModel.getProperty("/values") || [];
 
-              // Agrega el nuevo valor al array local
+              // Agrega el nuevo valor al array local usando los datos enviados (oData)
               aValues.push({
-                VALUEID: oNewValueData.VALUEID,
-                VALUE: oNewValueData.VALUE,
-                VALUEPAID: oNewValueData.VALUEPAID,
-                ALIAS: oNewValueData.ALIAS,
-                IMAGE: oNewValueData.IMAGE,
-                DESCRIPTION: oNewValueData.DESCRIPTION,
-                LABELID: oNewValueData.LABELID,
+                VALUEID: oData.VALUEID,
+                VALUE: oData.VALUE,
+                VALUEPAID: oData.VALUEPAID,
+                ALIAS: oData.ALIAS,
+                IMAGE: oData.IMAGE,
+                DESCRIPTION: oData.DESCRIPTION,
+                LABELID: oData.LABELID,
+                DETAIL_ROW: { ACTIVED: true },
               });
 
               console.log("Nuevo valor agregado:", aValues);

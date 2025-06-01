@@ -56,6 +56,16 @@
             text="Privilegios por Proceso"
         />
 
+        <m:Label id="_IDGenLabelAppEdit" text="Aplicación" />
+        <m:ComboBox
+            id="_IDGenComboBoxEditApp"
+            items="{apps>/value}"
+            selectedKey="{roleDialogModel>/NEW_APPID}"
+            placeholder="Selecciona la aplicación"
+            change=".onAppChange">
+            <core:Item id="_IDGenItemAppEdit" key="{apps>LABELID}" text="{apps>LABEL}" />
+        </m:ComboBox>
+
         <m:Label
             id="_IDGenLabel3"
             text="Proceso"
@@ -66,11 +76,9 @@
             selectedKey="{roleDialogModel>/NEW_PROCESSID}"
             placeholder="Selecciona un proceso"
         >
-            <core:Item id="_IDGenItem1"
-                key="{processes>VALUEID}"
-                text="{processes>VALUE} - {processes>VALUEPAID}"
-            />
+            <core:Item id="_IDGenItemProcEdit" key="{processes>VALUEID}" text="{processes>VALUE}" />
         </m:ComboBox>
+
 
         <m:Label
             id="_IDGenLabel4"
@@ -102,6 +110,8 @@
             growingThreshold="5"
         >
             <m:columns>
+            <m:Column id="_IDGenColumn18" >
+            <m:Text id="_IDGenText33" text="Aplicación"></m:Text></m:Column>
                 <m:Column id="_IDGenColumn">
                     <m:Text
                         id="_IDGenText"
@@ -122,6 +132,10 @@
             <m:items>
                 <m:ColumnListItem id="_IDGenColumnListItem">
                     <m:cells>
+                        <m:Text
+                            id="_IDGenText0"
+                            text="{roleDialogModel>APP}"
+                        />
                         <m:Text
                             id="_IDGenText2"
                             text="{roleDialogModel>PROCESSID}"

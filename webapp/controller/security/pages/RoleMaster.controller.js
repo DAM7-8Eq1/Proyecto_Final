@@ -1,479 +1,516 @@
-sap.ui.define([
+sap.ui.define(
+  [
     "com/inv/sapfiroriwebinversion/controller/BaseController",
-  "sap/ui/model/json/JSONModel",
-  "sap/base/Log",
-  "sap/m/MessageToast",
-  "sap/m/MessageBox",
-  "sap/ui/model/Filter",
-  "sap/ui/model/FilterOperator",
-  "sap/ui/core/Fragment"
-], function (
-  BaseController,
-  JSONModel,
-  // @ts-ignore
-  // @ts-ignore
-  // @ts-ignore
-  Log,
-  MessageToast,
-  MessageBox,
-  Filter,
-  FilterOperator,
-  Fragment
-) {
-  "use strict";
- //extendemos el controlador base para roles
-  return BaseController.extend("com.inv.sapfiroriwebinversion.controller.security.pages.RoleMaster", {
-
-
+    "sap/ui/model/json/JSONModel",
+    "sap/base/Log",
+    "sap/m/MessageToast",
+    "sap/m/MessageBox",
+    "sap/ui/model/Filter",
+    "sap/ui/model/FilterOperator",
+    "sap/ui/core/Fragment",
+  ],
+  function (
+    BaseController,
+    JSONModel,
+    // @ts-ignore
+    // @ts-ignore
+    // @ts-ignore
+    Log,
+    MessageToast,
+    MessageBox,
+    Filter,
+    FilterOperator,
+    Fragment
+  ) {
+    "use strict";
+    //extendemos el controlador base para roles
+    return BaseController.extend(
+      "com.inv.sapfiroriwebinversion.controller.security.pages.RoleMaster",
+      {
         onInit: function () {
-            //llamamos a la funcion para cargar todo lo que ocupemos en esta vista
-            this.loadStart();
-    },
+          //llamamos a la funcion para cargar todo lo que ocupemos en esta vista
+          this.loadStart();
+        },
 
-    loadStart: function (){
-        // Cargar los roles al iniciar
-        this.loadRoles();
-        // Cargar los procesos
-        this.loadProcess();
-        // Cargar los privilegios
-        this.loadPrivilegios();
-    },
+        loadStart: function () {
+          // Cargar los roles al iniciar
+          this.loadRoles();
+          // Cargar los procesos
+          this.loadProcess();
+          // Cargar los privilegios
+          this.loadPrivilegios();
+        },
 
-    //funcion para cargar los roles
-    loadRoles: function () {
-        var oModel = new JSONModel(); //se crea un nuevo modelo JSON
-        this.getView().setModel(oModel, "roles"); // se asigna el modelo a la vista
+        //funcion para cargar los roles
+        loadRoles: function () {
+          var oModel = new JSONModel(); //se crea un nuevo modelo JSON
+          this.getView().setModel(oModel, "roles"); // se asigna el modelo a la vista
 
-        fetch("http://localhost:3020/api/security/roles", { // se hace una peticion al backend
+          fetch("http://localhost:3020/api/security/roles", {
+            // se hace una peticion al backend
             method: "GET",
-            headers: { "Content-Type": "application/json" }
-        })
-        .then(response => { //verificamos si la respuesta es correcta
-            if (!response.ok) throw new Error("Error al obtener roles"); // si no es correcta, lanzamos un error
-            return response.json(); //si si es correcta, convertimos la respuesta a JSON
-        })
-        .then(data => { //asignamos los datos al modelo
-         
-            oModel.setData({ value: data.value });
-             console.log(oModel);
-        })
-        .catch(error => { //esto es por si hay un error en cualquier parte del fetch
-            MessageToast.show("Error: " + error.message);
-        });
-    },
-    
-onRoleSelected: function(oEvent) {
-              var oContext = oEvent.getParameter("rowContext");
-
-  
-        var oData = oContext.getObject();
-        var sRoleId = oData.ROLEID;
-        var that = this;
-
-        // Llama a tu backend para obtener el detalle del rol
-        fetch("http://localhost:3020/api/security/roles?roleid=" + encodeURIComponent(sRoleId), {
-            method: "GET",
-            headers: { "Content-Type": "application/json" }
-        })
-        .then(response => {
-            if (!response.ok) throw new Error("No se pudo obtener el detalle del rol");
-            return response.json();
-        })
-        .then(data => {
-            var oRoleDetail = data.value[0];
-            this.getView().getModel("roles").setProperty("/selectedRole", oRoleDetail);
-        })
-        .catch(error => {
-            MessageToast.show("Error: " + error.message);
-        });       
-    },   
-
-    loadProcess: function() {
-        // Creo un nuevo modelo JSON vacío para guardar los procesos
-        var oProcessModel = new JSONModel();
-        // Asigno este modelo a la vista bajo el nombre "processes"
-        this.getView().setModel(oProcessModel, "processes");
-
-        // Hago una petición al backend para obtener la lista de procesos
-        fetch("http://localhost:3020/api/security/catalogs?labelid=IdProcesses", {
-            method: "GET",
-            headers: { "Content-Type": "application/json" }
-        })
-        .then(response => {
-            // Si la respuesta no es exitosa, lanzo un error
-            if (!response.ok) throw new Error("Error al obtener procesos");
-            return response.json();
-        })
-        .then(data => {
-            // Guardo los procesos en una propiedad del controlador (por si los necesito después)
-            this.Procesos = data.value[0].VALUES;
-            // Asigno los procesos al modelo para que se muestren en la vista
-            oProcessModel.setData({ value: data.value[0].VALUES });
-        })
-        .catch(error => {
-            // Si ocurre un error, muestro el mensaje correspondiente
-            MessageToast.show("Error: " + error.message);
-        });
-    },
-
-        loadPrivilegios: function() {
-            // Creo un nuevo modelo JSON vacío para guardar los privilegios
-            var oProcessModel = new JSONModel();
-            // Asigno este modelo a la vista bajo el nombre "privilegios"
-            this.getView().setModel(oProcessModel, "privilegios");
-
-            // Hago una petición al backend para obtener la lista de privilegios
-            fetch("http://localhost:3020/api/security/catalogs?labelid=IdPrivileges", {
-                method: "GET",
-                headers: { "Content-Type": "application/json" }
+            headers: { "Content-Type": "application/json" },
+          })
+            .then((response) => {
+              //verificamos si la respuesta es correcta
+              if (!response.ok) throw new Error("Error al obtener roles"); // si no es correcta, lanzamos un error
+              return response.json(); //si si es correcta, convertimos la respuesta a JSON
             })
-            .then(response => {
-                // Si la respuesta no es exitosa, lanzo un error
-                if (!response.ok) throw new Error("Error al obtener procesos");
-                return response.json();
+            .then((data) => {
+              //asignamos los datos al modelo
+
+              oModel.setData({ value: data.value });
+              console.log(oModel);
             })
-            .then(data => {
-                // Guardo los privilegios en una propiedad del controlador (por si los necesito después)
-                this.Privilegios = data.value[0].VALUES;
-                // Asigno los privilegios al modelo para que se muestren en la vista
-                oProcessModel.setData({ value: data.value[0].VALUES });
-            })
-            .catch(error => {
-                // Si ocurre un error, muestro el mensaje correspondiente
-                MessageToast.show("Error: " + error.message);
+            .catch((error) => {
+              //esto es por si hay un error en cualquier parte del fetch
+              MessageToast.show("Error: " + error.message);
             });
         },
 
-    // abrir el modal para crear un nuevo rol
-    // Abre el diálogo (modal) para crear un nuevo rol
-onOpenDialog: function() {
-    // Primero obtengo la vista actual de SAPUI5
-    var oView = this.getView();
+        onRoleSelected: function (oEvent) {
+          var oContext = oEvent.getParameter("rowContext");
 
-    // Luego creo un modelo JSON vacío para el nuevo rol.
-    // Así, cuando se abra el formulario, todos los campos estarán en blanco.
-    var oNewRoleModel = new sap.ui.model.json.JSONModel({
-        ROLEID: "",           // El ID del rol, vacío porque es nuevo
-        ROLENAME: "",         // El nombre del rol, vacío
-        DESCRIPTION: "",      // La descripción, vacía
-        NEW_PROCESSID: "",    // El proceso seleccionado para agregar privilegios, vacío
-        NEW_PRIVILEGES: [],   // Los privilegios seleccionados para agregar, vacío
-        PRIVILEGES: []        // La lista de privilegios agregados, vacía
-    });
+          var oData = oContext.getObject();
+          var sRoleId = oData.ROLEID;
+          var that = this;
 
-    // Ahora reviso si ya he creado antes el diálogo para agregar rol
-    if (!this._oCreateRoleDialog) {
-        // Si no existe, lo cargo usando un fragmento XML
-        Fragment.load({
-            id: oView.getId(), // Uso el ID de la vista para el fragmento
-            name: "com.inv.sapfiroriwebinversion.view.security.components.AddRoleDialog", // Le indico la ruta del fragmento
-            controller: this   // Le paso este mismo controlador
-        }).then(oDialog => {
-            // Cuando el fragmento está listo, lo guardo en una variable para reutilizarlo después
-            this._oCreateRoleDialog = oDialog;
-            // Hago que el diálogo dependa de la vista, así SAPUI5 lo gestiona correctamente
-            oView.addDependent(oDialog);
+          // Llama a tu backend para obtener el detalle del rol
+          fetch(
+            "http://localhost:3020/api/security/roles?roleid=" +
+              encodeURIComponent(sRoleId),
+            {
+              method: "GET",
+              headers: { "Content-Type": "application/json" },
+            }
+          )
+            .then((response) => {
+              if (!response.ok)
+                throw new Error("No se pudo obtener el detalle del rol");
+              return response.json();
+            })
+            .then((data) => {
+              var oRoleDetail = data.value[0];
+              this.getView()
+                .getModel("roles")
+                .setProperty("/selectedRole", oRoleDetail);
+            })
+            .catch((error) => {
+              MessageToast.show("Error: " + error.message);
+            });
+        },
 
-            // Asigno el modelo vacío tanto al diálogo como a la vista, así los campos aparecen limpios
+        loadProcess: function () {
+          var oProcessModel = new JSONModel();
+          this.getView().setModel(oProcessModel, "processes");
+
+          fetch("http://localhost:3020/api/security/catalogs", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          })
+            .then((response) => {
+              if (!response.ok) throw new Error("Error al obtener procesos");
+              return response.json();
+            })
+            .then((data) => {
+              // Guarda todos los procesos en memoria
+              var allProcesos = data.value.flatMap((catalog) => catalog.VALUES);
+              this._allProcesos = allProcesos; // <-- Aquí los guardas
+
+              // Inicialmente, el modelo de procesos está vacío hasta que se seleccione una app
+              oProcessModel.setData({ value: [] });
+
+              // También llena el modelo de apps como ya lo haces
+              var labelMap = {
+                "IdProcesses": "Procesos",
+                "IdPrivileges": "Privilegios",
+                "IdViews": "Vistas",
+                "IdApplications": "Aplicaciones",
+                "IdCompanies": "Compañías"
+              };
+              var allLabelIds = data.value.flatMap((catalog) =>
+                catalog.VALUES.map((proc) => proc.LABELID)
+              );
+              var uniqueLabelIds = Array.from(new Set(allLabelIds));
+              var appItems = uniqueLabelIds
+                .filter((id) => labelMap[id])
+                .map((id) => ({ LABELID: id, LABEL: labelMap[id] }));
+
+              var oAppModel = new JSONModel({ value: appItems });
+              this.getView().setModel(oAppModel, "apps");
+            })
+            .catch((error) => {
+              MessageToast.show("Error: " + error.message);
+            });
+        },
+
+        loadPrivilegios: function () {
+          // Creo un nuevo modelo JSON vacío para guardar los privilegios
+          var oProcessModel = new JSONModel();
+          // Asigno este modelo a la vista bajo el nombre "privilegios"
+          this.getView().setModel(oProcessModel, "privilegios");
+
+          // Hago una petición al backend para obtener la lista de privilegios
+          fetch(
+            "http://localhost:3020/api/security/catalogs?labelid=IdPrivileges",
+            {
+              method: "GET",
+              headers: { "Content-Type": "application/json" },
+            }
+          )
+            .then((response) => {
+              // Si la respuesta no es exitosa, lanzo un error
+              if (!response.ok) throw new Error("Error al obtener procesos");
+              return response.json();
+            })
+            .then((data) => {
+              // Guardo los privilegios en una propiedad del controlador (por si los necesito después)
+              this.Privilegios = data.value[0].VALUES;
+              // Asigno los privilegios al modelo para que se muestren en la vista
+              oProcessModel.setData({ value: data.value[0].VALUES });
+            })
+            .catch((error) => {
+              // Si ocurre un error, muestro el mensaje correspondiente
+              MessageToast.show("Error: " + error.message);
+            });
+        },
+
+        // abrir el modal para crear un nuevo rol
+        // Abre el diálogo (modal) para crear un nuevo rol
+        onOpenDialog: function () {
+          // Primero obtengo la vista actual de SAPUI5
+          var oView = this.getView();
+
+          // Luego creo un modelo JSON vacío para el nuevo rol.
+          // Así, cuando se abra el formulario, todos los campos estarán en blanco.
+          var oNewRoleModel = new sap.ui.model.json.JSONModel({
+            ROLEID: "", // El ID del rol, vacío porque es nuevo
+            ROLENAME: "", // El nombre del rol, vacío
+            DESCRIPTION: "", // La descripción, vacía
+            APP: "", // La aplicación seleccionada, vacío
+            NEW_PROCESSID: "", // El proceso seleccionado para agregar privilegios, vacío
+            NEW_PRIVILEGES: [], // Los privilegios seleccionados para agregar, vacío
+            PRIVILEGES: [], // La lista de privilegios agregados, vacía
+          });
+
+          // Ahora reviso si ya he creado antes el diálogo para agregar rol
+          if (!this._oCreateRoleDialog) {
+            // Si no existe, lo cargo usando un fragmento XML
+            Fragment.load({
+              id: oView.getId(), // Uso el ID de la vista para el fragmento
+              name: "com.inv.sapfiroriwebinversion.view.security.components.AddRoleDialog", // Le indico la ruta del fragmento
+              controller: this, // Le paso este mismo controlador
+            }).then((oDialog) => {
+              // Cuando el fragmento está listo, lo guardo en una variable para reutilizarlo después
+              this._oCreateRoleDialog = oDialog;
+              // Hago que el diálogo dependa de la vista, así SAPUI5 lo gestiona correctamente
+              oView.addDependent(oDialog);
+
+              // Asigno el modelo vacío tanto al diálogo como a la vista, así los campos aparecen limpios
+              this._oCreateRoleDialog.setModel(oNewRoleModel, "newRoleModel");
+              oView.setModel(oNewRoleModel, "newRoleModel");
+
+              // Finalmente, abro el diálogo para que el usuario lo vea
+              this._oCreateRoleDialog.open();
+            });
+          } else {
+            // Si el diálogo ya existe, simplemente le asigno el modelo vacío para limpiar los campos
             this._oCreateRoleDialog.setModel(oNewRoleModel, "newRoleModel");
             oView.setModel(oNewRoleModel, "newRoleModel");
 
-            // Finalmente, abro el diálogo para que el usuario lo vea
+            // Y abro el diálogo
             this._oCreateRoleDialog.open();
-        });
-    } else {
-        // Si el diálogo ya existe, simplemente le asigno el modelo vacío para limpiar los campos
-        this._oCreateRoleDialog.setModel(oNewRoleModel, "newRoleModel");
-        oView.setModel(oNewRoleModel, "newRoleModel");
+          }
+        },
 
-        // Y abro el diálogo
-        this._oCreateRoleDialog.open();
-    }
-},
+        // funcion para los botones de cerrar
+        onDialogClose: function (oEvent) {
+          // Obtengo el botón que disparó el evento (por ejemplo, el botón "Cancelar" o "Cerrar")
+          var oButton = oEvent.getSource();
+          // Obtengo el diálogo (modal) al que pertenece ese botón
+          var oDialog = oButton.getParent();
+          // Cierro el diálogo para que desaparezca de la pantalla
+          oDialog.close();
+        },
 
-    // funcion para los botones de cerrar
-    onDialogClose: function(oEvent) {
-    // Obtengo el botón que disparó el evento (por ejemplo, el botón "Cancelar" o "Cerrar")
-    var oButton = oEvent.getSource();
-    // Obtengo el diálogo (modal) al que pertenece ese botón
-    var oDialog = oButton.getParent();
-    // Cierro el diálogo para que desaparezca de la pantalla
-    oDialog.close();
-},
-      
-    onDeleteRole: function() {
-        // Obtengo el modelo de roles de la vista
-        var oModel = this.getView().getModel("roles");
-        // Obtengo el rol que el usuario seleccionó para eliminar
-        var oSelectedRole = oModel.getProperty("/selectedRole");
-        // Guardo la referencia al controlador para usar dentro de funciones anidadas
-        var that = this;
+        onDeleteRole: function () {
+          // Obtengo el modelo de roles de la vista
+          var oModel = this.getView().getModel("roles");
+          // Obtengo el rol que el usuario seleccionó para eliminar
+          var oSelectedRole = oModel.getProperty("/selectedRole");
+          // Guardo la referencia al controlador para usar dentro de funciones anidadas
+          var that = this;
 
-        // Si no hay ningún rol seleccionado, muestro un mensaje y salgo de la función
-        if (!oSelectedRole || !oSelectedRole.ROLEID) {
+          // Si no hay ningún rol seleccionado, muestro un mensaje y salgo de la función
+          if (!oSelectedRole || !oSelectedRole.ROLEID) {
             MessageToast.show("Selecciona un rol para eliminar.");
             return;
-        }
+          }
 
-        // Pido confirmación al usuario antes de eliminar el rol
-        MessageBox.confirm("¿Estás seguro de que deseas eliminar este rol?", {
+          // Pido confirmación al usuario antes de eliminar el rol
+          MessageBox.confirm("¿Estás seguro de que deseas eliminar este rol?", {
             actions: [MessageBox.Action.YES, MessageBox.Action.NO],
-            onClose: function(oAction) {
-                // Si el usuario confirma (elige "YES")
-                if (oAction === MessageBox.Action.YES) {
-                    // Hago la petición al backend para eliminar el rol
-                    fetch("http://localhost:3020/api/security/deleteroles", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ roleid: oSelectedRole.ROLEID }) // Envío el ID del rol a eliminar
-                    })
-                    .then(response => {
-                        // Si la respuesta no es exitosa, lanzo un error
-                        if (!response.ok) throw new Error("No se pudo eliminar el rol");
-                        return response.json();
-                    })
-                    .then(data => {
-                        // Si todo sale bien, muestro mensaje de éxito
-                        MessageToast.show("Rol eliminado correctamente");
-                        // Recargo la lista de roles para que se actualice la vista
-                        that.loadRoles();
-                        // Limpio la selección de rol
-                        oModel.setProperty("/selectedRole", null);
-                    })
-                    .catch(error => {
-                        // Si ocurre un error, muestro el mensaje correspondiente
-                        MessageToast.show("Error: " + error.message);
-                    });
-                }
-            }
-        });
-    },
+            onClose: function (oAction) {
+              // Si el usuario confirma (elige "YES")
+              if (oAction === MessageBox.Action.YES) {
+                // Hago la petición al backend para eliminar el rol
+                fetch("http://localhost:3020/api/security/deleteroles", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ roleid: oSelectedRole.ROLEID }), // Envío el ID del rol a eliminar
+                })
+                  .then((response) => {
+                    // Si la respuesta no es exitosa, lanzo un error
+                    if (!response.ok)
+                      throw new Error("No se pudo eliminar el rol");
+                    return response.json();
+                  })
+                  .then((data) => {
+                    // Si todo sale bien, muestro mensaje de éxito
+                    MessageToast.show("Rol eliminado correctamente");
+                    // Recargo la lista de roles para que se actualice la vista
+                    that.loadRoles();
+                    // Limpio la selección de rol
+                    oModel.setProperty("/selectedRole", null);
+                  })
+                  .catch((error) => {
+                    // Si ocurre un error, muestro el mensaje correspondiente
+                    MessageToast.show("Error: " + error.message);
+                  });
+              }
+            },
+          });
+        },
 
-    onActivateRole: function() {
-        // Obtengo el modelo de roles de la vista
-        var oModel = this.getView().getModel("roles");
-        // Obtengo el rol que el usuario seleccionó para activar
-        var oSelectedRole = oModel.getProperty("/selectedRole");
-        // Guardo la referencia al controlador para usar dentro de funciones anidadas
-        var that = this;
+        onActivateRole: function () {
+          // Obtengo el modelo de roles de la vista
+          var oModel = this.getView().getModel("roles");
+          // Obtengo el rol que el usuario seleccionó para activar
+          var oSelectedRole = oModel.getProperty("/selectedRole");
+          // Guardo la referencia al controlador para usar dentro de funciones anidadas
+          var that = this;
 
-        // Si no hay ningún rol seleccionado, muestro un mensaje y salgo de la función
-        if (!oSelectedRole || !oSelectedRole.ROLEID) {
+          // Si no hay ningún rol seleccionado, muestro un mensaje y salgo de la función
+          if (!oSelectedRole || !oSelectedRole.ROLEID) {
             MessageToast.show("Selecciona un rol para activar.");
             return;
-        }
+          }
 
-        // Pido confirmación al usuario antes de activar el rol
-        MessageBox.confirm("¿Estás seguro de que deseas activar este rol?", {
+          // Pido confirmación al usuario antes de activar el rol
+          MessageBox.confirm("¿Estás seguro de que deseas activar este rol?", {
             actions: [MessageBox.Action.YES, MessageBox.Action.NO],
-            onClose: function(oAction) {
-                // Si el usuario confirma (elige "YES")
-                if (oAction === MessageBox.Action.YES) {
-                    // Hago la petición al backend para activar el rol
-                    fetch("http://localhost:3020/api/security/activaterole", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ roleid: oSelectedRole.ROLEID }) // Envío el ID del rol a activar
-                    })
-                    .then(response => {
-                        // Si la respuesta no es exitosa, lanzo un error
-                        if (!response.ok) throw new Error("No se pudo activar el rol");
-                        return response.json();
-                    })
-                    .then(data => {
-                        // Si todo sale bien, muestro mensaje de éxito
-                        MessageToast.show("Rol activado correctamente");
-                        // Recargo la lista de roles para que se actualice la vista
-                        that.loadRoles();
-                        // Limpio la selección de rol
-                        oModel.setProperty("/selectedRole", null);
-                    })
-                    .catch(error => {
-                        // Si ocurre un error, muestro el mensaje correspondiente
-                        MessageToast.show("Error: " + error.message);
-                    });
-                }
-            }
-        });
-    },
-    
-    onMultiSearch: function(oEvent) {
-        // Obtengo el texto que el usuario escribió en el campo de búsqueda
-        var sQuery = oEvent.getParameter("newValue") || oEvent.getParameter("query");
-        // Obtengo la tabla de roles por su ID
-        var oTable = this.byId("rolesTable");
-        // Obtengo el binding de las filas de la tabla (para poder filtrar)
-        var oBinding = oTable.getBinding("rows");
+            onClose: function (oAction) {
+              // Si el usuario confirma (elige "YES")
+              if (oAction === MessageBox.Action.YES) {
+                // Hago la petición al backend para activar el rol
+                fetch("http://localhost:3020/api/security/activaterole", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ roleid: oSelectedRole.ROLEID }), // Envío el ID del rol a activar
+                })
+                  .then((response) => {
+                    // Si la respuesta no es exitosa, lanzo un error
+                    if (!response.ok)
+                      throw new Error("No se pudo activar el rol");
+                    return response.json();
+                  })
+                  .then((data) => {
+                    // Si todo sale bien, muestro mensaje de éxito
+                    MessageToast.show("Rol activado correctamente");
+                    // Recargo la lista de roles para que se actualice la vista
+                    that.loadRoles();
+                    // Limpio la selección de rol
+                    oModel.setProperty("/selectedRole", null);
+                  })
+                  .catch((error) => {
+                    // Si ocurre un error, muestro el mensaje correspondiente
+                    MessageToast.show("Error: " + error.message);
+                  });
+              }
+            },
+          });
+        },
 
-        // Defino una función para normalizar el texto (quitar acentos y pasar a minúsculas)
-        function normalize(str) {
+        onMultiSearch: function (oEvent) {
+          // Obtengo el texto que el usuario escribió en el campo de búsqueda
+          var sQuery =
+            oEvent.getParameter("newValue") || oEvent.getParameter("query");
+          // Obtengo la tabla de roles por su ID
+          var oTable = this.byId("rolesTable");
+          // Obtengo el binding de las filas de la tabla (para poder filtrar)
+          var oBinding = oTable.getBinding("rows");
+
+          // Defino una función para normalizar el texto (quitar acentos y pasar a minúsculas)
+          function normalize(str) {
             return (str || "")
-                .toString()
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .toLowerCase();
-        }
+              .toString()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .toLowerCase();
+          }
 
-        // Si el usuario escribió algo en la búsqueda
-        if (sQuery && sQuery.length > 0) {
+          // Si el usuario escribió algo en la búsqueda
+          if (sQuery && sQuery.length > 0) {
             // Normalizo el texto de búsqueda
             var sNormalizedQuery = normalize(sQuery);
             // Aplico un filtro personalizado sobre el nombre del rol
-            oBinding.filter([new Filter({
+            oBinding.filter([
+              new Filter({
                 path: "ROLENAME",
                 operator: FilterOperator.Contains,
                 value1: sQuery,
                 // Esta función compara el texto normalizado para que la búsqueda ignore acentos y mayúsculas/minúsculas
-                test: function(value) {
-                    return normalize(value).includes(sNormalizedQuery);
-                }
-            })]);
-        } else {
+                test: function (value) {
+                  return normalize(value).includes(sNormalizedQuery);
+                },
+              }),
+            ]);
+          } else {
             // Si el campo de búsqueda está vacío, quito todos los filtros y muestro todos los roles
             oBinding.filter([]);
-        }
-    },
+          }
+        },
 
-    onAddPrivilege: function() {
-        // Obtengo la vista actual
-        var oView = this.getView();
-        // Obtengo el modelo donde estoy armando el nuevo rol
-        var oModel = oView.getModel("newRoleModel");
+        onAddPrivilege: function () {
+          var oView = this.getView();
+          var oModel = oView.getModel("newRoleModel");
 
-        // Obtengo el proceso seleccionado y los privilegios seleccionados
-        var sProcessId = oModel.getProperty("/NEW_PROCESSID");
-        var aPrivilegeIds = oModel.getProperty("/NEW_PRIVILEGES") || [];
+          // Obtener el proceso y privilegios seleccionados
+          var sProcessId = oModel.getProperty("/NEW_PROCESSID");
+          var aPrivilegeIds = oModel.getProperty("/NEW_PRIVILEGES") || [];
 
-        // Muestro en consola lo que seleccioné (para depuración)
-        console.log("Proceso seleccionado:", sProcessId);
-        console.log("Privilegios seleccionados:", aPrivilegeIds);
+          // Obtener la aplicación seleccionada del ComboBox
+          var oAppCombo = oView.byId("_IDGenComboBox");
+          var sAppId = oAppCombo.getSelectedKey();
+          var sAppName = oAppCombo.getSelectedItem() ? oAppCombo.getSelectedItem().getText() : "";
 
-        // Si no seleccioné proceso o privilegios, muestro un mensaje y salgo
-        if (!sProcessId || aPrivilegeIds.length === 0) {
-            MessageToast.show("Selecciona un proceso y al menos un privilegio.");
+          // Validación
+          if (!sAppId || !sProcessId || aPrivilegeIds.length === 0) {
+            MessageToast.show("Selecciona una aplicación, un proceso y al menos un privilegio.");
             return;
-        }
+          }
 
-        // Busco el texto del proceso seleccionado
-        var aProcesses = oView.getModel("processes").getProperty("/value") || [];
-        var oProcess = aProcesses.find(p => p.VALUEID === sProcessId);
-        var sProcessText = oProcess ? (oProcess.VALUE + (oProcess.VALUEPAID ? " - " + oProcess.VALUEPAID : "")) : sProcessId;
+          // Buscar el texto del proceso seleccionado
+          var aProcesses = oView.getModel("processes").getProperty("/value") || [];
+          var oProcess = aProcesses.find((p) => p.VALUEID === sProcessId);
+          var sProcessText = oProcess
+            ? oProcess.VALUE + (oProcess.VALUEPAID ? " - " + oProcess.VALUEPAID : "")
+            : sProcessId;
 
-        // Busco los textos de los privilegios seleccionados
-        var aPrivilegios = oView.getModel("privilegios").getProperty("/value") || [];
-        var aPrivilegeTexts = aPrivilegeIds.map(pid => {
-            var p = aPrivilegios.find(pr => pr.VALUEID === pid);
+          // Buscar los textos de los privilegios seleccionados
+          var aPrivilegios = oView.getModel("privilegios").getProperty("/value") || [];
+          var aPrivilegeTexts = aPrivilegeIds.map((pid) => {
+            var p = aPrivilegios.find((pr) => pr.VALUEID === pid);
             return p ? p.VALUE : pid;
-        });
+          });
 
-        // Armo el objeto que representa la relación proceso-privilegios
-        var oNewEntry = {
+          // Armar el objeto que representa la relación app-proceso-privilegios
+          var oNewEntry = {
+            APPID: sAppId,
+            APPNAME: sAppName, // <--- Aquí guardas el nombre de la app
             PROCESSID: sProcessId,
-            PROCESSNAME: sProcessText,      // Texto del proceso
-            PRIVILEGEID: aPrivilegeIds,     // IDs de los privilegios
-            PRIVILEGENAMES: aPrivilegeTexts // Textos de los privilegios
-        };
+            PROCESSNAME: sProcessText,
+            PRIVILEGEID: aPrivilegeIds,
+            PRIVILEGENAMES: aPrivilegeTexts,
+          };
 
-        // Agrego este objeto a la lista de privilegios del modelo
-        var aPrivileges = oModel.getProperty("/PRIVILEGES") || [];
-        aPrivileges.push(oNewEntry);
-        oModel.setProperty("/PRIVILEGES", aPrivileges.slice()); // Uso slice() para refrescar el binding
+          // Agregar este objeto a la lista de privilegios del modelo
+          var aPrivileges = oModel.getProperty("/PRIVILEGES") || [];
+          aPrivileges.push(oNewEntry);
+          oModel.setProperty("/PRIVILEGES", aPrivileges.slice());
 
-        // Limpio los campos de selección para que pueda agregar otra relación si quiero
-        oModel.setProperty("/NEW_PROCESSID", "");
-        oModel.setProperty("/NEW_PRIVILEGES", []);
-    },
+          // Limpiar los campos de selección
+          oModel.setProperty("/NEW_APPID", "");
+          oModel.setProperty("/NEW_PROCESSID", "");
+          oModel.setProperty("/NEW_PRIVILEGES", []);
+        },
 
-    onSaveRole: function(oEvent) {
-        // Obtengo el botón que disparó el evento (por ejemplo, el botón "Guardar")
-        var oButton = oEvent.getSource();
-        // Obtengo el diálogo (modal) donde está el formulario
-        var oDialog = oButton.getParent();
-        // Obtengo el modelo con los datos del nuevo rol
-        var oModel = oDialog.getModel("newRoleModel");
+        onSaveRole: function (oEvent) {
+          var oButton = oEvent.getSource();
+          var oDialog = oButton.getParent();
+          var oModel = oDialog.getModel("newRoleModel");
 
-        // Si por alguna razón no encuentro el modelo, muestro un mensaje y salgo
-        if (!oModel) {
+          if (!oModel) {
             MessageToast.show("No se encontró el modelo newRoleModel.");
             return;
-        }
+          }
 
-        // Obtengo todos los datos del formulario
-        var oRoleData = oModel.getData();
+          var oRoleData = oModel.getData();
 
-        // Preparo la lista de privilegios para enviarla al backend (solo los campos necesarios)
-        var aPrivileges = (oRoleData.PRIVILEGES || []).map(function(p) {
+          // Prepara la lista de privilegios para enviar solo los IDs
+          var aPrivileges = (oRoleData.PRIVILEGES || []).map(function (p) {
             return {
-                PROCESSID: p.PROCESSID,
-                PRIVILEGEID: p.PRIVILEGEID
+              PROCESSID: p.PROCESSID,
+              PRIVILEGEID: p.PRIVILEGEID,
             };
-        });
+          });
 
-        // Armo el objeto final que voy a enviar al backend
-        var oPayload = {
+          // Toma la aplicación seleccionada (ID)
+          var sAppId = oRoleData.NEW_APPID || (oRoleData.PRIVILEGES && oRoleData.PRIVILEGES[0] && oRoleData.PRIVILEGES[0].APPID) || "";
+
+          // Arma el objeto final para enviar al backend
+          var oPayload = {
             ROLEID: oRoleData.ROLEID,
             ROLENAME: oRoleData.ROLENAME,
             DESCRIPTION: oRoleData.DESCRIPTION,
-            PRIVILEGES: aPrivileges
-        };
+            APP: sAppId, // <-- Aquí guardas la aplicación seleccionada
+            PRIVILEGES: aPrivileges,
+          };
 
-        // Hago la petición al backend para crear el nuevo rol
-        fetch("http://localhost:3020/api/security/createrole", {
+          fetch("http://localhost:3020/api/security/createrole", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ role: oPayload })
-        })
-        .then(response => {
-            // Si la respuesta no es exitosa, lanzo un error
-            if (!response.ok) throw new Error("No se pudo crear el rol");
-            return response.json();
-        })
-        .then(data => {
-            // Si todo sale bien, muestro mensaje de éxito
-            MessageToast.show("Rol creado correctamente");
-            // Cierro el diálogo
-            oDialog.close();
-            // Recargo la lista de roles para que se vea el nuevo rol en la tabla
-            this.loadRoles();
-        })
-        .catch(error => {
-            // Si ocurre un error, muestro el mensaje correspondiente
-            MessageToast.show("Error: " + error.message);
-        });
-    },
+            body: JSON.stringify({ role: oPayload }),
+          })
+            .then((response) => {
+              if (!response.ok) throw new Error("No se pudo crear el rol");
+              return response.json();
+            })
+            .then((data) => {
+              MessageToast.show("Rol creado correctamente");
+              oDialog.close();
+              this.loadRoles();
+            })
+            .catch((error) => {
+              MessageToast.show("Error: " + error.message);
+            });
+        },
 
-    onEditUser: function() {
-        // Obtengo la vista actual
-        var oView = this.getView();
-        // Obtengo la tabla de roles por su ID
-        var oTable = this.byId("rolesTable");
-        // Obtengo el contexto (los datos) del rol seleccionado en la tabla
-        var oContext = oTable.getContextByIndex(oTable.getSelectedIndex());
+        onEditUser: function () {
+          // Obtengo la vista actual
+          var oView = this.getView();
+          // Obtengo la tabla de roles por su ID
+          var oTable = this.byId("rolesTable");
+          // Obtengo el contexto (los datos) del rol seleccionado en la tabla
+          var oContext = oTable.getContextByIndex(oTable.getSelectedIndex());
 
-        // Si no hay ningún rol seleccionado, muestro un mensaje y salgo
-        if (!oContext) {
+          // Si no hay ningún rol seleccionado, muestro un mensaje y salgo
+          if (!oContext) {
             MessageToast.show("Selecciona un rol para editar.");
             return;
-        }
+          }
 
-        // Obtengo los datos del rol seleccionado
-        var oRoleData = oContext.getObject();
+          // Obtengo los datos del rol seleccionado
+          var oRoleData = oContext.getObject();
 
-        // Creo el modelo para el diálogo de edición, copiando los datos del rol y dejando campos de privilegios vacíos para agregar nuevos
-        var oRoleDialogModel = new sap.ui.model.json.JSONModel(Object.assign({}, oRoleData, {
-            NEW_PROCESSID: "",
-            NEW_PRIVILEGES: [],
-            PRIVILEGES: oRoleData.PRIVILEGES || [],
-            IS_EDIT: true // Para saber que estoy editando
-        }));
+          // Creo el modelo para el diálogo de edición, copiando los datos del rol y dejando campos de privilegios vacíos para agregar nuevos
+          var oRoleDialogModel = new sap.ui.model.json.JSONModel(
+            Object.assign({}, oRoleData, {
+              NEW_PROCESSID: "",
+              NEW_PRIVILEGES: [],
+              PRIVILEGES: oRoleData.PRIVILEGES || [],
+              IS_EDIT: true, // Para saber que estoy editando
+            })
+          );
 
-        // Si el diálogo de edición no existe, lo cargo usando un fragmento XML
-        if (!this._oEditRoleDialog) {
+          // Si el diálogo de edición no existe, lo cargo usando un fragmento XML
+          if (!this._oEditRoleDialog) {
             sap.ui.core.Fragment.load({
-                id: oView.getId(),
-                name: "com.inv.sapfiroriwebinversion.view.security.components.EditRoleDialog",
-                controller: this
-            }).then(function(oDialog) {
+              id: oView.getId(),
+              name: "com.inv.sapfiroriwebinversion.view.security.components.EditRoleDialog",
+              controller: this,
+            }).then(
+              function (oDialog) {
                 // Guardo el diálogo para reutilizarlo después
                 this._oEditRoleDialog = oDialog;
                 // Hago que el diálogo dependa de la vista
@@ -482,155 +519,181 @@ onOpenDialog: function() {
                 oDialog.setModel(oRoleDialogModel, "roleDialogModel");
                 // Abro el diálogo para que el usuario edite el rol
                 oDialog.open();
-            }.bind(this));
-        } else {
+              }.bind(this)
+            );
+          } else {
             // Si el diálogo ya existe, solo le asigno el modelo y lo abro
             this._oEditRoleDialog.setModel(oRoleDialogModel, "roleDialogModel");
             this._oEditRoleDialog.open();
-        }
-    },
+          }
+        },
 
-    onRemovePrivilege: function(oEvent) {
-        // Obtengo el item (fila) del botón que disparó el evento
-        var oItem = oEvent.getSource().getParent();
-        // Obtengo el contexto de datos de ese item dentro del modelo de edición
-        var oContext = oItem.getBindingContext("roleDialogModel");
-        // Obtengo el índice del privilegio a eliminar
-        var iIndex = oContext.getPath().split("/").pop();
-        // Obtengo el modelo de edición del rol
-        var oModel = oContext.getModel();
-        // Obtengo la lista actual de privilegios
-        var aPrivileges = oModel.getProperty("/PRIVILEGES");
+        onRemovePrivilege: function (oEvent) {
+          var oItem = oEvent.getSource().getParent();
+          // Intenta obtener el contexto de roleDialogModel (edición)
+          var oContext = oItem.getBindingContext("roleDialogModel");
+          // Si no existe, intenta con newRoleModel (alta)
+          if (!oContext) {
+            oContext = oItem.getBindingContext("newRoleModel");
+          }
+          if (!oContext) {
+            MessageToast.show("No se pudo obtener el contexto del privilegio.");
+            return;
+          }
+          var iIndex = oContext.getPath().split("/").pop();
+          var oModel = oContext.getModel();
+          var aPrivileges = oModel.getProperty("/PRIVILEGES");
 
-        // Pido confirmación al usuario antes de eliminar el privilegio
-        MessageBox.confirm("¿Deseas eliminar este privilegio?", {
+          MessageBox.confirm("¿Deseas eliminar este privilegio?", {
             actions: [sap.m.MessageBox.Action.YES, sap.m.MessageBox.Action.NO],
-            onClose: function(oAction) {
-                // Si el usuario confirma (elige "YES")
-                if (oAction === sap.m.MessageBox.Action.YES) {
-                    // Elimino el privilegio de la lista usando el índice
-                    aPrivileges.splice(iIndex, 1);
-                    // Actualizo la lista en el modelo para refrescar la vista
-                    oModel.setProperty("/PRIVILEGES", aPrivileges.slice());
-                    // Muestro mensaje de éxito
-                    MessageToast.show("Privilegio eliminado.");
-                }
+            onClose: function (oAction) {
+              if (oAction === sap.m.MessageBox.Action.YES) {
+                aPrivileges.splice(iIndex, 1);
+                oModel.setProperty("/PRIVILEGES", aPrivileges.slice());
+                MessageToast.show("Privilegio eliminado.");
+              }
             }
-        });
-    },
+          });
+        },
 
-    onSaveRoleEdit: function(oEvent) {
-        // Obtengo el botón que disparó el evento (por ejemplo, el botón "Guardar")
-        var oButton = oEvent.getSource();
-        // Obtengo el diálogo (modal) donde está el formulario de edición
-        var oDialog = oButton.getParent();
-        // Obtengo el modelo con los datos del rol que estoy editando
-        var oModel = oDialog.getModel("roleDialogModel");
+        onSaveRoleEdit: function (oEvent) {
+          // Obtengo el botón que disparó el evento (por ejemplo, el botón "Guardar")
+          var oButton = oEvent.getSource();
+          // Obtengo el diálogo (modal) donde está el formulario de edición
+          var oDialog = oButton.getParent();
+          // Obtengo el modelo con los datos del rol que estoy editando
+          var oModel = oDialog.getModel("roleDialogModel");
 
-        // Si por alguna razón no encuentro el modelo, muestro un mensaje y salgo
-        if (!oModel) {
+          // Si por alguna razón no encuentro el modelo, muestro un mensaje y salgo
+          if (!oModel) {
             MessageToast.show("No se encontró el modelo roleDialogModel.");
             return;
-        }
+          }
 
-        // Obtengo todos los datos del formulario de edición
-        var oRoleData = oModel.getData();
+          // Obtengo todos los datos del formulario de edición
+          var oRoleData = oModel.getData();
 
-        // Preparo la lista de privilegios para enviarla al backend (solo los campos necesarios)
-        var aPrivileges = (oRoleData.PRIVILEGES || []).map(function(p) {
+          // Preparo la lista de privilegios para enviarla al backend (solo los campos necesarios)
+          var aPrivileges = (oRoleData.PRIVILEGES || []).map(function (p) {
             return {
-                PROCESSID: p.PROCESSID,
-                PRIVILEGEID: p.PRIVILEGEID
+              PROCESSID: p.PROCESSID,
+              PRIVILEGEID: p.PRIVILEGEID,
             };
-        });
+          });
 
-        // Armo el objeto final que voy a enviar al backend
-        var oPayload = {
+          // Armo el objeto final que voy a enviar al backend
+          var oPayload = {
             ROLEID: oRoleData.ROLEID,
             ROLENAME: oRoleData.ROLENAME,
             DESCRIPTION: oRoleData.DESCRIPTION,
-            PRIVILEGES: aPrivileges
-        };
+            PRIVILEGES: aPrivileges,
+          };
 
-        // Hago la petición al backend para actualizar el rol
-        fetch("http://localhost:3020/api/security/updaterole?roleid=" + encodeURIComponent(oPayload.ROLEID), {
-            method: "POST", // El backend espera POST
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ role: oPayload })
-        })
-        .then(response => {
-            // Si la respuesta no es exitosa, lanzo un error
-            if (!response.ok) throw new Error("No se pudo actualizar el rol");
-            return response.json();
-        })
-        .then(data => {
-            // Si todo sale bien, muestro mensaje de éxito
-            MessageToast.show("Rol actualizado correctamente");
-            // Cierro el diálogo
-            oDialog.close();
-            // Recargo la lista de roles para que se vea el cambio en la tabla
-            this.loadRoles();
-        })
-        .catch(error => {
-            // Si ocurre un error, muestro el mensaje correspondiente
-            MessageToast.show("Error: " + error.message);
-        });
-    },
+          // Hago la petición al backend para actualizar el rol
+          fetch(
+            "http://localhost:3020/api/security/updaterole?roleid=" +
+              encodeURIComponent(oPayload.ROLEID),
+            {
+              method: "POST", // El backend espera POST
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ role: oPayload }),
+            }
+          )
+            .then((response) => {
+              // Si la respuesta no es exitosa, lanzo un error
+              if (!response.ok) throw new Error("No se pudo actualizar el rol");
+              return response.json();
+            })
+            .then((data) => {
+              // Si todo sale bien, muestro mensaje de éxito
+              MessageToast.show("Rol actualizado correctamente");
+              // Cierro el diálogo
+              oDialog.close();
+              // Recargo la lista de roles para que se vea el cambio en la tabla
+              this.loadRoles();
+            })
+            .catch((error) => {
+              // Si ocurre un error, muestro el mensaje correspondiente
+              MessageToast.show("Error: " + error.message);
+            });
+        },
 
-     onAddPrivilegeEdit: function(oEvent) {
-        // Obtén el botón y el diálogo
-        var oButton = oEvent.getSource();
-        var oDialog = oButton.getParent();
-        var oModel = oDialog.getModel("roleDialogModel");
-        var oProcessesModel = oDialog.getModel("processes");
-        var oPrivilegiosModel = oDialog.getModel("privilegios");
+        onAddPrivilegeEdit: function (oEvent) {
+          // Obtén el botón y el diálogo
+          var oButton = oEvent.getSource();
+          var oDialog = oButton.getParent();
+          var oModel = oDialog.getModel("roleDialogModel");
+          var oProcessesModel = oDialog.getModel("processes");
+          var oPrivilegiosModel = oDialog.getModel("privilegios");
 
-        if (!oModel) {
+          if (!oModel) {
             MessageToast.show("No se encontró el modelo roleDialogModel.");
             return;
-        }
+          }
 
-        // Lee los valores seleccionados
-        var sProcessId = oModel.getProperty("/NEW_PROCESSID");
-        var aPrivilegeIds = oModel.getProperty("/NEW_PRIVILEGES") || [];
+          // Lee los valores seleccionados
+          var sProcessId = oModel.getProperty("/NEW_PROCESSID");
+          var aPrivilegeIds = oModel.getProperty("/NEW_PRIVILEGES") || [];
 
-        // Mostrar en consola lo seleccionado
-        console.log("Proceso seleccionado (edit):", sProcessId);
-        console.log("Privilegios seleccionados (edit):", aPrivilegeIds);
+          // Mostrar en consola lo seleccionado
+          console.log("Proceso seleccionado (edit):", sProcessId);
+          console.log("Privilegios seleccionados (edit):", aPrivilegeIds);
 
-        if (!sProcessId || aPrivilegeIds.length === 0) {
-            MessageToast.show("Selecciona un proceso y al menos un privilegio.");
+          if (!sProcessId || aPrivilegeIds.length === 0) {
+            MessageToast.show(
+              "Selecciona un proceso y al menos un privilegio."
+            );
             return;
-        }
+          }
 
-        // Busca el texto del proceso
-        var aProcesses = oProcessesModel.getProperty("/value") || [];
-        var oProcess = aProcesses.find(p => p.VALUEID === sProcessId);
-        var sProcessText = oProcess ? (oProcess.VALUE + (oProcess.VALUEPAID ? " - " + oProcess.VALUEPAID : "")) : sProcessId;
+          // Busca el texto del proceso
+          var aProcesses = oProcessesModel.getProperty("/value") || [];
+          var oProcess = aProcesses.find((p) => p.VALUEID === sProcessId);
+          var sProcessText = oProcess
+            ? oProcess.VALUE +
+              (oProcess.VALUEPAID ? " - " + oProcess.VALUEPAID : "")
+            : sProcessId;
 
-        // Busca los textos de los privilegios
-        var aPrivilegios = oPrivilegiosModel.getProperty("/value") || [];
-        var aPrivilegeTexts = aPrivilegeIds.map(pid => {
-            var p = aPrivilegios.find(pr => pr.VALUEID === pid);
+          // Busca los textos de los privilegios
+          var aPrivilegios = oPrivilegiosModel.getProperty("/value") || [];
+          var aPrivilegeTexts = aPrivilegeIds.map((pid) => {
+            var p = aPrivilegios.find((pr) => pr.VALUEID === pid);
             return p ? p.VALUE : pid;
-        });
+          });
 
-        // Construye el objeto a agregar
-        var oNewEntry = {
+          // Construye el objeto a agregar
+          var oNewEntry = {
             PROCESSID: sProcessId,
             PROCESSNAME: sProcessText,
             PRIVILEGEID: aPrivilegeIds,
-            PRIVILEGENAMES: aPrivilegeTexts
-        };
+            PRIVILEGENAMES: aPrivilegeTexts,
+          };
 
-        // Agrega a la lista de privilegios del modelo de edición
-        var aPrivileges = oModel.getProperty("/PRIVILEGES") || [];
-        aPrivileges.push(oNewEntry);
-        oModel.setProperty("/PRIVILEGES", aPrivileges.slice());
+          // Agrega a la lista de privilegios del modelo de edición
+          var aPrivileges = oModel.getProperty("/PRIVILEGES") || [];
+          aPrivileges.push(oNewEntry);
+          oModel.setProperty("/PRIVILEGES", aPrivileges.slice());
 
-        // Limpia los campos de selección para que pueda agregar otra relación si quiero
-        oModel.setProperty("/NEW_PROCESSID", "");
-        oModel.setProperty("/NEW_PRIVILEGES", []);
-    } // <-- cierre correcto de la función
-  });
-})
+          // Limpia los campos de selección para que pueda agregar otra relación si quiero
+          oModel.setProperty("/NEW_PROCESSID", "");
+          oModel.setProperty("/NEW_PRIVILEGES", []);
+        }, // <-- cierre correcto de la función
+        onAppChange: function (oEvent) {
+          var sSelectedLabelId = oEvent.getSource().getSelectedKey();
+          // Filtra los procesos cuyo LABELID coincide con la app seleccionada
+          var aFilteredProcesos = (this._allProcesos || []).filter(function (proc) {
+            return proc.LABELID === sSelectedLabelId;
+          });
+          // Actualiza el modelo de procesos
+          var oProcessModel = this.getView().getModel("processes");
+          oProcessModel.setData({ value: aFilteredProcesos });
+          // Limpia la selección previa de proceso si es necesario
+          var oNewRoleModel = this.getView().getModel("newRoleModel");
+          if (oNewRoleModel) {
+            oNewRoleModel.setProperty("/NEW_PROCESSID", "");
+          }
+        },
+      }
+    );
+  }
+);

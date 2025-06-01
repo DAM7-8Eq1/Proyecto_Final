@@ -364,22 +364,28 @@ sap.ui.define(
             .then((data) => {
               MessageToast.show("Catálogo agregado exitosamente.");
 
+              // Agrega el nuevo catálogo al modelo local para evitar "Sin datos"
+              var oModel = oView.getModel();
+              var aData = oModel.getProperty("/value") || [];
+              aData.push(Object.assign({}, oCatalogData));
+              oModel.setProperty("/value", aData);
+
               // Limpiar formulario después de agregar
               oView.getModel("addCatalogModel").setData({
-            LABELID: "",
-            LABEL: "",
-            INDEX: "",
-            COLLECTION: "",
-            SECTION: "",
-            SEQUENCE: "",
-            IMAGE: "",
-            DESCRIPTION: "",
-            DETAIL_ROW: { ACTIVED: true },
+                LABELID: "",
+                LABEL: "",
+                INDEX: "",
+                COLLECTION: "",
+                SECTION: "",
+                SEQUENCE: "",
+                IMAGE: "",
+                DESCRIPTION: "",
+                DETAIL_ROW: { ACTIVED: true },
               });
 
               oDialog.close();
 
-              // Refrescar la tabla de catálogos automáticamente
+              // Refrescar la tabla de catálogos automáticamente desde el servidor
               this.loadCatalogs();
             })
             .catch((error) => {
@@ -436,6 +442,7 @@ sap.ui.define(
                 oModel.setProperty("/value", aData);
                 oModel.refresh(true);
               }
+              this.onSelectionChange({});
             })
             .catch((error) => {
               MessageBox.error("Error: " + error.message);
@@ -489,6 +496,7 @@ sap.ui.define(
                 oModel.setProperty("/value", aData);
                 oModel.refresh(true);
               }
+              this.onSelectionChange({});
             })
             .catch((error) => {
               MessageBox.error("Error: " + error.message);
@@ -640,6 +648,17 @@ sap.ui.define(
                         });
                         oModel.setProperty("/value", aData);
                         oModel.refresh(true);
+
+                        // Refrescar la tabla de values (vista lateral) si existe
+                        var oValuesView = that.byId("XMLViewValues");
+                        if (oValuesView) {
+                          oValuesView.loaded().then(function () {
+                            var oController = oValuesView.getController();
+                            if (oController && oController.loadValues) {
+                              oController.loadValues([]); // Limpia la tabla de values
+                            }
+                          });
+                        }
                       } catch (error) {
                         MessageBox.error("Error: " + error.message);
                       }
@@ -770,11 +789,19 @@ sap.ui.define(
                 (item) => item.LABELID === oPayload.LABELID
               );
               if (idx !== -1) {
-                aData[idx] = oPayload;
+                // Conserva el estado ACTIVED original
+                var actived =
+                  aData[idx].DETAIL_ROW && aData[idx].DETAIL_ROW.ACTIVED;
+                aData[idx] = Object.assign({}, oPayload, {
+                  DETAIL_ROW: { ACTIVED: actived },
+                });
                 oModel.setProperty("/value", aData);
                 oModel.refresh(true);
               }
               oDialog.close();
+
+              // Refrescar la tabla de catálogos desde el servidor
+              this.loadCatalogs();
             })
             .catch((error) => {
               MessageBox.error("Error: " + error.message);

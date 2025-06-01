@@ -18,59 +18,59 @@
         columnsM="1"
     >
       <f:content>
-        <m:Label text="Primer Nombre" />
+        <m:Label id="_IDGenLabel14" text="Primer Nombre" />
         <m:Input id="inputFirstName" value="{UserDialogModel>/FIRSTNAME}" />
 
-        <m:Label text="Apellidos" />
+        <m:Label id="_IDGenLabel24" text="Apellidos" />
         <m:Input id="inputLastName" value="{UserDialogModel>/LASTNAME}" />
 
-        <m:Label text="Alias" />
+        <m:Label id="_IDGenLabel36" text="Alias" />
         <m:Input id="inputAlias" value="{UserDialogModel>/ALIAS}" />
 
-        <m:Label text="Correo" />
+        <m:Label id="_IDGenLabel37" text="Correo" />
         <m:Input id="inputEmail" value="{UserDialogModel>/EMAIL}" type="Email" />
 
-        <m:Label text="Fecha de Nacimiento" />
+        <m:Label id="_IDGenLabel38" text="Fecha de Nacimiento" />
         <m:DatePicker 
             id="inputBirthday"
             value="{UserDialogModel>/BIRTHDAYDATE}" 
             displayFormat="yyyy-MM-dd" 
         />
 
-        <m:Label text="Departamento" />
+        <m:Label id="_IDGenLabel39" text="Departamento" />
         <m:Input id="inputDepartment" value="{UserDialogModel>/DEPARTMENT}" />
 
-        <m:Label text="Función" />
+        <m:Label id="_IDGenLabel40" text="Función" />
         <m:Input id="inputFunction" value="{UserDialogModel>/FUNCTION}" />
 
-        <m:Label text="Calle" />
+        <m:Label id="_IDGenLabel41" text="Calle" />
         <m:Input id="inputStreet" value="{UserDialogModel>/STREET}" />
 
-        <m:Label text="Ciudad" />
+        <m:Label id="_IDGenLabel42" text="Ciudad" />
         <m:Input id="inputCity" value="{UserDialogModel>/CITY}" />
 
-        <m:Label text="Estado" />
+        <m:Label id="_IDGenLabel51" text="Estado" />
         <m:Input id="inputState" value="{UserDialogModel>/STATE}" />
 
-        <m:Label text="Código Postal" />
+        <m:Label id="_IDGenLabel64" text="Código Postal" />
         <m:Input id="inputPostalCode" value="{UserDialogModel>/POSTALCODE}" />
 
-        <m:Label text="Teléfono" />
+        <m:Label id="_IDGenLabel65" text="Teléfono" />
         <m:Input id="inputPhoneNumber" value="{UserDialogModel>/PHONENUMBER}" type="Tel" />
 
-        <m:Label text="País" />
+        <m:Label id="_IDGenLabel66" text="País" />
         <m:Input id="inputCountry" value="{UserDialogModel>/COUNTRY}" />
 
-        <m:Label text="Roles del Usuario" />
+        <m:Label id="_IDGenLabel67" text="Roles del Usuario" />
         <m:Input id="inputRoles" value="{UserDialogModel>/ROLES}" />
       </f:content>
     </f:SimpleForm>
 
     <m:beginButton>
-      <m:Button text="Guardar" type="Emphasized" press=".onSaveUser"/>
+      <m:Button id="_IDGenButton29" text="Guardar" type="Emphasized" press=".onSaveUser"/>
     </m:beginButton>
     <m:endButton>
-      <m:Button text="Cancelar" press=".onCancelUser"/>
+      <m:Button id="_IDGenButton30" text="Cancelar" press=".onCancelUser"/>
     </m:endButton>
   </m:Dialog>
 </core:FragmentDefinition>

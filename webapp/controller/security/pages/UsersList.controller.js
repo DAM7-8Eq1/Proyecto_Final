@@ -25,6 +25,8 @@ sap.ui.define([
             // Carga los usuarios
             this.loadUsers();
             this.loadCompanies();
+            this.loadCedis();
+            this.loadDepartments();
             this.loadRoles();
         },
 
@@ -106,20 +108,48 @@ sap.ui.define([
         },
 
         onCompanySelected:function(oEvent){
+            var oView = this.getView();
             var oComboBox = oEvent.getSource();
             var sSelectedKey = oComboBox.getSelectedKey();
-            var sSelectedText = oComboBox.getSelectedItem().getText();
-            // Cargar los departamentos de la compañía seleccionada
-            this.loadDepartments(sSelectedKey);
-
+            var newCediisModel = new JSONModel()
+            // Cargar los cediis de la compañía seleccionada
+            //obtener el modelo de compañías
+            var oCediisModel = this.getView().getModel("cediisModel");
+            // Filtrar los cediis según la compañía seleccionada
+            
+            Fragment.byId(oView.getId(), "comboBoxCedis")?.setSelectedKey("");                
+            Fragment.byId(oView.getId(), "comboBoxDepartments")?.setSelectedKey("");
+            Fragment.byId(oView.getId(), "comboBoxCedisEdit")?.setSelectedKey("");                
+            Fragment.byId(oView.getId(), "comboBoxDepartmentsEdit")?.setSelectedKey("");
+            if (oCediisModel) {
+                var aCediis = oCediisModel.getProperty("/cediis") || [];
+                var aSecondParts = "";
+                for (var i = 0; i < aCediis.length; i++) {
+                    // Obtener el valor pagado de cada cediis
+                    var aCediisItem = aCediis[i];
+                    var sValuePaid = aCediisItem.VALUEPAID || "";
+                    // Verificar si el valor pagado contiene un guion medio
+                    aSecondParts = sValuePaid.split("-")[1];
+                    if (aSecondParts == sSelectedKey){
+                        //Si la compañía seleccionada es igual a la segunda parte del valor pagado, entonces cargar el modelo seleeciodo
+                        
+                        var aFilteredCediis = aCediis.filter(function(item) {
+                            var sValuePaid = item.VALUEPAID || "";
+                            var aSecondPart = sValuePaid.split("-")[1];
+                            return aSecondPart === sSelectedKey;
+                        });
+                        newCediisModel.setData({ cediis: aFilteredCediis });
+                        oView.setModel(newCediisModel, "newCediisModel");
+                    }
+                }
+            }
         },
-        
-        loadDepartments: function(LabelId) {
-             var oView = this.getView();
+        loadCedis: function() {
+            var oView = this.getView();
             // Datos estáticos para compañías y departamentos
-            var oDepartmentsModel = new JSONModel()
+            var oCediisModel = new JSONModel()
 
-            var sUrl = "http://localhost:3020/api/security/catalogsCompanie?labelid="+LabelId; 
+            var sUrl = "http://localhost:3020/api/security/catalogs?labelid=IdCEDII"; 
 
             fetch(sUrl, {
                 method: "GET",
@@ -135,7 +165,71 @@ sap.ui.define([
             })
             .then(function (data) {
                 // Asume que los roles vienen en data.value
-                oDepartmentsModel.setData(data.value[0]);
+                oCediisModel.setData({ cediis: data.value[0].VALUES });
+                oView.setModel(oCediisModel, "cediisModel");
+            })
+            .catch(function (error) {
+                MessageToast.show("Error: " + error.message);
+            });
+        }, 
+
+        onCediiSelected:function(oEvent){
+            var oView = this.getView();
+            var oComboBox = oEvent.getSource();
+            var sSelectedKey = oComboBox.getSelectedKey();
+            // Crear un nuevo modelo para los departamentos filtrados
+            var newDepartmentModel = new JSONModel()
+            // Cargar los departamentos del CEDII seleccionado
+            //obtener el modelo de departamentos
+            var oDepartmetModel = this.getView().getModel("departmentModel");
+            Fragment.byId(oView.getId(), "comboBoxDepartments")?.setSelectedKey("");
+            // Filtrar los departamentos según el Cedii seleccionado
+            if (oDepartmetModel) {
+                var aDepartments = oDepartmetModel.getProperty("/departments") || [];
+                var aSecondParts = "";
+                for (var i = 0; i < aDepartments.length; i++) {
+                    // Obtener el valor pagado de cada departemneto
+                    var aDepartmentItem = aDepartments[i];
+                    var sValuePaid = aDepartmentItem.VALUEPAID || "";
+                    // Verificar si el valor pagado contiene un guion medio
+                    aSecondParts = sValuePaid.split("-")[1];
+                    if (aSecondParts == sSelectedKey){
+                        //Si la compañía seleccionada es igual a la segunda parte del valor pagado, entonces cargar el modelo seleeciodo
+                        
+                        var aFilteredDepartment = aDepartments.filter(function(item) {
+                            var sValuePaid = item.VALUEPAID || "";
+                            var aSecondPart = sValuePaid.split("-")[1];
+                            return aSecondPart === sSelectedKey;
+                        });
+                        newDepartmentModel.setData({ departments: aFilteredDepartment });
+                        oView.setModel(newDepartmentModel, "newDepartmentModel");
+                    }
+                }
+            }
+        },
+
+        loadDepartments: function() {
+                 var oView = this.getView();
+            // Datos estáticos para compañías y departamentos
+            var oDepartmentsModel = new JSONModel()
+
+            var sUrl = "http://localhost:3020/api/security/catalogs?labelid=IdDepartment"; 
+
+            fetch(sUrl, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error("Error al obtener las compañías");
+                }
+                return response.json();
+            })
+            .then(function (data) {
+                // Asume que los roles vienen en data.value
+                oDepartmentsModel.setData({ departments: data.value[0].VALUES });
                 oView.setModel(oDepartmentsModel, "departmentModel");
             })
             .catch(function (error) {
@@ -293,7 +387,7 @@ sap.ui.define([
                 return { ROLEID: oHBox.data("roleId") };
             });
 
-            var sDepartment = Fragment.byId(sFragmentId, "comboBoxCedis")?.getSelectedItem()?.getText();
+            var sDepartment = Fragment.byId(sFragmentId, "comboBoxDepartments")?.getSelectedItem()?.getText();
             // Construir el objeto usuario
 
             var oUserData = {
@@ -305,7 +399,7 @@ sap.ui.define([
                 LASTNAME: sLastName,
                 BIRTHDAYDATE: oBirthdayDate ? oBirthdayDate.toISOString().split("T")[0] : null,
                 AVATAR: sAvatar,
-                COMPANYID: "1",
+                COMPANYID: sCompanyId,
                 COMPANYNAME: sCompanyName ,
                 COMPANYALIAS: "EMP",
                 CEDIID: sCediId,
@@ -388,7 +482,8 @@ sap.ui.define([
                 Fragment.byId(sFragmentId, "inputUserBirthdayDate")?.setDateValue(null);
                 Fragment.byId(sFragmentId, "inputUserAvatar")?.setValue("");
                 Fragment.byId(sFragmentId, "comboBoxCompanies")?.setSelectedKey("");
-                Fragment.byId(sFragmentId, "comboBoxCedis")?.setSelectedKey("");
+                Fragment.byId(sFragmentId, "comboBoxCedis")?.setSelectedKey("");                
+                Fragment.byId(sFragmentId, "comboBoxDepartments")?.setSelectedKey("");
                 Fragment.byId(sFragmentId, "comboBoxRoles")?.setSelectedKey("");
                 Fragment.byId(sFragmentId, "inputUserFunction")?.setValue("");
                 Fragment.byId(sFragmentId, "inputUserStreetUser")?.setValue("");
@@ -428,6 +523,7 @@ sap.ui.define([
                 Fragment.byId(sFragmentId, "inputUserBirthdayDate")?.setDateValue(null);
                 Fragment.byId(sFragmentId, "inputUserAvatar")?.setValue("");
                 Fragment.byId(sFragmentId, "comboBoxCompanies")?.setSelectedKey("");
+                Fragment.byId(sFragmentId, "comboBoxDepartments")?.setSelectedKey("");
                 Fragment.byId(sFragmentId, "comboBoxCedis")?.setSelectedKey("");
                 Fragment.byId(sFragmentId, "comboBoxRoles")?.setSelectedKey("");
                 Fragment.byId(sFragmentId, "inputUserFunction")?.setValue("");
@@ -514,7 +610,7 @@ sap.ui.define([
             }
 
 
-            var sDepartment = Fragment.byId(sFragmentId, "comboBoxCedisEdit")?.getSelectedItem()?.getText();
+            var sDepartment = Fragment.byId(sFragmentId, "comboBoxDepartmentsEdit")?.getSelectedItem()?.getText();
 
             // Construir el objeto usuario
             var oUserData = {
@@ -554,12 +650,13 @@ sap.ui.define([
             var oAppViewModel = this.getOwnerComponent().getModel("appView");
             var sUserIDGlobal = oAppViewModel.getProperty("/currentUser/USERID");
             // Llamada a la API para actualizar el usuario
-            fetch("http://localhost:3020/api/security/updateuser?userid=" + sUserId+"&&usermod="+sUserIDGlobal, {
+            fetch("http://localhost:3020/api/security/updateuser?userid=" +  this.uid+"&&usermod="+sUserIDGlobal, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ user: oUserData })
             })
             .then(response => {
+                console.log(response);
                 if (!response.ok) throw new Error("Error al modificar usuario");
                 return response.json();
             })
@@ -570,8 +667,9 @@ sap.ui.define([
                 var oTable = this.byId("IdTable1SecurityTable");
                 var oModel = oTable.getModel();
                 var aUsers = oModel.getProperty("/value") || [];
-       
-                var idx = aUsers.findIndex(u => u.USERID === sUserId);
+                
+                console.log(aUsers.findIndex(u => u.USERID)+this.uid);
+                var idx = aUsers.findIndex(u => u.USERID === this.uid);
                 if (idx !== -1) {
                     oUserData.DETAIL_ROW = oUserData.DETAIL_ROW || {};
                     oUserData.DETAIL_ROW.ACTIVED = aUsers[idx].DETAIL_ROW ? aUsers[idx].DETAIL_ROW.ACTIVED : true;
@@ -608,6 +706,7 @@ sap.ui.define([
             Fragment.byId(sFragmentId, "inputEditBirthdayDate")?.setDateValue(user.BIRTHDAYDATE ? new Date(user.BIRTHDAYDATE) : null);
             Fragment.byId(sFragmentId, "inputEditAvatar")?.setValue(user.AVATAR || "");
             Fragment.byId(sFragmentId, "comboBoxCompaniesEdit")?.setSelectedKey(user.COMPANYID || "");
+            Fragment.byId(sFragmentId, "comboBoxDepartmentsEdit")?.setSelectedKey(user.DEPARTMENT || "");
             Fragment.byId(sFragmentId, "comboBoxCedisEdit")?.setSelectedKey(user.CEDIID  || "");
             Fragment.byId(sFragmentId, "inputEditFunction")?.setValue(user.FUNCTION || "");
             Fragment.byId(sFragmentId, "inputEditStreetUser")?.setValue(user.STREET || "");
@@ -903,6 +1002,49 @@ sap.ui.define([
 
             oModel.setProperty("/filtered", aFiltered);
             oTable.bindRows("/filtered");
+        },
+
+        onCompniesSelected: function(oEvent) {
+            var oSelectedItem = oEvent.getParameter("selectedItem");
+            if (oSelectedItem) {
+                var sCediId = oSelectedItem.getKey();
+                this.showCediis(sCediId);
+            } else {
+                // Si no hay selección, limpiar el ComboBox de CEDIS
+                var oComboBoxCedis = this.byId("comboBoxCedis");
+                oComboBoxCedis.setSelectedKey("");
+                oComboBoxCedis.removeAllItems();
+            }
+        },
+        showCediis: function(sCompanyId) {
+          var oComboBoxCedis = this.byId("comboBoxCedis");
+          
+            
+        },
+        onPhoneLiveChange: function(oEvent) {
+            var oInput = oEvent.getSource();
+            var sValue = oInput.getValue().replace(/\D/g, ""); // Solo números
+
+            // Aplica la máscara 111-111-1111
+            if (sValue.length > 3 && sValue.length <= 6) {
+                sValue = sValue.replace(/(\d{3})(\d+)/, "$1-$2");
+            } else if (sValue.length > 6) {
+                sValue = sValue.replace(/(\d{3})(\d{3})(\d+)/, "$1-$2-$3");
+                sValue = sValue.substring(0, 12); // Limita a 12 caracteres (incluyendo guiones)
+            }
+            oInput.setValue(sValue);
+        },
+        onEmailLiveChange: function(oEvent) {
+            var oInput = oEvent.getSource();
+            var sValue = oInput.getValue();
+            // Expresión regular básica para validar correo tipo datos@datos.com
+            var bValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sValue);
+            if (!bValid && sValue.length > 0) {
+                oInput.setValueState("Error");
+                oInput.setValueStateText("Formato de correo inválido. Ejemplo: datos@datos.com");
+            } else {
+                oInput.setValueState("None");
+            }
         },
 
     });
